@@ -2,17 +2,20 @@
 # -*- coding: utf-8 -*-
 
 from flask import Flask
-from kernel import Kernel
-from gkernel import GKernel
 from flask import request
 import json
+
+from kernel import Kernel
+from gkernel import GKernel
+from sequence_classifier import SeqClassifier
+
 import sys
 reload(sys)
 sys.setdefaultencoding("utf-8")
 
 app = Flask(__name__)
 
-kernel = GKernel("../model/graph.pkl")
+kernel = GKernel("../model/graph.pkl", "../model/seq_clf.pkl")
 
 @app.route("/bot",methods=['GET', 'POST'])
 def query():
@@ -32,12 +35,22 @@ def chat():
 
 @app.route("/walk",methods=['GET', 'POST'])
 def r_walk_with_pointer():
-    args = request.args
-    q = args['q']
-    s = args['s']
-    print q, s
-    slot, r = kernel.r_walk_with_pointer(q, s.encode('utf8'))
-    result = {"answer":r, "slot":slot}
+    msg = "normal"
+    try:
+        args = request.args
+        q = args['q']
+        try:
+            s = args['s']
+            slot, r = kernel.r_walk_with_pointer_with_clf(q, s.encode('utf8'))
+        except Exception, e:
+            slot, r = kernel.r_walk_with_pointer_with_clf(q, None)
+    except Exception, e:
+        kernel.clear_state()
+        slot = None
+        r = None
+        msg = e.message
+
+    result = {"answer":r, "slot":slot, "msg":msg}
     return json.dumps(result, ensure_ascii=False)
 
 @app.route("/clear",methods=['GET', 'POST'])
@@ -46,4 +59,4 @@ def clear():
     return "state cleared"
 
 if __name__ == "__main__":
-    app.run(port=11303, threaded=True)
+    app.run(host='0.0.0.0', port=11303, threaded=True)

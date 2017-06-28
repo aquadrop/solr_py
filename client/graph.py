@@ -7,7 +7,7 @@ import _uniout
 class Graph(Node, object):
 
     def __init__(self):
-        super(Graph, self).__init__(slot="#ROOT#")
+        super(Graph, self).__init__(slot="ROOT")
         ## all_nodes keyed as slots' names
         self.all_nodes = {}
         self.value_type = "KEY"
