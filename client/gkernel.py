@@ -268,18 +268,18 @@ class GKernel:
             try:
                 slot, proba = self.gbdt.predict(parent_slot=node.slot, input_=query)
                 next_node = self.graph.get_global_node(slot=slot)
-                key_found = next_node is not None
+                key_found = next_node is not None and proba > 0.85
                 if key_found:
-                    print('found type by gbdt:', cn_util.cn(slot))
+                    print('found type by gbdt:', cn_util.cn(slot), proba)
                     self.last_slot = node.slot
                 else:
-                    print('NOT found type by gbdt:', cn_util.cn(slot))
+                    print('NOT found type by gbdt:', cn_util.cn(slot), proba)
             except Exception,e:
                 print(e.message)
                 key_found = False
 
         ## last try of KEY
-        if not key_found and not key_found:
+        if not key_found and not num_found and "KEY" in value_types:
             for t in tokens:
                 try:
                     ss = t.split("/")
@@ -306,22 +306,30 @@ class GKernel:
         else:
             try:
                 tokens.remove(key)
+                word = key.split("/")[0]
+                query = query.replace(word, "")
+                if len(tokens) or query == '':
+                    return node
             except:
                 pass
             finally:
                 print key, next_node.slot, node.slot
                 # return self.travel_with_clf(tokens, next_node, query)
                 if num_found:
-                    return self.travel_with_clf(tokens, next_node, query, True)
+                    # return self.travel(tokens, next_node)
+                    return self.travel_with_clf(tokens=tokens, node=next_node, query=query, gbdt_recursion=True)
                 else:
+                    # return self.travel(tokens=tokens, node=next_node)
                     return self.travel_with_clf(tokens=tokens, node=next_node, query=query, gbdt_recursion=not gbdt_recursion)
-
     def r_walk_with_pointer_with_clf(self, query, given_slot=None):
         r = None
         response = None
         if self.state_cleared:
-
-            url = self.base_url + "&q=exact_question:" + query
+            if given_slot:
+                self.should_clear_state(self.last_slot)
+                url = self.base_url + "&q=exact_question:" + query + "%20AND%20exact_intention:" + given_slot
+            else:
+                url = self.base_url + "&q=exact_question:" + query
             print url
             r = requests.get(url)
 
@@ -340,7 +348,7 @@ class GKernel:
                     ## do trick
                     self.clear_state()
                     return None, self.trick(query)
-                if  not given_slot and given_slot is not None and given_slot is not '':
+                if given_slot:
                     print 'given:', given_slot
                     given = self.graph.get_global_node(given_slot)
                 else:
@@ -363,7 +371,7 @@ class GKernel:
                     return None, self.trick(query)
 
         else:
-            if  not given_slot and given_slot is not None and given_slot is not '':
+            if given_slot:
                 self.last_slot = given_slot
             else:
                 if not self.last_slot:

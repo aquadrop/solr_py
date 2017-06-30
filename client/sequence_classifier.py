@@ -27,6 +27,7 @@ import tensorflow as tf
 import inspect
 import jieba
 import _uniout
+import cn_util
 from sklearn.ensemble import GradientBoostingClassifier
 from sklearn.feature_extraction.text import CountVectorizer
 
@@ -194,6 +195,7 @@ class SeqClassifier:
             for cls, num in self.classes[parent_slot].iteritems():
                 return cls, 1.0
         tokens = [self.cut(input_)]
+        print('jieba_cut:', _uniout.unescape(str(tokens), 'utf8'))
         embeddings = np.reshape(self.bigramer.transform(tokens).toarray()[0],[1,-1])
         clf = self.classifiers[parent_slot]
         class_ = clf.predict(embeddings)
@@ -226,18 +228,20 @@ class SeqClassifier:
 
 
 if __name__ == "__main__":
-    clf = SeqClassifier("../data/train_pruned.txt")
-    clf.build()
-    clf.train_classifier()
-    with open("../model/seq_clf.pkl", 'wb') as pickle_file:
-        pickle.dump(clf, pickle_file, pickle.HIGHEST_PROTOCOL)
+    # clf = SeqClassifier("../data/train_pruned.txt")
+    # clf.build()
+    # clf.train_classifier()
+    # with open("../model/seq_clf.pkl", 'wb') as pickle_file:
+    #     pickle.dump(clf, pickle_file, pickle.HIGHEST_PROTOCOL)
 
     with open("../model/seq_clf.pkl", "rb") as input_file:
         _clf = pickle.load(input_file)
-        # input_ = '办卡'
-        # print(_clf.predict('ROOT', input_))
+        input_ = '取'
+        print(cn_util.cn(_clf.predict('取款两万以下', input_)))
+        input_ = '取两百不用银行卡'
+        print(cn_util.cn(_clf.predict('ROOT', input_)))
 
-        _clf.test("../data/train_pruned.txt")
+        # _clf.test("../data/train_pruned.txt")
 
         # print("self.classes:", _uniout.unescape(str(self.classes), 'utf-8'))
         # print('************************************************************')
