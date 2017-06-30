@@ -308,11 +308,11 @@ class GKernel:
                 tokens.remove(key)
                 word = key.split("/")[0]
                 query = query.replace(word, "")
-                if len(tokens) or query == '':
-                    return node
             except:
                 pass
             finally:
+                if len(tokens) == 0 or query == '':
+                    return next_node
                 print key, next_node.slot, node.slot
                 # return self.travel_with_clf(tokens, next_node, query)
                 if num_found:
@@ -321,6 +321,7 @@ class GKernel:
                 else:
                     # return self.travel(tokens=tokens, node=next_node)
                     return self.travel_with_clf(tokens=tokens, node=next_node, query=query, gbdt_recursion=not gbdt_recursion)
+
     def r_walk_with_pointer_with_clf(self, query, given_slot=None):
         r = None
         response = None
