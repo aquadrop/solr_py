@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
+import _uniout
 
 chs_arabic_map = {u'零': 0, u'一': 1, u'二': 2, u'三': 3, u'四': 4,
                   u'五': 5, u'六': 6, u'七': 7, u'八': 8, u'九': 9,
@@ -10,16 +10,58 @@ chs_arabic_map = {u'零': 0, u'一': 1, u'二': 2, u'三': 3, u'四': 4,
                   u'拾': 10, u'佰': 100, u'仟': 10000, u'萬': 10000,
                   u'亿': 100000000, u'億': 100000000, u'幺': 1,
                   u'０': 0, u'１': 1, u'２': 2, u'３': 3, u'４': 4,
-                  u'５': 5, u'６': 6, u'７': 7, u'８': 8, u'９': 9, u'两':2}
+                  u'５': 5, u'６': 6, u'７': 7, u'８': 8, u'９': 9, u'两': 2}
+
+digit_list = [u'零', u'一', u'二', u'三', u'四',
+              u'五', u'六', u'七', u'八', u'九',
+              u'十', u'百', u'千', u'万',
+              u'〇', u'壹', u'贰', u'叁', u'肆',
+              u'伍', u'陆', u'柒', u'捌', u'玖',
+              u'拾', u'佰', u'仟', u'萬',
+              u'亿', u'億', u'幺', u'两']
 
 
-def cn2arab(chinese_digits, encoding="utf-8"):
+def cn2arab(chinese_digits):
+    if len(chinese_digits) == 0:
+        return False, ''
+
+    chinese_digits = chinese_digits.decode("utf-8")
+
+    prefix = []
+    digit = []
+    suffix = []
+    pre_flag = False
+    dig_flag = False
+    for char in chinese_digits:
+        if char not in digit_list and not pre_flag:
+            prefix.append(char)
+        elif char in digit_list and not dig_flag:
+            digit.append(char)
+            pre_flag = True
+        else:
+            dig_flag = True
+            suffix.append(char)
+
+    if len(digit) == 0:
+        return False, ''.join(prefix)
+
+    # print 'prefix', _uniout.unescape(str(prefix), 'utf-8')
+    # print 'digit', _uniout.unescape(str(digit), 'utf-8')
+    # print 'suffix', _uniout.unescape(str(suffix), 'utf-8')
+
+    suffix = ''.join(suffix).encode('utf-8')
+
+    transferred, suffix = cn2arab(suffix)
+    return transferred or pre_flag, ''.join(prefix) + str(cn2arab_core(''.join(digit))) + suffix
+
+
+def cn2arab_core(chinese_digits, encoding="utf-8"):
+
     if isinstance(chinese_digits, str):
         chinese_digits = chinese_digits.decode(encoding)
 
     if chinese_digits.isdigit():
         return float(chinese_digits)
-
 
     result = 0
     tmp = 0
@@ -56,5 +98,5 @@ def cn2arab(chinese_digits, encoding="utf-8"):
     return result
 
 if __name__ == '__main__':
-    while True:
-        print cn2arab(raw_input())
+    s = '不少'
+    print cn2arab(s)[1]
