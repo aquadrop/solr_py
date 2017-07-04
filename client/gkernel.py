@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+
 import requests
 import json
 import re
@@ -14,6 +15,7 @@ import cn2arab
 from graph import Graph
 from node import Node
 from sequence_classifier import SeqClassifier
+from query_util import QueryUtils
 
 class GKernel:
 
@@ -24,6 +26,8 @@ class GKernel:
         self.state_cleared = True
         self._load_graph(graph_path)
         self._load_clf(clf_path)
+
+        self.qu = QueryUtils()
 
     last_slot = None
 
@@ -52,216 +56,41 @@ class GKernel:
     def num_answer(self, r):
         return int(r.json()["response"]["numFound"])
 
-    ## tokens: set
-    def travel(self, tokens, node):
-        key = None ## word/tag
-        next_node = None
-        key_found = False
-        num_found = False
-        for t in tokens:
-            try:
-                ss = t.split("/")
-                word = ss[0]
-                tag = ss[1]
-                value_types = node.value_types
-                if "KEY" in value_types and tag != "CD":
-                    try:
-                        next_node = node.go(q=word, value_type="KEY")
-                        key_found = next_node is not None
-                        if key_found:
-                            self.last_slot = node.slot
-                            key = word + "/" + tag
-                            break
-                    except:
-                        key_found = False
-                if "RANGE" in value_types and tag == "CD":
-                    try:
-                        _word = cn2arab.cn2arab(word)
-                        next_node = node.go(q=float(_word), value_type="RANGE")
-                        num_found = next_node is not None
-                        if num_found:
-                            self.last_slot = node.slot
-                            key = word + "/" + tag
-                            break
-                    except:
-                        num_found = False
-            except:
-                return node
-        if not key_found and not num_found:
-            ## last try solr:
-
-            return node
-        else:
-            tokens.remove(key)
-            print key, next_node.slot, node.slot
-            return self.travel(tokens, next_node)
-
-    def r_walk_with_pointer(self, query, given_slot=None):
-        r = None
-        response = None
-        if self.state_cleared:
-
-            url = self.base_url + "&q=exact_question:" + query
-            print url
-            r = requests.get(url)
-
-            if self.num_answer(r) > 0:
-                self.state_cleared = False
-                self.last_slot = self.get_intention(r)
-                self.should_clear_state(self.last_slot)
-                return_slot = self.last_slot
-                return_response = self.get_response(r)
-                print 'clear exact_', return_slot, self.get_response(r)
-                return return_slot, return_response
-            else:
-                tokenized = self.tokenize(query)
-                tokens = tokenized.split(" ")
-                print tokens, tokenized
-                if not tokenized:
-                    ## do trick
-                    self.clear_state()
-                    # url = self.concat_solr_request(query=query, base_url=self.trick_url)
-                    # r = requests.get(url)
-                    # response = self.get_response(r)
-                    # self.clear_state()
-                    # print 'clear non exact_', self.get_intention(r), self.get_response(r)
-                    # return self.get_intention(r), response
-                    return None, self.trick(query)
-                if  not given_slot and given_slot is not None and given_slot is not '':
-                    print 'given:', given_slot
-                    given = self.graph.get_global_node(given_slot)
-                else:
-                    given = self.graph
-                node = self.travel(tokens, given)
-                self.state_cleared = False
-                if node != given:
-                    if self.last_slot == given.slot:
-                        url = self.base_url + "&q=exact_intention:" + node.slot
-                    else:
-                        url = self.base_url + "&q=exact_last_intention:" + self.last_slot + "%20AND%20exact_intention:" + node.slot
-                    print "1",url
-                    r = requests.get(url)
-                    if self.num_answer(r) > 0:
-                        self.last_slot = node.slot
-                        self.should_clear_state(node.slot)
-                        print 'clear deepest_', node.slot, self.get_response(r)
-                        return node.slot, self.get_response(r)
-                else:
-                    return None, self.trick(query)
-
-        else:
-            if  not given_slot and given_slot is not None and given_slot is not '':
-                self.last_slot = given_slot
-            else:
-                if not self.last_slot:
-                    self.clear_state()
-                    print 'restart'
-                    slot, response = self.r_walk_with_pointer(query)
-                    return slot, response
-            url = self.base_url + "&q=exact_question:" + query + "%20AND%20exact_last_intention:" + self.last_slot
-            print url
-            r = requests.get(url)
-
-            if self.num_answer(r) > 0:
-                self.state_cleared = False
-                self.last_slot = slot_ = self.get_intention(r)
-                self.should_clear_state(self.last_slot)
-                print 'non clear exact_', slot_, self.get_response(r)
-                return slot_, self.get_response(r)
-            else:
-                ## first try fuzzy query
-                cleansed = self.cleanse(query)
-                url = self.base_url + "&q=question:" + cleansed + "%20AND%20exact_last_intention:" + self.last_slot
-                print "fuzzy2:", url
-                if not cleansed:
-                    self.clear_state()
-                    return self.r_walk_with_pointer(query)
-                r = requests.get(url)
-                if self.num_answer(r) > 0:
-                    self.state_cleared = False
-                    self.last_slot = slot_ = self.get_intention(r)
-                    self.should_clear_state(self.last_slot)
-
-                    return slot_, self.get_response(r)
-
-                node = self.graph.all_nodes[self.last_slot]
-                next_node = None
-                tks = self.tokenize(query)
-                if not tks:
-                    self.clear_state()
-                    return self.r_walk_with_pointer(query)
-                tokens = tks.split(" ")
-                _tokens = set()
-                for t in tokens:
-                    _tokens.add(t)
-                # key_found = False
-                # num_found = False
-                # for t in tokens:
-                #     ss = t.split("/")
-                #     word = ss[0]
-                #     tag = ss[1]
-                #     value_types = node.value_types
-                #     if "KEY" in value_types and tag != "CD":
-                #         next_node = node.go(q=word, value_type="KEY")
-                #         key_found = next_node is not None
-                #     if "RANGE" in value_types and tag == "CD":
-                #         next_node = node.go(q=float(word), value_type="RANGE")
-                #         num_found = next_node is not None
-                next_node = self.travel(_tokens, node)
-                if next_node == node:
-                    ## query solr
-                    self.clear_state()
-                    return self.r_walk_with_pointer(query)
-                else:
-                    url = self.base_url + "&q=last_intention:" + self.last_slot + "%20AND%20intention:" + next_node.slot
-                    print url
-                    r = requests.get(url)
-
-                if self.num_answer(r) > 0:
-                    response = self.get_response(r)
-                    slot_ = self.get_intention(r)
-                    self.last_slot = slot_
-                    print type(slot_)
-                    cn_util.print_cn(slot_)
-                    self.state_cleared = False
-                    ## but
-                    # cn_util.print_cn(str(self.graph.get_global_node(slot).classified_out_neighbors))
-                    self.should_clear_state(slot_)
-                    print 'non clear deepest _', slot_, self.get_response(r)
-                    return slot_, self.get_response(r)
-                else:
-                    ## do trick
-                    self.clear_state()
-                    url = self.concat_solr_request(query=query, base_url=self.trick_url)
-                    r = requests.get(url)
-                    response = self.get_response(r)
-                    print "None-CLEAR-Trick", self.get_response(r)
-                    return None, response
-
-                    ## tokens: set
-
-    def travel_with_clf(self, tokens, node, query, gbdt_recursion = True):
+    def travel_with_clf(self, node, tokens, gbdt_recursion = True):
         key = None  ## word/tag
         next_node = None
         key_found = False
         num_found = False
         value_types = node.value_types
+        query = ''.join(tokens)
         if "RANGE" in value_types:
+            try:
+                slot, proba = self.gbdt.predict(parent_slot=node.slot, input_=query)
+                next_node = self.graph.get_global_node(slot=slot)
+                num_found = next_node is not None and proba > 0.85
+                if key_found:
+                    print('found type by gbdt_range:', cn_util.cn(slot), proba)
+                    self.last_slot = node.slot
+                else:
+                    print('NOT found type by gbdt_range:', cn_util.cn(slot), proba)
+            except Exception,e:
+                print(e.message)
+                num_found = False
+
+        ## last try of RANGE
+        if not num_found and "RANGE" in value_types:
             for t in tokens:
-                ss = t.split("/")
-                word = ss[0]
-                tag = ss[1]
-                if tag == "CD":
+                if t.isdigit():
                     try:
-                        _word = cn2arab.cn2arab(word)
-                        next_node = node.go(q=float(_word), value_type="RANGE")
+                        next_node = node.go(q=float(t), value_type="RANGE")
                         num_found = next_node is not None
                         if num_found:
                             print('found type by RANGE:', next_node.slot)
                             self.last_slot = node.slot
-                            key = word + "/" + tag
+                            key = t
                             break
-                    except:
+                    except Exception,e:
+                        print(e.message)
                         num_found = False
 
         if not key_found and "KEY" in value_types and gbdt_recursion:
@@ -282,18 +111,15 @@ class GKernel:
         if not key_found and not num_found and "KEY" in value_types:
             for t in tokens:
                 try:
-                    ss = t.split("/")
-                    word = ss[0]
-                    tag = ss[1]
                     value_types = node.value_types
-                    if "KEY" in value_types and tag != "CD":
+                    if "KEY" in value_types and not t.isdigit():
                         try:
-                            next_node = node.go(q=word, value_type="KEY")
+                            next_node = node.go(q=t, value_type="KEY")
                             key_found = next_node is not None
                             if key_found:
                                 print('found type by match:', next_node.slot)
                                 self.last_slot = node.slot
-                                key = word + "/" + tag
+                                key = t
                                 break
                         except:
                             pass
@@ -306,8 +132,6 @@ class GKernel:
         else:
             try:
                 tokens.remove(key)
-                word = key.split("/")[0]
-                query = query.replace(word, "")
             except:
                 pass
             finally:
@@ -317,10 +141,10 @@ class GKernel:
                 # return self.travel_with_clf(tokens, next_node, query)
                 if num_found:
                     # return self.travel(tokens, next_node)
-                    return self.travel_with_clf(tokens=tokens, node=next_node, query=query, gbdt_recursion=True)
+                    return self.travel_with_clf(tokens=tokens, node=next_node, gbdt_recursion=True)
                 else:
                     # return self.travel(tokens=tokens, node=next_node)
-                    return self.travel_with_clf(tokens=tokens, node=next_node, query=query, gbdt_recursion=not gbdt_recursion)
+                    return self.travel_with_clf(tokens=tokens, node=next_node, gbdt_recursion=not gbdt_recursion)
 
     def r_walk_with_pointer_with_clf(self, query, given_slot=None):
         r = None
@@ -331,7 +155,7 @@ class GKernel:
                 url = self.base_url + "&q=exact_question:" + query + "%20AND%20exact_intention:" + given_slot
             else:
                 url = self.base_url + "&q=exact_question:" + query
-            print url
+            print('extact_try_url', url)
             r = requests.get(url)
 
             if self.num_answer(r) > 0:
@@ -339,13 +163,11 @@ class GKernel:
                 return_slot = self.last_slot = self.get_intention(r)
                 self.should_clear_state(self.last_slot)
                 return_response = self.get_response(r)
-                print 'clear exact_', return_slot, self.get_response(r)
+                print('clear exact_', return_slot, self.get_response(r))
                 return return_slot, return_response
             else:
-                tokenized = self.tokenize(query)
-                tokens = tokenized.split(" ")
-                print tokens, tokenized
-                if not tokenized:
+                tokenized = self.qu.corenlp_cut(query, self.qu.remove_tags)
+                if len(tokenized) == 0:
                     ## do trick
                     self.clear_state()
                     return None, self.trick(query)
@@ -354,14 +176,15 @@ class GKernel:
                     given = self.graph.get_global_node(given_slot)
                 else:
                     given = self.graph
-                node = self.travel_with_clf(tokens, given, query)
+                fixed_query_tokens = self.qu.quant_bucket_fix(query)
+                node = self.travel_with_clf(given, fixed_query_tokens)
                 self.state_cleared = False
                 if node != given:
                     if self.last_slot == given.slot:
                         url = self.base_url + "&q=exact_intention:" + node.slot
                     else:
                         url = self.base_url + "&q=exact_last_intention:" + self.last_slot + "%20AND%20exact_intention:" + node.slot
-                    print "1",url
+                    print("gbdt_result_url",url)
                     r = requests.get(url)
                     if self.num_answer(r) > 0:
                         self.last_slot = node.slot
@@ -381,35 +204,32 @@ class GKernel:
                     slot, response = self.r_walk_with_pointer_with_clf(query)
                     return slot, response
             url = self.base_url + "&q=exact_question:" + query + "%20AND%20exact_last_intention:" + self.last_slot
-            print url
+            print('non_clear_url_first_try', url)
             r = requests.get(url)
 
             if self.num_answer(r) > 0:
                 self.state_cleared = False
                 self.last_slot = slot_ = self.get_intention(r)
                 self.should_clear_state(self.last_slot)
-                print 'non clear exact_', slot_, self.get_response(r)
+                print('non clear exact_', slot_, self.get_response(r))
                 return slot_, self.get_response(r)
             else:
 
                 node = self.graph.all_nodes[self.last_slot]
                 next_node = None
-                tks = self.tokenize(query)
-                if not tks:
+                tks = self.qu.corenlp_cut(query)
+                if len(tks) == 0:
                     self.clear_state()
                     return self.r_walk_with_pointer_with_clf(query)
-                tokens = tks.split(" ")
-                _tokens = set()
-                for t in tokens:
-                    _tokens.add(t)
-                next_node = self.travel_with_clf(_tokens, node, query)
+                fixed_query_tokens = self.qu.quant_bucket_fix(query)
+                next_node = self.travel_with_clf(node, fixed_query_tokens)
                 if next_node == node:
                     ## query solr
                     self.clear_state()
                     return self.r_walk_with_pointer_with_clf(query)
                 else:
                     url = self.base_url + "&q=last_intention:" + self.last_slot + "%20AND%20intention:" + next_node.slot
-                    print url
+                    print("non_clear_go_deeper_url:", url)
                     r = requests.get(url)
 
                 if self.num_answer(r) > 0:
@@ -420,7 +240,7 @@ class GKernel:
                     ## but
                     cn_util.print_cn(str(self.graph.get_global_node(slot_).classified_out_neighbors))
                     self.should_clear_state(slot_)
-                    print 'non clear deepest _', slot_, self.get_response(r)
+                    print('non clear deepest _', slot_, self.get_response(r))
                     return slot_, self.get_response(r)
                 else:
                     ## do trick
@@ -508,64 +328,10 @@ class GKernel:
 
         return url
 
-    def cut(self, input_):
-        # return self.tokenize(input_)
-        return self.jieba_cut(input_)
-        # return self.stanford_web_cut(input_)
-
-    remove_tags = ["PN", "VA", "AD"]
-    tokenizer_url = "http://localhost:11415/pos?q="
-    def stanford_web_cut(self, q):
-        r = requests.get(url=self.tokenizer_url + q)
-        ## purify
-        text = []
-        for t in r.text.encode("utf-8").split(" "):
-            tag = t.split("/")[1]
-            word = t.split("/")[0]
-            if not tag in self.remove_tags:
-                text.append(word)
-        return "#".join(text)
-
-    def jieba_cut(self, input_):
-        seg = "#".join(jieba.cut(input_, cut_all=False))
-        tokens = _uniout.unescape(str(seg), 'utf8')
-        return tokens
-
-    remove_tags = ["PN","VA","AD"]
-    def tokenize(self, q):
-        r = requests.get(url=self.tokenizer_url+q)
-        ## purify
-        text = ""
-        for t in r.text.encode("utf-8").split(" "):
-            tag = t.split("/")[1]
-            if not tag in self.remove_tags:
-                text = text + " " + t
-        text = text.strip()
-        return text
-
-    def cleanse(self, q):
-        r = requests.get(url=self.tokenizer_url + q)
-        ## purify
-        text = ""
-        for t in r.text.encode("utf-8").split(" "):
-            tag = t.split("/")[1]
-            if not tag in self.remove_tags:
-                text = text + " " + t
-        text = text.strip()
-        return text
-
-    def pure_tokenize(self, q):
-        tokens = self.tokenize(q).split(" ")
-        new_tokens = tokens[0].split("/")[0]
-        for i in xrange(1, len(tokens)):
-            new_tokens = new_tokens + " " + tokens[i].split("/")[0]
-        return new_tokens
-
 if __name__ == "__main__":
     K = GKernel("../model/graph.pkl", "../model/seq_clf.pkl")
     while 1:
         ipt = raw_input()
-        print str(K.tokenize(ipt))
         tt = ipt.split(",")
         ##response = K.kernel(ipt)
         s = None

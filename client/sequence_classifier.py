@@ -63,7 +63,7 @@ class SeqClassifier:
                 corpus.append(tokens)
 
         bigram_vectorizer = CountVectorizer(
-            ngram_range=(1, 2), min_df=0.0, max_df=1.0, analyzer='char', stop_words=[',', '?'], binary=True)
+            ngram_range=(1, 2), min_df=0.0, max_df=1.0, analyzer='char', stop_words=[',', '?', '我','我要'], binary=True)
 
         self.bigramer = bigram_vectorizer.fit(corpus)
 
@@ -128,10 +128,10 @@ class SeqClassifier:
                 cls = self.classes[last_slot][slot]
                 classes[last_slot].append(cls)
 
-                if last_slot not in weights:
-                    weights[last_slot] = []
-                w = float(line[2])
-                weights[last_slot].append(w)
+                # if last_slot not in weights:
+                #     weights[last_slot] = []
+                # w = float(line[2])
+                # weights[last_slot].append(w)
 
         # for key, embs in embeddings.iteritems():
         #     embeddings[key] = np.array(embs)
@@ -143,7 +143,7 @@ class SeqClassifier:
         for i, last_slot in enumerate(classes.keys()):
             print("training classifier", i, last_slot)
             if self.classes_num_sub[last_slot] > 1:
-                clf = GradientBoostingClassifier()
+                clf = GradientBoostingClassifier(max_depth=5,n_estimators=200)
                 # clf = MultinomialNB(
                 #     alpha=0.01, class_prior=None, fit_prior=True)
                 clf.fit(embeddings[last_slot], classes[
@@ -195,7 +195,7 @@ class SeqClassifier:
             for cls, num in self.classes[parent_slot].iteritems():
                 return cls, 1.0
         tokens = [self.cut(input_)]
-        print('jieba_cut:', _uniout.unescape(str(tokens), 'utf8'))
+        # print('jieba_cut:', _uniout.unescape(str(tokens), 'utf8'))
         embeddings = np.reshape(self.bigramer.transform(tokens).toarray()[0],[1,-1])
         clf = self.classifiers[parent_slot]
         class_ = clf.predict(embeddings)
@@ -228,20 +228,20 @@ class SeqClassifier:
 
 
 if __name__ == "__main__":
-    # clf = SeqClassifier("../data/train_pruned.txt")
-    # clf.build()
-    # clf.train_classifier()
-    # with open("../model/seq_clf.pkl", 'wb') as pickle_file:
-    #     pickle.dump(clf, pickle_file, pickle.HIGHEST_PROTOCOL)
+    clf = SeqClassifier("../data/train_pruned_fixed.txt")
+    clf.build()
+    clf.train_classifier()
+    with open("../model/seq_clf.pkl", 'wb') as pickle_file:
+        pickle.dump(clf, pickle_file, pickle.HIGHEST_PROTOCOL)
 
     with open("../model/seq_clf.pkl", "rb") as input_file:
         _clf = pickle.load(input_file)
-        input_ = '取'
-        print(cn_util.cn(_clf.predict('取款两万以下', input_)))
-        input_ = '取两百不用银行卡'
-        print(cn_util.cn(_clf.predict('ROOT', input_)))
+        # input_ = '取'
+        # print(cn_util.cn(_clf.predict('取款两万以下', input_)))
+        # input_ = '取两百不用银行卡'
+        # print(cn_util.cn(_clf.predict('ROOT', input_)))
 
-        # _clf.test("../data/train_pruned.txt")
+        _clf.test("../data/train_pruned_fixed.txt")
 
         # print("self.classes:", _uniout.unescape(str(self.classes), 'utf-8'))
         # print('************************************************************')

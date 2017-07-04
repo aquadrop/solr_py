@@ -24,6 +24,7 @@ class Graph(Node, object):
         # print _uniout.unescape(str(self.classified_out_neighbors[self.value_type][slot]), 'utf8')
         return self.classified_out_neighbors[self.value_type][slot]
 
+    ## \xe5\x8f\x96\xe6\xac\xbe\xe4\xba\x8c\xe4\xb8\x87\xe4\xbb\xa5\xe4\xb8\x8b'
     def get_global_node(self, slot):
         # print _uniout.unescape(str(self.classified_out_neighbors[self.value_type][slot]), 'utf8')
         return self.all_nodes[slot]
@@ -36,4 +37,4 @@ class Graph(Node, object):
 
 if __name__ == "__main__":
     graph = Graph.load("../model/graph.pkl")
-    graph.get_neighbor_node("取款")
+    print(graph.get_global_node(u"取款两万以下"))
