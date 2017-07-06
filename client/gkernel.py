@@ -56,6 +56,7 @@ class GKernel:
     def num_answer(self, r):
         return int(r.json()["response"]["numFound"])
 
+
     def travel_with_clf(self, node, tokens, gbdt_recursion = True):
         key = None  ## word/tag
         next_node = None
@@ -63,12 +64,12 @@ class GKernel:
         num_found = False
         value_types = node.value_types
         query = ''.join(tokens)
-        if "RANGE" in value_types:
+        if "RANGE" in value_types and gbdt_recursion:
             try:
                 slot, proba = self.gbdt.predict(parent_slot=node.slot, input_=query)
                 next_node = self.graph.get_global_node(slot=slot)
-                num_found = next_node is not None and proba > 0.85
-                if key_found:
+                num_found = next_node is not None and proba > 0.95
+                if num_found:
                     print('found type by gbdt_range:', cn_util.cn(slot), proba)
                     self.last_slot = node.slot
                 else:
@@ -97,7 +98,7 @@ class GKernel:
             try:
                 slot, proba = self.gbdt.predict(parent_slot=node.slot, input_=query)
                 next_node = self.graph.get_global_node(slot=slot)
-                key_found = next_node is not None and proba > 0.85
+                key_found = next_node is not None and proba > 0.95
                 if key_found:
                     print('found type by gbdt:', cn_util.cn(slot), proba)
                     self.last_slot = node.slot
@@ -117,7 +118,12 @@ class GKernel:
                             next_node = node.go(q=t, value_type="KEY")
                             key_found = next_node is not None
                             if key_found:
-                                print('found type by match:', next_node.slot)
+                                print('found type by match,and try overriding', next_node.slot)
+                                if not gbdt_recursion:
+                                    slot, proba = self.gbdt.predict(parent_slot=node.slot, input_=query)
+                                    if proba > 0.95:
+                                        print('overriding match result', next_node.slot, slot)
+                                        next_node = self.graph.get_global_node(slot=slot)
                                 self.last_slot = node.slot
                                 key = t
                                 break
@@ -141,10 +147,10 @@ class GKernel:
                 # return self.travel_with_clf(tokens, next_node, query)
                 if num_found:
                     # return self.travel(tokens, next_node)
-                    return self.travel_with_clf(tokens=tokens, node=next_node, gbdt_recursion=True)
+                    return self.travel_with_clf(tokens=tokens, node=next_node, gbdt_recursion=False)
                 else:
                     # return self.travel(tokens=tokens, node=next_node)
-                    return self.travel_with_clf(tokens=tokens, node=next_node, gbdt_recursion=not gbdt_recursion)
+                    return self.travel_with_clf(tokens=tokens, node=next_node, gbdt_recursion=False)
 
     def r_walk_with_pointer_with_clf(self, query, given_slot=None):
         r = None
