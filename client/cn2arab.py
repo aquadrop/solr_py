@@ -20,6 +20,12 @@ digit_list = [u'零', u'一', u'二', u'三', u'四',
               u'拾', u'佰', u'仟', u'萬',
               u'亿', u'億', u'幺', u'两']
 
+lead_digits = [u'一', u'二', u'三', u'四',
+              u'五', u'六', u'七', u'八', u'九',
+              u'壹', u'贰', u'叁', u'肆',
+              u'伍', u'陆', u'柒', u'捌', u'玖',
+             u'两']
+
 
 def cn2arab(chinese_digits):
     if len(chinese_digits) == 0:
@@ -63,6 +69,24 @@ def cn2arab_core(chinese_digits, encoding="utf-8"):
     if chinese_digits.isdigit():
         return float(chinese_digits)
 
+    dig_mul = 1
+    ## 100百万,取出100这个数字
+    head_digits = []
+    head = False
+    for c in chinese_digits:
+        if c.isdigit():
+            head = True
+            head_digits.append(c)
+        else:
+            break
+
+    if len(head_digits) > 0:
+        head_d = ''.join(head_digits)
+        chinese_digits = chinese_digits.replace(head_d, '')
+        dig_mul = float(head_d)
+
+    if chinese_digits[0] not in lead_digits:
+        chinese_digits = u'一' + chinese_digits
     result = 0
     tmp = 0
     hnd_mln = 0
@@ -95,8 +119,9 @@ def cn2arab_core(chinese_digits, encoding="utf-8"):
             return result
     result = result + tmp
     result = result + hnd_mln
-    return result
+    return int(result * dig_mul)
 
 if __name__ == '__main__':
-    s = '不少'
-    print cn2arab(s)[1]
+    s = ['五十','三百','3百','两万','2万','2十万','100万','35','两千']
+    for ss in s:
+        print(ss, cn2arab_core(ss))
