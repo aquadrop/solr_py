@@ -122,6 +122,6 @@ def cn2arab_core(chinese_digits, encoding="utf-8"):
     return int(result * dig_mul)
 
 if __name__ == '__main__':
-    s = ['五十','三百','3百','两万','2万','2十万','100万','35','两千']
+    s = ['五十','三百','3百','两万','2万','2十万','100万','35','两千','39']
     for ss in s:
         print(ss, cn2arab_core(ss))
