@@ -5,6 +5,8 @@ from flask import Flask
 from flask import request
 import json
 
+from lru import LRU
+
 from kernel import Kernel
 from gkernel import GKernel
 from qa_kernel import QAKernel
@@ -20,6 +22,8 @@ app = Flask(__name__)
 kernel = GKernel("../model/graph.pkl", "../model/seq_clf.pkl")
 qa_kernel = QAKernel()
 i_kernel = IKernel()
+
+multi_l_kernels = LRU(200)
 
 @app.route("/bot",methods=['GET', 'POST'])
 def query():
@@ -53,9 +57,19 @@ def interactive():
     try:
         args = request.args
         q = args['q']
-        r = i_kernel.kernel(q)
-        result = {"question": q, "result": {"answer": r}, "user": "solr"}
-        return json.dumps(result, ensure_ascii=False)
+        try:
+            u = args['u']
+            if not multi_l_kernels.has_key(u):
+                multi_l_kernels[u] = IKernel()
+            u_i_kernel = multi_l_kernels[u]
+            r = u_i_kernel.kernel(q)
+            result = {"question": q, "result": {"answer": r}, "user": "solr"}
+            return json.dumps(result, ensure_ascii=False)
+
+        except:
+            r = i_kernel.kernel(q)
+            result = {"question": q, "result": {"answer": r}, "user": "solr"}
+            return json.dumps(result, ensure_ascii=False)
     except Exception,e:
         return json.dumps({"msg":e.message})
 
