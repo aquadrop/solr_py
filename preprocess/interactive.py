@@ -68,7 +68,7 @@ def get_topic(line):
 def topic_start(line):
     return '话题:' in line
 
-def interactive(file_):
+def interactive(file_, write_file_):
     D = []
     with open(file_, 'rb') as f:
         data = dict()
@@ -83,7 +83,8 @@ def interactive(file_):
             if talk_pattern.match(str(line)):
                 line = re.sub('^[0-9]+(.)', '', str(line)).strip()
                 if len(data) > 0:
-                    D.append(data)
+                    if 'b' in data and len(data['b']) > 0:
+                        D.append(data)
                 data = dict()
                 data['b'] = []
                 data['topic'] = topic
@@ -99,7 +100,8 @@ def interactive(file_):
                 if 'g' in data:
                     last_g = data['g']
                 if len(data) > 0:
-                    D.append(data)
+                    if 'b' in data and len(data['b']) > 0:
+                        D.append(data)
                 data = dict()
                 if last_g:
                     data['last_g'] = last_g
@@ -110,10 +112,12 @@ def interactive(file_):
             if bot_pattern.match(str(line)):
                 data['b'].append(str(line).replace('B:',''))
         if len(data) > 0:
-            D.append(data)
-    with open('../data/interactive/interactive-all.json','w') as f:
+            if 'b' in data and len(data['b']) > 0:
+                D.append(data)
+    with open(write_file_,'w') as f:
         json.dump(D, f, ensure_ascii=False)
 
 
 if __name__ == '__main__':
-	interactive('../data/interactive/整理后的客服接待语料.txt')
+	# interactive('../data/interactive/整理后的客服接待语料.txt','../data/interactive/interactive-all.json')
+	interactive('../data/interactive/2017互动话术汇总版4.10.txt','../data/interactive/interactive2017.json')
