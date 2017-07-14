@@ -128,9 +128,24 @@ class BqClassifier(object):
                 embedding = self.bigramer.transform(
                     [self.cut(question)]).toarray()
                 embedding = np.squeeze(embedding)
+                print clf.predict(embedding)[0]
                 print 'prediction:{0}'.format(clf.predict(embedding))
         except KeyboardInterrupt:
             print('interaction interrupted')
+
+    def interface(self, q):
+        clf = pickle.load(open('../model/bqclf.pkl', 'r'))
+        embedding = self.bigramer.transform(
+            [self.cut(q)]).toarray()
+        embedding = np.squeeze(embedding)
+        label = clf.predict(embedding)[0]
+
+        if label == 0:
+            return 'business'
+        elif label == 1:
+            return 'qa'
+        else:
+            return 'interaction'
 
 
 def train():
