@@ -41,9 +41,9 @@ def r_walk_with_pointer():
         q = args['q']
         try:
             s = args['s']
-            slot, r = kernel.r_walk_with_pointer_with_clf(q, s.encode('utf8'))
+            slot, r = kernel.r_walk_with_pointer_with_clf(q.encode('utf-8'), s.encode('utf8'))
         except Exception, e:
-            slot, r = kernel.r_walk_with_pointer_with_clf(q, None)
+            slot, r = kernel.r_walk_with_pointer_with_clf(q.encode('utf-8'), None)
     except Exception, e:
         kernel.clear_state()
         slot = None

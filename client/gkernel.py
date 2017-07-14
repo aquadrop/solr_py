@@ -31,7 +31,7 @@ class GKernel:
 
     last_slot = None
 
-    base_url = "http://localhost:11403/solr/qa/select?defType=edismax&indent=on&wt=json&rows=1"
+    base_url = "http://localhost:11403/solr/business/select?defType=edismax&indent=on&wt=json&rows=1"
     trick_url = "http://localhost:11403/solr/trick/select?defType=edismax&indent=on&wt=json&rows=10"
     # tokenizer_url = "http://localhost:5000/pos?q="
 

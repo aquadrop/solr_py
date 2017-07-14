@@ -37,4 +37,4 @@ class Graph(Node, object):
 
 if __name__ == "__main__":
     graph = Graph.load("../model/graph.pkl")
-    print(graph.get_global_node(u"取款两万以下"))
+    print(graph.get_global_node("取款两万以下"))
