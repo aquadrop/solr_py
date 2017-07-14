@@ -8,7 +8,7 @@ import json
 from kernel import Kernel
 from gkernel import GKernel
 from sequence_classifier import SeqClassifier
-import business_qa_clf
+from business_qa_clf import BqClassifier
 
 import sys
 reload(sys)
@@ -17,11 +17,17 @@ sys.setdefaultencoding("utf-8")
 app = Flask(__name__)
 
 kernel = GKernel("../model/graph.pkl", "../model/seq_clf.pkl")
+q_clf = BqClassifier('../data/train_pruned_fixed.txt',
+                     '../data/common_qa.txt', '../data/hudong.txt')
+q_clf.bulid_ngram()
 
 
 @app.route('/clf', methods=['GET', 'POST'])
 def question_clf():
-    pass
+    args = request.args
+    q = args['q']
+    print q
+    return q_clf.interface(q)
 
 
 @app.route("/bot", methods=['GET', 'POST'])
