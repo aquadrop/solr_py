@@ -17,6 +17,7 @@ from node import Node
 from sequence_classifier import SeqClassifier
 from query_util import QueryUtils
 
+
 class GKernel:
 
     def __init__(self, graph_path, clf_path):
@@ -56,9 +57,8 @@ class GKernel:
     def num_answer(self, r):
         return int(r.json()["response"]["numFound"])
 
-
-    def travel_with_clf(self, node, tokens, gbdt_recursion = True):
-        key = None  ## word/tag
+    def travel_with_clf(self, node, tokens, gbdt_recursion=True):
+        key = None  # word/tag
         next_node = None
         key_found = False
         num_found = False
@@ -66,19 +66,21 @@ class GKernel:
         query = ''.join(tokens)
         if "RANGE" in value_types and gbdt_recursion:
             try:
-                slot, proba = self.gbdt.predict(parent_slot=node.slot, input_=query)
+                slot, proba = self.gbdt.predict(
+                    parent_slot=node.slot, input_=query)
                 next_node = self.graph.get_global_node(slot=slot)
                 num_found = next_node is not None and proba > 0.95
                 if num_found:
                     print('found type by gbdt_range:', cn_util.cn(slot), proba)
                     self.last_slot = node.slot
                 else:
-                    print('NOT found type by gbdt_range:', cn_util.cn(slot), proba)
-            except Exception,e:
+                    print('NOT found type by gbdt_range:',
+                          cn_util.cn(slot), proba)
+            except Exception, e:
                 print(e.message)
                 num_found = False
 
-        ## last try of RANGE
+        # last try of RANGE
         if not num_found and "RANGE" in value_types:
             for t in tokens:
                 if t.isdigit():
@@ -90,13 +92,14 @@ class GKernel:
                             self.last_slot = node.slot
                             key = t
                             break
-                    except Exception,e:
+                    except Exception, e:
                         print(e.message)
                         num_found = False
 
         if not key_found and "KEY" in value_types and gbdt_recursion:
             try:
-                slot, proba = self.gbdt.predict(parent_slot=node.slot, input_=query)
+                slot, proba = self.gbdt.predict(
+                    parent_slot=node.slot, input_=query)
                 next_node = self.graph.get_global_node(slot=slot)
                 key_found = next_node is not None and proba > 0.95
                 if key_found:
@@ -104,11 +107,11 @@ class GKernel:
                     self.last_slot = node.slot
                 else:
                     print('NOT found type by gbdt:', cn_util.cn(slot), proba)
-            except Exception,e:
+            except Exception, e:
                 print(e.message)
                 key_found = False
 
-        ## last try of KEY
+        # last try of KEY
         if not key_found and not num_found and "KEY" in value_types:
             for t in tokens:
                 try:
@@ -118,12 +121,16 @@ class GKernel:
                             next_node = node.go(q=t, value_type="KEY")
                             key_found = next_node is not None
                             if key_found:
-                                print('found type by match,and try overriding', next_node.slot)
+                                print(
+                                    'found type by match,and try overriding', next_node.slot)
                                 if not gbdt_recursion:
-                                    slot, proba = self.gbdt.predict(parent_slot=node.slot, input_=query)
+                                    slot, proba = self.gbdt.predict(
+                                        parent_slot=node.slot, input_=query)
                                     if proba > 0.95:
-                                        print('overriding match result', next_node.slot, slot)
-                                        next_node = self.graph.get_global_node(slot=slot)
+                                        print('overriding match result',
+                                              next_node.slot, slot)
+                                        next_node = self.graph.get_global_node(
+                                            slot=slot)
                                 self.last_slot = node.slot
                                 key = t
                                 break
@@ -133,7 +140,7 @@ class GKernel:
                     key_found = False
 
         if not key_found and not num_found:
-            ## last try solr:
+            # last try solr:
             return node
         else:
             try:
@@ -158,7 +165,8 @@ class GKernel:
         if self.state_cleared:
             if given_slot:
                 self.should_clear_state(self.last_slot)
-                url = self.base_url + "&q=exact_question:" + query + "%20AND%20exact_intention:" + given_slot
+                url = self.base_url + "&q=exact_question:" + \
+                    query + "%20AND%20exact_intention:" + given_slot
             else:
                 url = self.base_url + "&q=exact_question:" + query
             print('extact_try_url', url)
@@ -174,7 +182,7 @@ class GKernel:
             else:
                 tokenized = self.qu.corenlp_cut(query, self.qu.remove_tags)
                 if len(tokenized) == 0:
-                    ## do trick
+                    # do trick
                     self.clear_state()
                     return None, self.trick(query)
                 if given_slot:
@@ -189,8 +197,9 @@ class GKernel:
                     if self.last_slot == given.slot:
                         url = self.base_url + "&q=exact_intention:" + node.slot
                     else:
-                        url = self.base_url + "&q=exact_last_intention:" + self.last_slot + "%20AND%20exact_intention:" + node.slot
-                    print("gbdt_result_url",url)
+                        url = self.base_url + "&q=exact_last_intention:" + \
+                            self.last_slot + "%20AND%20exact_intention:" + node.slot
+                    print("gbdt_result_url", url)
                     r = requests.get(url)
                     if self.num_answer(r) > 0:
                         self.last_slot = node.slot
@@ -209,7 +218,8 @@ class GKernel:
                     print 'restart'
                     slot, response = self.r_walk_with_pointer_with_clf(query)
                     return slot, response
-            url = self.base_url + "&q=exact_question:" + query + "%20AND%20exact_last_intention:" + self.last_slot
+            url = self.base_url + "&q=exact_question:" + query + \
+                "%20AND%20exact_last_intention:" + self.last_slot
             print('non_clear_url_first_try', url)
             r = requests.get(url)
 
@@ -230,11 +240,12 @@ class GKernel:
                 fixed_query_tokens = self.qu.quant_bucket_fix(query)
                 next_node = self.travel_with_clf(node, fixed_query_tokens)
                 if next_node == node:
-                    ## query solr
+                    # query solr
                     self.clear_state()
                     return self.r_walk_with_pointer_with_clf(query)
                 else:
-                    url = self.base_url + "&q=last_intention:" + self.last_slot + "%20AND%20intention:" + next_node.slot
+                    url = self.base_url + "&q=last_intention:" + \
+                        self.last_slot + "%20AND%20intention:" + next_node.slot
                     print("non_clear_go_deeper_url:", url)
                     r = requests.get(url)
 
@@ -243,15 +254,17 @@ class GKernel:
                     slot_ = self.get_intention(r)
                     self.last_slot = slot_
                     self.state_cleared = False
-                    ## but
-                    cn_util.print_cn(str(self.graph.get_global_node(slot_).classified_out_neighbors))
+                    # but
+                    cn_util.print_cn(
+                        str(self.graph.get_global_node(slot_).classified_out_neighbors))
                     self.should_clear_state(slot_)
                     print('non clear deepest _', slot_, self.get_response(r))
                     return slot_, self.get_response(r)
                 else:
-                    ## do trick
+                    # do trick
                     self.clear_state()
-                    url = self.concat_solr_request(query=query, base_url=self.trick_url)
+                    url = self.concat_solr_request(
+                        query=query, base_url=self.trick_url)
                     r = requests.get(url)
                     response = self.get_response(r)
                     print "None-CLEAR-Trick", self.get_response(r)
@@ -278,7 +291,7 @@ class GKernel:
         except:
             self.clear_state()
 
-    def get_response(self, r, i = 0):
+    def get_response(self, r, i=0):
         try:
             a = r.json()["response"]["docs"]
             return r.json()["response"]["docs"][i]["answer"][0].encode('utf8')
@@ -303,7 +316,6 @@ class GKernel:
         except:
             return None
 
-
     def concat_solr_request(self, query, base_url, last_intention="", str_slot="", num_slot=0):
         safe_cat = False
         url = base_url + "&q="
@@ -326,9 +338,8 @@ class GKernel:
                 url = url + "intention:" + str_slot
                 safe_cat = True
         if num_slot > 0:
-            url = url + "&fq=amount_upper:[" + str(num_slot) + " TO *]" + "&fq=amount_lower:[0 TO " + str(num_slot) + "]"
-
-
+            url = url + "&fq=amount_upper:[" + str(
+                num_slot) + " TO *]" + "&fq=amount_lower:[0 TO " + str(num_slot) + "]"
 
         print url
 
@@ -338,7 +349,8 @@ if __name__ == "__main__":
     K = GKernel("../model/graph.pkl", "../model/seq_clf.pkl")
     while 1:
         ipt = raw_input()
-        tt = ipt.split(",")
+        # chinese comma
+        tt = ipt.split("，")
         ##response = K.kernel(ipt)
         s = None
         if len(tt) >= 2:
@@ -347,7 +359,8 @@ if __name__ == "__main__":
         q = tt[0]
         print q, s
         if s:
-            next_slot, response = K.r_walk_with_pointer_with_clf(q, s.encode('utf8'))
+            next_slot, response = K.r_walk_with_pointer_with_clf(
+                q, s.encode('utf8'))
         else:
             next_slot, response = K.r_walk_with_pointer_with_clf(q)
         print(str(response))

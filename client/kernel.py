@@ -4,6 +4,7 @@ import requests
 import json
 import re
 
+
 class Kernel:
 
     last_task = None
@@ -15,7 +16,8 @@ class Kernel:
 
     def kernel(self, query):
 
-        self.current_str_slot, self.current_num_slot = self.parse_query_to_slot(query)
+        self.current_str_slot, self.current_num_slot = self.parse_query_to_slot(
+            query)
         if self.current_num_slot > 0:
             query = None
         url = self.concat_solr_request(query=query,
@@ -28,7 +30,8 @@ class Kernel:
         r = requests.get(url)
         if self.num_answer(r) == 0:
             self.clear_state()
-            url = self.concat_solr_request(query=query, base_url=self.trick_url)
+            url = self.concat_solr_request(
+                query=query, base_url=self.trick_url)
             r = requests.get(url)
         response = self.get_response(r)
         self.last_task = self.get_intention(r)
@@ -52,7 +55,7 @@ class Kernel:
         return int(r.json()["response"]["numFound"])
 
     def parse_query_to_slot(self, query):
-        nums = re.findall('\d+', query )
+        nums = re.findall('\d+', query)
         str_slot = re.sub('\d', '', query)
         num_slot = nums[0] if len(nums) > 0 else 0
         print num_slot
@@ -82,7 +85,6 @@ class Kernel:
         except:
             return None
 
-
     def concat_solr_request(self, query, base_url, last_intention="", str_slot="", num_slot=0):
         safe_cat = False
         url = base_url + "&q="
@@ -105,9 +107,8 @@ class Kernel:
                 url = url + "intention:" + str_slot
                 safe_cat = True
         if num_slot > 0:
-            url = url + "&fq=amount_upper:[" + str(num_slot) + " TO *]" + "&fq=amount_lower:[0 TO " + str(num_slot) + "]"
-
-
+            url = url + "&fq=amount_upper:[" + str(
+                num_slot) + " TO *]" + "&fq=amount_lower:[0 TO " + str(num_slot) + "]"
 
         print url
 

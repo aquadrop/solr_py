@@ -3,11 +3,12 @@
 import bisect
 import _uniout
 
+
 class Node:
-    def __init__(self, slot, breakpoints=None, slot_syno = []):
-        self.slot = slot  ## use as to query solr
+    def __init__(self, slot, breakpoints=None, slot_syno=[]):
+        self.slot = slot  # use as to query solr
         self.slot_syno = slot_syno
-        self.description = None  ## range description
+        self.description = None  # range description
         # ## define edges
         # value_type = None ## KEY, RANGE, BOOL, DATE
         #
@@ -21,7 +22,7 @@ class Node:
         self.classified_out_neighbors = {}
         self.classified_in_neighbors = {}
 
-    ## value_type must be set
+    # value_type must be set
     def add_node(self, node, value_type, values):
         if not node.classified_in_neighbors.has_key(value_type):
             node.classified_in_neighbors[value_type] = {}
@@ -30,7 +31,7 @@ class Node:
         if not self.classified_out_neighbors.has_key(value_type):
             self.classified_out_neighbors[value_type] = {}
 
-        ## synonym consideration
+        # synonym consideration
         for value in values:
             self.classified_out_neighbors[value_type][value] = node
 
@@ -45,7 +46,7 @@ class Node:
                 return self.classified_out_neighbors[value_type][q]
             if value_type == "RANGE":
                 return Node.grade(float(q), self.breakpoints, self.classified_out_neighbors[value_type])
-        except Exception,e:
+        except Exception, e:
             print e.message
             return None
     # def grade(score, breakpoints=[60, 70, 80, 90], grades='FDCBA'):
@@ -55,10 +56,10 @@ class Node:
     @staticmethod
     def grade(score, breakpoints, nodes):
         i = bisect.bisect(breakpoints, score)
-        print i, nodes,breakpoints
+        print i, nodes, breakpoints
         return nodes[i - 2]
 
 if __name__ == "__main__":
     bp = [-10, 0, 20000, 50000, 9999999999999]
-    nodes = {-1:"W",0:"两位以下",1:"两万到五万",2:"五万以上"}
+    nodes = {-1: "W", 0: "两位以下", 1: "两万到五万", 2: "五万以上"}
     print Node.grade(30000, bp, nodes)
