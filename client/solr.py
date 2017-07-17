@@ -27,7 +27,9 @@ def question_clf():
     args = request.args
     q = args['q']
     print q
-    return q_clf.interface(q)
+    label, prob = q_clf.interface(q)
+    result = {'answer': label, 'prob': prob}
+    return json.dumps(result, ensure_ascii=False)
 
 
 @app.route("/bot", methods=['GET', 'POST'])

@@ -4,6 +4,7 @@
 import sys
 import csv
 import jieba
+import json
 import _uniout
 import cn_util
 import numpy as np
@@ -138,14 +139,19 @@ class BqClassifier(object):
         embedding = self.bigramer.transform(
             [self.cut(q)]).toarray()
         embedding = np.squeeze(embedding)
+        embedding = np.reshape(embedding, [1, -1])
         label = clf.predict(embedding)[0]
+        probs = clf.predict_proba(embedding)
+        # print probs
+        prob = max(probs[0])
+        # print prob
 
         if label == 0:
-            return 'business'
+            return 'business', prob
         elif label == 1:
-            return 'qa'
+            return 'qa', prob
         else:
-            return 'interaction'
+            return 'interaction', prob
 
 
 def train():
