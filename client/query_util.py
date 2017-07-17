@@ -34,15 +34,18 @@ class QueryUtils:
         return text
 
     def pos(self, query, remove_tags=[]):
-        q = query
-        r = requests.get(url=self.tokenizer_url+q)
-        ## purify
-        text = []
-        for t in r.text.encode("utf-8").split(" "):
-            tag = t.split("/")[1]
-            if not tag in remove_tags:
-                text.append(t)
-        return text
+        try:
+            q = query
+            r = requests.get(url=self.tokenizer_url+q)
+            ## purify
+            text = []
+            for t in r.text.encode("utf-8").split(" "):
+                tag = t.split("/")[1]
+                if not tag in remove_tags:
+                    text.append(t)
+            return text
+        except:
+            return [query]
 
     skip_CD = ['一些','一点','一些些','一点点','一点零']
 

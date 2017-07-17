@@ -34,7 +34,7 @@ def question_clf():
     q = args['q']
     print q
     label, prob = s_clf.interface(q)
-    result = {'answer': label, 'prob': prob}
+    result = {'cls': label, 'distribution': prob}
     return json.dumps(result, ensure_ascii=False)
 
 

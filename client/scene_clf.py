@@ -37,13 +37,16 @@ class SceneClassifier(object):
             with open(path, 'r') as f:
                 reader = csv.reader(f, delimiter='\t')
                 for line in reader:
-                    # print path, cn_util.print_cn(line)
-                    line = str(line).strip()
-                    b = line.encode('utf-8')
-                    # print(b)
-                    tokens = self.cut(b)
+                    try:
+                        line = line[0].strip()
+                        if line:
+                            b = line.encode('utf-8')
+                            # print(b)
+                            tokens = self.cut(b)
 
-                    corpus.append(tokens)
+                            corpus.append(tokens)
+                    except:
+                        pass
 
         bigram_vectorizer = CountVectorizer(
             ngram_range=(1, 2), min_df=0.0, max_df=1.0, analyzer='char',
@@ -66,21 +69,25 @@ class SceneClassifier(object):
             with open(path, 'r') as f:
                 reader = csv.reader(f, delimiter='\t')
                 for line in reader:
-                    line = str(line).strip()
-                    b = line.encode('utf-8')
-                    # print(b)
-                    tokens = [self.cut(b)]
-                    embedding = self.bigramer.transform(tokens).toarray()
-                    embeddings.append(embedding)
+                    try:
+                        line = line[0].strip()
+                        if line:
+                            b = line.encode('utf-8')
+                            # print(b)
+                            tokens = [self.cut(b)]
+                            embedding = self.bigramer.transform(tokens).toarray()
+                            embeddings.append(embedding)
 
-                    if path == busi_path:
-                        label = 0
-                    elif path == qa_path:
-                        label = 1
-                    else:
-                        label = 2
+                            if path == busi_path:
+                                label = 0
+                            elif path == qa_path:
+                                label = 1
+                            else:
+                                label = 2
 
-                    labels.append(label)
+                            labels.append(label)
+                    except:
+                        pass
 
         self.embeddings = np.array(embeddings)
         self.embeddings = np.squeeze(self.embeddings)
@@ -106,8 +113,9 @@ class SceneClassifier(object):
         self.metrics_()
 
     def metrics_(self):
+        line = "取款"
+        print(self.predict(line))
         pre = self.kernel.predict(self.embeddings)
-
         print metrics.confusion_matrix(self.labels, pre)
 
         # precision_score = metrics.precision_score(self.labels, pre)
@@ -122,8 +130,10 @@ class SceneClassifier(object):
 
     def predict(self, question):
         # clf = pickle.load(open('../model/bqclf.pkl', 'r'))
+        line = str(question).strip()
+        b = line.encode('utf-8')
         embedding = self.bigramer.transform(
-            [self.cut(question)]).toarray()
+            [self.cut(b)]).toarray()
         embedding = np.squeeze(embedding)
         embedding = np.reshape(embedding, [1, -1])
         label = self.kernel.predict(embedding)[0]
@@ -135,8 +145,8 @@ class SceneClassifier(object):
     def interface(self, q):
         label, probs = self.predict(q)
         probs_dict = {}
-        for i in xrange(len(probs)):
-            probs_dict[self.named_labels[i]] = probs[i]
+        for i in xrange(len(probs[0])):
+            probs_dict[self.named_labels[i]] = probs[0][i]
         return label, probs_dict
 
     @staticmethod
@@ -148,7 +158,7 @@ class SceneClassifier(object):
 def train():
     clf = SceneClassifier()
     clf.build('../data/scene/business_q.txt',
-                       '../data/scene/common_qa_q.txt', '../data/scene/interactive-g.txt')
+                       '../data/scene/common_qa_q.txt', '../data/scene/interactive_g.txt')
     clf.train('../model/scene/sceneclf.pkl')
 
 
