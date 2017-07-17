@@ -86,9 +86,9 @@ class QueryUtils:
 
         values = []
         if slot is None:
-            if num >= 0 and num <= 199:
+            if num >= 0 and num <= 99:
                 values = [1]
-            if num >= 200 and num <= 19999:
+            if num >= 100 and num <= 19999:
                 values = [200]
             elif num >= 20000 and num <= 49999:
                 values = [20000]
@@ -199,4 +199,4 @@ class QueryUtils:
 
 if __name__ == '__main__':
     qu = QueryUtils()
-    qu.process_data('../data/train_pruned.txt', '../data/train_pruned_fixed.txt')
+    qu.process_data('../data/train_pruned.txt', '../data/train_pruned_fixed2.txt')

@@ -3,6 +3,7 @@
 
 """
 This class is very simple and is stateless
+<delete><query>*:*</query></delete>
 """
 import requests
 import random

@@ -241,7 +241,7 @@ if __name__ == "__main__":
         # input_ = '取两百不用银行卡'
         # print(cn_util.cn(_clf.predict('ROOT', input_)))
 
-        _clf.test("../data/train_pruned_fixed.txt")
+        _clf.test("../data/train_pruned_fixed2.txt")
 
         # print("self.classes:", _uniout.unescape(str(self.classes), 'utf-8'))
         # print('************************************************************')
