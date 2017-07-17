@@ -24,7 +24,7 @@ class SceneClassifier(object):
 
     def __init__(self):
         self.kernel = None
-        self.embeddings = list()
+        # self.embeddings = list()
         self.labels = list()
         self.named_labels = ['business', 'qa', 'interaction']
 
@@ -89,34 +89,37 @@ class SceneClassifier(object):
                     except:
                         pass
 
-        self.embeddings = np.array(embeddings)
-        self.embeddings = np.squeeze(self.embeddings)
+        embeddings = np.array(embeddings)
+        embeddings = np.squeeze(embeddings)
 
-        self.labels = np.array(labels)
+        labels = np.array(labels)
 
-        self.embeddings, self.labels = shuffle(
-            self.embeddings, self.labels, random_state=0)
+        embeddings, labels = shuffle(
+            embeddings, labels, random_state=0)
 
-    def build(self, busi_path, qa_path, hudong_path):
+        return embeddings, labels
+
+    def _build(self, busi_path, qa_path, hudong_path):
         self._bulid_ngram(busi_path, qa_path, hudong_path)
-        self._prepare_data(busi_path, qa_path, hudong_path)
+        return self._prepare_data(busi_path, qa_path, hudong_path)
 
-    def train(self, pkl):
+    def train(self, pkl, busi_path, qa_path, hudong_path):
+        embeddings, labels = self._build(busi_path, qa_path, hudong_path)
         print 'train classifier...'
 
         self.kernel = GradientBoostingClassifier(max_depth=5, n_estimators=200)
-        self.kernel.fit(self.embeddings, self.labels)
+        self.kernel.fit(embeddings, labels)
 
         pickle.dump(self, open(pkl, 'wb'))
 
         print 'train done and saved.'
-        self.metrics_()
+        self.metrics_(embeddings, labels)
 
-    def metrics_(self):
+    def metrics_(self, embeddings, labels):
         line = "取款"
         print(self.predict(line))
-        pre = self.kernel.predict(self.embeddings)
-        print metrics.confusion_matrix(self.labels, pre)
+        pre = self.kernel.predict(embeddings)
+        print metrics.confusion_matrix(labels, pre)
 
         # precision_score = metrics.precision_score(self.labels, pre)
         # recall_score = metrics.recall_score(self.labels, pre)
@@ -157,9 +160,7 @@ class SceneClassifier(object):
 
 def train():
     clf = SceneClassifier()
-    clf.build('../data/scene/business_q.txt',
-                       '../data/scene/common_qa_q.txt', '../data/scene/interactive_g.txt')
-    clf.train('../model/scene/sceneclf.pkl')
+    clf.train('../model/scene/sceneclf.pkl','../data/scene/business_q.txt','../data/scene/common_qa_q.txt','../data/scene/interactive_g.txt')
 
 
 def online_validation():
