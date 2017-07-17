@@ -30,6 +30,7 @@ import _uniout
 import cn_util
 from sklearn.ensemble import GradientBoostingClassifier
 from sklearn.feature_extraction.text import CountVectorizer
+import fasttext as ft
 
 
 from sklearn.naive_bayes import MultinomialNB
