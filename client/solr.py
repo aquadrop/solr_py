@@ -8,7 +8,11 @@ import json
 from kernel import Kernel
 from gkernel import GKernel
 from sequence_classifier import SeqClassifier
+<<<<<<< HEAD
 from business_qa_clf import BqClassifier
+=======
+from scene_clf import SceneClassifier
+>>>>>>> e617172e1ab49744c1465ab087b8c2bf10394310
 
 import sys
 reload(sys)
@@ -21,13 +25,25 @@ q_clf = BqClassifier('../data/train_pruned_fixed.txt',
                      '../data/common_qa.txt', '../data/hudong.txt')
 q_clf.bulid_ngram()
 
+<<<<<<< HEAD
 
 @app.route('/clf', methods=['GET', 'POST'])
+=======
+multi_l_kernels = LRU(200)
+s_clf = SceneClassifier.get_instance('../model/scene/sceneclf.pkl')
+
+
+@app.route('/scene', methods=['GET', 'POST'])
+>>>>>>> e617172e1ab49744c1465ab087b8c2bf10394310
 def question_clf():
     args = request.args
     q = args['q']
     print q
+<<<<<<< HEAD
     label, prob = q_clf.interface(q)
+=======
+    label, prob = s_clf.interface(q)
+>>>>>>> e617172e1ab49744c1465ab087b8c2bf10394310
     result = {'answer': label, 'prob': prob}
     return json.dumps(result, ensure_ascii=False)
 
