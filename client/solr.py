@@ -12,6 +12,7 @@ from gkernel import GKernel
 from qa_kernel import QAKernel
 from interactive_kernel import IKernel
 from sequence_classifier import SeqClassifier
+from scene_clf import SceneClassifier
 
 import sys
 reload(sys)
@@ -24,21 +25,34 @@ qa_kernel = QAKernel()
 i_kernel = IKernel()
 
 multi_l_kernels = LRU(200)
+s_clf = SceneClassifier.get_instance('../model/scene/sceneclf.pkl')
 
-@app.route("/bot",methods=['GET', 'POST'])
+
+@app.route('/scene', methods=['GET', 'POST'])
+def question_clf():
+    args = request.args
+    q = args['q']
+    print q
+    label, prob = s_clf.interface(q)
+    result = {'answer': label, 'prob': prob}
+    return json.dumps(result, ensure_ascii=False)
+
+
+@app.route("/bot", methods=['GET', 'POST'])
 def query():
     args = request.args
     q = args['q']
     print q
     return kernel.kernel(q)
 
-@app.route("/chat",methods=['GET', 'POST'])
+
+@app.route("/chat", methods=['GET', 'POST'])
 def chat():
     args = request.args
     q = args['q']
     print q
     r = kernel.kernel(q)
-    result = {"question":q, "result":{"answer":r}, "user":"solr"}
+    result = {"question": q, "result": {"answer": r}, "user": "solr"}
     return json.dumps(result, ensure_ascii=False)
 
 @app.route("/qa",methods=['GET', 'POST'])
@@ -90,10 +104,11 @@ def r_walk_with_pointer():
         r = None
         msg = e.message
 
-    result = {"answer":r, "slot":slot, "msg":msg}
+    result = {"answer": r, "slot": slot, "msg": msg}
     return json.dumps(result, ensure_ascii=False)
 
-@app.route("/clear",methods=['GET', 'POST'])
+
+@app.route("/clear", methods=['GET', 'POST'])
 def clear():
     kernel.clear_state()
     return "state cleared"

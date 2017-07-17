@@ -63,7 +63,7 @@ class SeqClassifier:
                 corpus.append(tokens)
 
         bigram_vectorizer = CountVectorizer(
-            ngram_range=(1, 2), min_df=0.0, max_df=1.0, analyzer='char', stop_words=[',', '?', '我','我要'], binary=True)
+            ngram_range=(1, 2), min_df=0.0, max_df=1.0, analyzer='char', stop_words=[',', '?', '我', '我要'], binary=True)
 
         self.bigramer = bigram_vectorizer.fit(corpus)
 
@@ -143,7 +143,7 @@ class SeqClassifier:
         for i, last_slot in enumerate(classes.keys()):
             print("training classifier", i, last_slot)
             if self.classes_num_sub[last_slot] > 1:
-                clf = GradientBoostingClassifier(max_depth=5,n_estimators=200)
+                clf = GradientBoostingClassifier(max_depth=5, n_estimators=200)
                 # clf = MultinomialNB(
                 #     alpha=0.01, class_prior=None, fit_prior=True)
                 clf.fit(embeddings[last_slot], classes[
@@ -196,12 +196,13 @@ class SeqClassifier:
                 return cls, 1.0
         tokens = [self.cut(input_)]
         # print('jieba_cut:', _uniout.unescape(str(tokens), 'utf8'))
-        embeddings = np.reshape(self.bigramer.transform(tokens).toarray()[0],[1,-1])
+        embeddings = np.reshape(
+            self.bigramer.transform(tokens).toarray()[0], [1, -1])
         clf = self.classifiers[parent_slot]
         class_ = clf.predict(embeddings)
         probs = clf.predict_proba(embeddings)
         for c in class_:
-            ## c - 1 as the 1st class is 1 not zero
+            # c - 1 as the 1st class is 1 not zero
             return self.index_classes[parent_slot][c], probs[0][c - 1]
 
     def test(self, model_path):
@@ -222,7 +223,7 @@ class SeqClassifier:
                         else:
                             print(input_, last_slot, slot, prediction)
                         total = total + 1
-                    except Exception,e:
+                    except Exception, e:
                         print(e.message)
         print('accuracy:' + str(correct / total))
 
