@@ -4,11 +4,12 @@ from node import Node
 import cPickle as pickle
 import _uniout
 
+
 class Graph(Node, object):
 
     def __init__(self):
         super(Graph, self).__init__(slot="ROOT")
-        ## all_nodes keyed as slots' names
+        # all_nodes keyed as slots' names
         self.all_nodes = {}
         self.value_type = "KEY"
         self.value_types.add(self.value_type)
@@ -21,12 +22,16 @@ class Graph(Node, object):
             self.classified_out_neighbors[self.value_type][slot] = node
 
     def get_neighbor_node(self, slot):
-        # print _uniout.unescape(str(self.classified_out_neighbors[self.value_type][slot]), 'utf8')
+        # print
+        # _uniout.unescape(str(self.classified_out_neighbors[self.value_type][slot]),
+        # 'utf8')
         return self.classified_out_neighbors[self.value_type][slot]
 
-    ## \xe5\x8f\x96\xe6\xac\xbe\xe4\xba\x8c\xe4\xb8\x87\xe4\xbb\xa5\xe4\xb8\x8b'
+    # \xe5\x8f\x96\xe6\xac\xbe\xe4\xba\x8c\xe4\xb8\x87\xe4\xbb\xa5\xe4\xb8\x8b'
     def get_global_node(self, slot):
-        # print _uniout.unescape(str(self.classified_out_neighbors[self.value_type][slot]), 'utf8')
+        # print
+        # _uniout.unescape(str(self.classified_out_neighbors[self.value_type][slot]),
+        # 'utf8')
         return self.all_nodes[slot]
 
     @staticmethod
@@ -37,4 +42,5 @@ class Graph(Node, object):
 
 if __name__ == "__main__":
     graph = Graph.load("../model/graph.pkl")
-    print(graph.get_global_node("取款两万以下"))
+    nodes = graph.get_global_node("取款两万以下")
+    print nodes.slot
