@@ -2,4 +2,4 @@
 <delete><query>*:*</query></delete>
 curl 'http://localhost:8983/solr/techproducts/update?commit=true' --data-binary @example/exampledocs/books.json -H 'Content-type:application/json'
 
-hehhee!
+貌似可以的。
