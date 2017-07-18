@@ -7,13 +7,22 @@ This class is very simple and is stateless
 import requests
 import random
 
+import numpy as np
+
+from query_util import QueryUtils
+
 class QAKernel:
 
     qa_url = 'http://localhost:11403/solr/qa/select?wt=json&q=question:'
+
+    null_anwer = ['我没听懂您的意思', '我知识有限,这个我不知道怎么回答...']
+
     def __init__(self):
         print('initilizing qa kernel...')
+        self.qu = QueryUtils()
 
     def kernel(self, q):
+        q = self.purify_q(q)
         r = self._request_solr(q)
         answer = self._extract_answer(r)
         return answer
@@ -25,7 +34,7 @@ class QAKernel:
             response = self._get_response(r, x)
             return response
         else:
-            return "我没听懂！"
+            return np.random.choice(self.null_anwer, 1, p=[0.5, 0.5])[0]
 
     def _request_solr(self, q):
         url = self.qa_url + q
@@ -41,3 +50,7 @@ class QAKernel:
             return a[i]["answer"][0].encode('utf8')
         except:
             return None
+
+    def purify_q(self, q):
+        pos_q = self.qu.pos(q, remove_tags=["CD", "PN", "VA", "AD", "VC"])
+        return ''.join(pos_q)
