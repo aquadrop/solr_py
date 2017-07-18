@@ -8,8 +8,11 @@ import jieba
 
 import cn2arab
 import cn_util
+import re
 
 class QueryUtils:
+    static_tokenizer_url = "http://localhost:11415/pos?q="
+
     def __init__(self):
         self.remove_tags = ["PN", "VA", "AD"]
         self.tokenizer_url = "http://localhost:11415/pos?q="
@@ -24,6 +27,19 @@ class QueryUtils:
     def corenlp_cut(self, query, remove_tags=[]):
         q = query
         r = requests.get(url=self.tokenizer_url + q)
+        ## purify
+        text = []
+        for t in r.text.encode("utf-8").split(" "):
+            tag = t.split("/")[1]
+            word = t.split("/")[0]
+            if not tag in remove_tags:
+                text.append(word)
+        return text
+
+    @staticmethod
+    def static_corenlp_cut(query, remove_tags=[]):
+        q = query
+        r = requests.get(url=QueryUtils.static_tokenizer_url + q)
         ## purify
         text = []
         for t in r.text.encode("utf-8").split(" "):
@@ -71,6 +87,13 @@ class QueryUtils:
                 new_q.append(token)
             return new_q
         return query
+
+    def remove_cn_punct(self, q):
+        return ''.join(self.corenlp_cut(q, remove_tags=['PU']))
+
+    @staticmethod
+    def static_remove_cn_punct(q):
+        return ''.join(QueryUtils.static_corenlp_cut(q, remove_tags=['PU']))
 
 
     tokenizer_url = "http://localhost:11415/pos?q="
@@ -202,4 +225,6 @@ class QueryUtils:
 
 if __name__ == '__main__':
     qu = QueryUtils()
-    qu.process_data('../data/train_pruned.txt', '../data/train_pruned_fixed2.txt')
+    # qu.process_data('../data/train_pruned.txt', '../data/train_pruned_fixed2.txt')
+
+    print(QueryUtils.static_remove_cn_punct(u'我在电视上见过你，听说你很聪明啊?'))

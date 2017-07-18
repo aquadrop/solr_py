@@ -5,6 +5,9 @@ import sys
 import csv
 import jieba
 import json
+
+import unicodedata
+
 import _uniout
 import cn_util
 import numpy as np
@@ -13,6 +16,9 @@ from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.utils import shuffle
 from sklearn import metrics
 import cPickle as pickle
+
+from query_util import QueryUtils
+
 import argparse
 
 
@@ -39,6 +45,7 @@ class SceneClassifier(object):
                 for line in reader:
                     try:
                         line = line[0].replace(" ", "").replace("\t", "")
+                        line = QueryUtils.static_remove_cn_punct(line)
                         if line:
                             b = line.encode('utf-8')
                             # print(b)
@@ -73,6 +80,7 @@ class SceneClassifier(object):
                 for line in reader:
                     try:
                         line = line[0].replace(" ", "").replace("\t", "")
+                        line = QueryUtils.static_remove_cn_punct(line)
                         if line:
                             b = line.encode('utf-8')
                             # print(b)
@@ -141,8 +149,8 @@ class SceneClassifier(object):
 
     def predict(self, question):
         # clf = pickle.load(open('../model/bqclf.pkl', 'r'))
-        line = str(question).strip()
-        b = line.encode('utf-8')
+        line = str(question).replace(" ", "").replace("\t", "")
+        b = QueryUtils.static_remove_cn_punct(line)
         embedding = self.bigramer.transform(
             [self.cut(b)]).toarray()
         embedding = np.squeeze(embedding)
