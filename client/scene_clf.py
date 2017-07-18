@@ -63,7 +63,7 @@ class SceneClassifier(object):
         print 'prepare data...'
 
         embeddings = list()
-        tokens_list = list()
+        queries = list()
         labels = list()
 
         for index in xrange(len(files)):
@@ -79,7 +79,7 @@ class SceneClassifier(object):
                             tokens = [self.cut(b)]
                             embedding = self.bigramer.transform(tokens).toarray()
                             embeddings.append(embedding)
-                            tokens_list.append(tokens)
+                            queries.append(b)
                             label = index
 
                             labels.append(label)
@@ -94,14 +94,14 @@ class SceneClassifier(object):
         # embeddings, labels = shuffle(
         #     embeddings, labels, random_state=0)
 
-        return embeddings, labels, tokens_list
+        return embeddings, labels, queries
 
     def _build(self, files):
         self._bulid_ngram(files)
         return self._prepare_data(files)
 
     def train(self, pkl, files):
-        embeddings, labels, tokens = self._build(files)
+        embeddings, labels, queries = self._build(files)
         print 'train classifier...'
 
         self.kernel = GradientBoostingClassifier(max_depth=5, n_estimators=200)
@@ -110,21 +110,20 @@ class SceneClassifier(object):
         pickle.dump(self, open(pkl, 'wb'))
 
         print 'train done and saved.'
-        self.metrics_(embeddings, labels, tokens)
+        self.metrics_(embeddings, labels, queries)
 
-    def metrics_(self, embeddings, labels, tokens):
+    def metrics_(self, embeddings, labels, queries):
         line = "取款"
         print(self.predict(line))
         pre = self.kernel.predict(embeddings)
         print metrics.confusion_matrix(labels, pre)
 
-        for i in xrange(len(tokens)):
-            question = ''.join(tokens[i])
+        for i in xrange(len(queries)):
+            query = queries[i]
             label = labels[i]
-            label_, probs = self.predict(question)
+            label_, probs = self.predict(query)
             if label_ != self.named_labels[label]:
-                question = unicode(question, encoding="utf-8")
-                print(label_, self.named_labels[label], question)
+                cn_util.print_cn(query, [self.named_labels[label], label_])
 
         # precision_score = metrics.precision_score(self.labels, pre)
         # recall_score = metrics.recall_score(self.labels, pre)
