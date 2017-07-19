@@ -32,7 +32,7 @@ class SceneClassifier(object):
         self.kernel = None
         # self.embeddings = list()
         self.labels = list()
-        self.named_labels = ['business', 'qa', 'interaction','market']
+        self.named_labels = ['business', 'qa', 'interaction', 'market']
 
     def _bulid_ngram(self, files):
         print 'build ngramer...'
@@ -57,7 +57,7 @@ class SceneClassifier(object):
 
         bigram_vectorizer = CountVectorizer(
             ngram_range=(1, 2), min_df=0.0, max_df=1.0, analyzer='char',
-            stop_words=[',', '?', '我', '我要','啊','呢','吧'], binary=True)
+            stop_words=[',', '?', '我', '我要', '啊', '呢', '吧'], binary=True)
 
         self.bigramer = bigram_vectorizer.fit(corpus)
 
@@ -81,11 +81,14 @@ class SceneClassifier(object):
                     try:
                         line = line[0].replace(" ", "").replace("\t", "")
                         line = QueryUtils.static_remove_cn_punct(line)
+                        # line = QueryUtils.quant_bucket_fix(line)
+                        # print(line)
                         if line:
                             b = line.encode('utf-8')
                             # print(b)
                             tokens = [self.cut(b)]
-                            embedding = self.bigramer.transform(tokens).toarray()
+                            embedding = self.bigramer.transform(
+                                tokens).toarray()
                             embeddings.append(embedding)
                             queries.append(b)
                             label = index
@@ -121,17 +124,17 @@ class SceneClassifier(object):
         self.metrics_(embeddings, labels, queries)
 
     def metrics_(self, embeddings, labels, queries):
-        line = "取款"
-        print(self.predict(line))
+        # line = "取款"
+        # print(self.predict(line))
         pre = self.kernel.predict(embeddings)
         print metrics.confusion_matrix(labels, pre)
 
-        for i in xrange(len(queries)):
-            query = queries[i]
-            label = labels[i]
-            label_, probs = self.predict(query)
-            if label_ != self.named_labels[label]:
-                cn_util.print_cn(query, [self.named_labels[label], label_])
+        # for i in xrange(len(queries)):
+        #     query = queries[i]
+        #     label = labels[i]
+        #     label_, probs = self.predict(query)
+        #     if label_ != self.named_labels[label]:
+        #         cn_util.print_cn(query, [self.named_labels[label], label_])
 
         # precision_score = metrics.precision_score(self.labels, pre)
         # recall_score = metrics.recall_score(self.labels, pre)
@@ -144,15 +147,22 @@ class SceneClassifier(object):
         pass
 
     def validate(self, files):
-        embeddings, labels, tokens = self._build(files)
+        # print(',,,,')
+        embeddings, labels, tokens = self._prepare_data(files)
         self.metrics_(embeddings, labels, tokens)
 
     def predict(self, question):
         # clf = pickle.load(open('../model/bqclf.pkl', 'r'))
         line = str(question).replace(" ", "").replace("\t", "")
         b = QueryUtils.static_remove_cn_punct(line)
+        fixed = QueryUtils.static_quant_bucket_fix(b)
+        fixed = ''.join(fixed)
+        # print('......')
+        cn_util.print_cn(fixed)
+        # b = ''.join(qu.quant_bucket_fix(b))
+        # # cn_util.print_cn('bbbb:', b)
         embedding = self.bigramer.transform(
-            [self.cut(b)]).toarray()
+            [self.cut(fixed)]).toarray()
         embedding = np.squeeze(embedding)
         embedding = np.reshape(embedding, [1, -1])
         label = self.kernel.predict(embedding)[0]
@@ -176,10 +186,12 @@ class SceneClassifier(object):
 
 def train():
     clf = SceneClassifier()
-    files = ['../data/scene/business_q.txt','../data/scene/common_qa_q.txt','../data/scene/interactive_g.txt', '../data/scene/market_q.txt']
+    files = ['../data/scene/business_q.txt', '../data/scene/common_qa_q.txt',
+             '../data/scene/interactive_g.txt', '../data/scene/market_q.txt']
     clf.train('../model/scene/sceneclf.pkl', files)
     # clf.train('../model/scene/sceneclf.pkl', '../data/scene/a.txt', '../data/scene/b.txt',
-              # '../data/scene/c.txt')
+    # '../data/scene/c.txt')
+
 
 def online_validation():
     clf = SceneClassifier.get_instance('../model/scene/sceneclf.pkl')
@@ -192,12 +204,14 @@ def online_validation():
     except KeyboardInterrupt:
         print('interaction interrupted')
 
+
 def offline_validation():
     clf = SceneClassifier.get_instance('../model/scene/sceneclf.pkl')
     print('loaded model file...')
-    files = ['../data/scene/business_q.txt', '../data/scene/common_qa_q.txt', '../data/scene/interactive_g.txt',
-             '../data/scene/market_q.txt']
+    files = ['../data/scene/test/business', '../data/scene/test/common_qa', '../data/scene/test/interactive',
+             '../data/scene/test/market']
     clf.validate(files)
+
 
 def main():
     parser = argparse.ArgumentParser()
