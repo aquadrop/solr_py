@@ -228,3 +228,4 @@ if __name__ == '__main__':
     # qu.process_data('../data/train_pruned.txt', '../data/train_pruned_fixed2.txt')
 
     print(QueryUtils.static_remove_cn_punct(u'我在电视上见过你，听说你很聪明啊?'))
+    cn_util.print_cn(qu.quant_bucket_fix('我要取三百'))

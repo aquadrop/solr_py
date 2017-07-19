@@ -144,7 +144,7 @@ class SceneClassifier(object):
         pass
 
     def validate(self, files):
-        embeddings, labels, tokens = self._build(files)
+        embeddings, labels, tokens = self._prepare_data(files)
         self.metrics_(embeddings, labels, tokens)
 
     def predict(self, question):
