@@ -151,6 +151,9 @@ class SceneClassifier(object):
         # clf = pickle.load(open('../model/bqclf.pkl', 'r'))
         line = str(question).replace(" ", "").replace("\t", "")
         b = QueryUtils.static_remove_cn_punct(line)
+        b = QueryUtils.static_quant_bucket_fix(b)
+        b = ''.join(b)
+        print('check predict query', b)
         embedding = self.bigramer.transform(
             [self.cut(b)]).toarray()
         embedding = np.squeeze(embedding)
