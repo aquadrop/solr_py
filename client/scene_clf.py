@@ -81,6 +81,10 @@ class SceneClassifier(object):
                     try:
                         line = line[0].replace(" ", "").replace("\t", "")
                         line = QueryUtils.static_remove_cn_punct(line)
+                        # line = QueryUtils.static_quant_bucket_fix(line)
+                        # line = ''.join(line)
+                        # print('......')
+                        cn_util.print_cn(line)
                         # line = QueryUtils.quant_bucket_fix(line)
                         # print(line)
                         if line:
@@ -127,14 +131,15 @@ class SceneClassifier(object):
         # line = "取款"
         # print(self.predict(line))
         pre = self.kernel.predict(embeddings)
+        # pre = self.predict(embeddings)
         print metrics.confusion_matrix(labels, pre)
 
-        # for i in xrange(len(queries)):
-        #     query = queries[i]
-        #     label = labels[i]
-        #     label_, probs = self.predict(query)
-        #     if label_ != self.named_labels[label]:
-        #         cn_util.print_cn(query, [self.named_labels[label], label_])
+        for i in xrange(len(queries)):
+            query = queries[i]
+            label = labels[i]
+            label_, probs = self.predict(query)
+            if label_ != self.named_labels[label]:
+                cn_util.print_cn(query, [self.named_labels[label], label_])
 
         # precision_score = metrics.precision_score(self.labels, pre)
         # recall_score = metrics.recall_score(self.labels, pre)
@@ -147,7 +152,6 @@ class SceneClassifier(object):
         pass
 
     def validate(self, files):
-        # print(',,,,')
         embeddings, labels, tokens = self._prepare_data(files)
         self.metrics_(embeddings, labels, tokens)
 
@@ -155,12 +159,18 @@ class SceneClassifier(object):
         # clf = pickle.load(open('../model/bqclf.pkl', 'r'))
         line = str(question).replace(" ", "").replace("\t", "")
         b = QueryUtils.static_remove_cn_punct(line)
+
         fixed = QueryUtils.static_quant_bucket_fix(b)
         fixed = ''.join(fixed)
         # print('......')
-        cn_util.print_cn(fixed)
+        # cn_util.print_cn(fixed)
         # b = ''.join(qu.quant_bucket_fix(b))
         # # cn_util.print_cn('bbbb:', b)
+
+        # b = QueryUtils.static_quant_bucket_fix(b)
+        # b = ''.join(b)
+        # print('check predict query', b)
+
         embedding = self.bigramer.transform(
             [self.cut(fixed)]).toarray()
         embedding = np.squeeze(embedding)
@@ -216,7 +226,7 @@ def offline_validation():
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--mode', choices={'train', 'online_validation', 'offline_validation'},
-                        default='online_validation', help='mode.if not specified,it is in prediction mode')
+                        default='offline_validation', help='mode.if not specified,it is in prediction mode')
     args = parser.parse_args()
 
     if args.mode == 'train':
