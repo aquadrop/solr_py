@@ -8,8 +8,11 @@ import jieba
 
 import cn2arab
 import cn_util
+import re
 
 class QueryUtils:
+    static_tokenizer_url = "http://localhost:11415/pos?q="
+
     def __init__(self):
         self.remove_tags = ["PN", "VA", "AD"]
         self.tokenizer_url = "http://localhost:11415/pos?q="
@@ -33,16 +36,32 @@ class QueryUtils:
                 text.append(word)
         return text
 
-    def pos(self, query, remove_tags=[]):
+    @staticmethod
+    def static_corenlp_cut(query, remove_tags=[]):
         q = query
-        r = requests.get(url=self.tokenizer_url+q)
+        r = requests.get(url=QueryUtils.static_tokenizer_url + q)
         ## purify
         text = []
         for t in r.text.encode("utf-8").split(" "):
             tag = t.split("/")[1]
+            word = t.split("/")[0]
             if not tag in remove_tags:
-                text.append(t)
+                text.append(word)
         return text
+
+    def pos(self, query, remove_tags=[]):
+        try:
+            q = query
+            r = requests.get(url=self.tokenizer_url+q)
+            ## purify
+            text = []
+            for t in r.text.encode("utf-8").split(" "):
+                tag = t.split("/")[1]
+                if not tag in remove_tags:
+                    text.append(t)
+            return text
+        except:
+            return [query]
 
     skip_CD = ['一些','一点','一些些','一点点','一点零']
 
@@ -69,6 +88,13 @@ class QueryUtils:
             return new_q
         return query
 
+    def remove_cn_punct(self, q):
+        return ''.join(self.corenlp_cut(q, remove_tags=['PU']))
+
+    @staticmethod
+    def static_remove_cn_punct(q):
+        return ''.join(QueryUtils.static_corenlp_cut(q, remove_tags=['PU']))
+
 
     tokenizer_url = "http://localhost:11415/pos?q="
     transfer_ = {1: '零钱', 200: ' 二百 ', 20000: ' 二万 ', 50000: ' 五万 ', 1000000: ' 一百万 '}
@@ -86,9 +112,9 @@ class QueryUtils:
 
         values = []
         if slot is None:
-            if num >= 0 and num <= 199:
+            if num >= 0 and num <= 99:
                 values = [1]
-            if num >= 200 and num <= 19999:
+            if num >= 100 and num <= 19999:
                 values = [200]
             elif num >= 20000 and num <= 49999:
                 values = [20000]
@@ -199,4 +225,6 @@ class QueryUtils:
 
 if __name__ == '__main__':
     qu = QueryUtils()
-    qu.process_data('../data/train_pruned.txt', '../data/train_pruned_fixed.txt')
+    # qu.process_data('../data/train_pruned.txt', '../data/train_pruned_fixed2.txt')
+
+    print(QueryUtils.static_remove_cn_punct(u'我在电视上见过你，听说你很聪明啊?'))

@@ -229,7 +229,7 @@ class SeqClassifier:
 
 
 if __name__ == "__main__":
-    clf = SeqClassifier("../data/train_pruned_fixed.txt")
+    clf = SeqClassifier("../data/train_pruned_fixed2.txt")
     clf.build()
     clf.train_classifier()
     with open("../model/seq_clf.pkl", 'wb') as pickle_file:
