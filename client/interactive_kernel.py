@@ -10,11 +10,12 @@ import random
 import numpy as np
 
 from query_util import QueryUtils
+import cn_util
 
 class IKernel:
 
-    i_url = 'http://localhost:11403/solr/interactive/select?wt=json&q=g:%s OR exact_g:%s^4'
-    simple_context_i_url = 'http://localhost:11403/solr/interactive/select?wt=json&q=g:%s^10 OR exact_g:%s^20 OR last_g:%s^2 OR exact_last_g:%s^8'
+    i_url = 'http://localhost:11403/solr/interactive/select?wt=json&q=g:(%s) OR exact_g:(%s)^4'
+    simple_context_i_url = 'http://localhost:11403/solr/interactive/select?wt=json&q=g:(%s)^10 OR exact_g:(%s)^20 OR last_g:(%s)^2 OR exact_last_g:(%s)^8'
 
     null_anwer = ['我没听懂您的意思', '我知识有限,这个我不知道怎么回答...']
 
@@ -24,7 +25,6 @@ class IKernel:
         self.qu = QueryUtils()
 
     def kernel(self, q):
-        q = self.purify_q(q)
         r = self._request_solr(q)
         answer = self._extract_answer(r)
         return answer
@@ -39,13 +39,15 @@ class IKernel:
             return np.random.choice(self.null_anwer, 1, p=[0.5, 0.5])[0]
 
     def _request_solr(self, q):
+        tokenized, exact_q = self.purify_q(q)
         if not self.last_g:
-            url = self.i_url % (q, q)
+            url = self.i_url % (tokenized, exact_q)
             self.last_g = q
         else:
-            url = self.simple_context_i_url % (q, q, self.last_g, self.last_g)
+            last_tkz, last_exact_q = self.purify_q(self.last_g)
+            url = self.simple_context_i_url % (tokenized, exact_q, last_tkz, last_exact_q)
             self.last_g = q
-        print('debug:interactive_url', url)
+        cn_util.print_cn('debug:interactive_url:' + url)
         r = requests.get(url)
         return r
 
@@ -64,5 +66,5 @@ class IKernel:
             return None
 
     def purify_q(self, q):
-        pos_q = self.qu.pos(q, remove_tags=["CD", "PN", "VA", "AD", "VC"])
-        return ''.join(pos_q)
+        pos_q = self.qu.corenlp_cut(q, remove_tags=["CD", "PN", "VA", "AD", "VC","SP"])
+        return ' AND '.join(pos_q), q
