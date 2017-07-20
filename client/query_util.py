@@ -89,6 +89,7 @@ class QueryUtils:
             word, tag = t.split("/")
             if tag == 'CD' and word not in self.skip_CD:
                 _, word = cn2arab.cn2arab(word)
+                word = re.sub("[^0-9]", "", word)
                 fixed = True
             new_query.append(word)
         return fixed, new_query
@@ -113,6 +114,7 @@ class QueryUtils:
             word, tag = t.split("/")
             if tag == 'CD' and word not in QueryUtils.skip_CD:
                 _, word = cn2arab.cn2arab(word)
+                word = re.sub("[^0-9]", "", word)
                 fixed = True
             new_query.append(word)
         return fixed, new_query

@@ -17,7 +17,7 @@ class IKernel:
     i_url = 'http://localhost:11403/solr/interactive/select?wt=json&q=g:(%s) OR exact_g:(%s)^4'
     simple_context_i_url = 'http://localhost:11403/solr/interactive/select?wt=json&q=g:(%s)^10 OR exact_g:(%s)^20 OR last_g:(%s)^2 OR exact_last_g:(%s)^8'
 
-    null_anwer = ['我没听懂您的意思', '我该怎么说呢...[晕][晕][晕]']
+    null_anwer = ['我没听懂您的意思', '我该怎么说呢...[晕][晕][晕]', '[晕][晕][晕]您能再说一遍吗?我刚刚没听清']
 
     def __init__(self):
         print('initilizing interactive kernel...')
@@ -30,13 +30,16 @@ class IKernel:
         return answer
 
     def _extract_answer(self, r, random_range=1):
-        num = self._num_answer(r)
-        if num > 0:
-            x = random.randint(0, min(random_range - 1, num - 1))
-            response = self._get_response(r, x)
-            return response
-        else:
-            return np.random.choice(self.null_anwer, 1, p=[0.5, 0.5])[0]
+        try:
+            num = self._num_answer(r)
+            if num > 0:
+                x = random.randint(0, min(random_range - 1, num - 1))
+                response = self._get_response(r, x)
+                return response
+            else:
+                return np.random.choice(self.null_anwer, 1, p=[0.5, 0.5])[0]
+        except:
+            return np.random.choice(self.null_anwer, 1)[0]
 
     def _request_solr(self, q):
         tokenized, exact_q = self.purify_q(q)

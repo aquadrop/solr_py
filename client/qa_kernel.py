@@ -33,7 +33,7 @@ class QAKernel:
             response = self._get_response(r, x)
             return response
         else:
-            return np.random.choice(self.null_anwer, 1, p=[0.5, 0.5])[0]
+            return np.random.choice(self.null_anwer, 1)[0]
 
     def _request_solr(self, q):
         tokenized, exact_q = self.purify_q(q)
