@@ -33,7 +33,7 @@ class SceneClassifier(object):
         self.kernel = None
         # self.embeddings = list()
         self.labels = list()
-        self.named_labels = ['business', 'qa', 'interaction','market']
+        self.named_labels = ['business', 'qa', 'interaction', 'market']
 
     def _bulid_ngram(self, files):
         print 'build ngramer...'
@@ -58,7 +58,7 @@ class SceneClassifier(object):
 
         bigram_vectorizer = CountVectorizer(
             ngram_range=(1, 2), min_df=0.0, max_df=1.0, analyzer='char',
-            stop_words=[',', '?', '我', '我要','啊','呢','吧'], binary=True)
+            stop_words=[',', '?', '我', '我要', '啊', '呢', '吧'], binary=True)
 
         self.bigramer = bigram_vectorizer.fit(corpus)
 
@@ -88,7 +88,8 @@ class SceneClassifier(object):
                             b = line.encode('utf-8')
                             # print(b)
                             tokens = [self.cut(b)]
-                            embedding = self.bigramer.transform(tokens).toarray()
+                            embedding = self.bigramer.transform(
+                                tokens).toarray()
                             embeddings.append(embedding)
                             queries.append(b)
                             label = index
@@ -170,11 +171,12 @@ class SceneClassifier(object):
         return corrected, probs
 
     qa_match_rule = re.compile(r"什么|如何|介绍")
+
     def rule_correct(self, q, label_index):
         if not self.qa_match_rule:
             self.qa_match_rule = re.compile(r"什么|如何|介绍")
 
-        if label_index == 1: ## qa, correct it to business accordingly
+        if label_index == 1:  # qa, correct it to business accordingly
             if not re.match(self.qa_match_rule, q):
                 return 0
             return label_index
@@ -192,13 +194,20 @@ class SceneClassifier(object):
         print('loading model file...')
         return pickle.load(open(path, 'r'))
 
+    @staticmethod
+    def get_w2v_instance(path):
+        import gensim
+        return gensim.models.Word2Vec.load('../module/word2vec.bin')
+
 
 def train():
     clf = SceneClassifier()
-    files = ['../data/scene/business_q.txt','../data/scene/common_qa_q.txt','../data/scene/interactive_g.txt', '../data/scene/market_q.txt']
+    files = ['../data/scene/business_q.txt', '../data/scene/common_qa_q.txt',
+             '../data/scene/interactive_g.txt', '../data/scene/market_q.txt']
     clf.train('../model/scene/sceneclf1.pkl', files)
     # clf.train('../model/scene/sceneclf.pkl', '../data/scene/a.txt', '../data/scene/b.txt',
-              # '../data/scene/c.txt')
+    # '../data/scene/c.txt')
+
 
 def online_validation():
     clf = SceneClassifier.get_instance('../model/scene/sceneclf.pkl')
@@ -211,6 +220,7 @@ def online_validation():
     except KeyboardInterrupt:
         print('interaction interrupted')
 
+
 def offline_validation():
     clf = SceneClassifier.get_instance('../model/scene/sceneclf.pkl')
     print('loaded model file...')
@@ -218,10 +228,11 @@ def offline_validation():
              '../data/scene/test/market.txt']
     clf.validate(files)
 
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--mode', choices={'train', 'online_validation', 'offline_validation'},
-                        default='train', help='mode.if not specified,it is in prediction mode')
+                        default='offline_validation', help='mode.if not specified,it is in prediction mode')
     args = parser.parse_args()
 
     if args.mode == 'train':
