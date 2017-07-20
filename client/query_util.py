@@ -10,6 +10,7 @@ import cn2arab
 import cn_util
 import re
 
+
 class QueryUtils:
     static_tokenizer_url = "http://localhost:11415/pos?q="
 
@@ -27,7 +28,7 @@ class QueryUtils:
     def corenlp_cut(self, query, remove_tags=[]):
         q = query
         r = requests.get(url=self.tokenizer_url + q)
-        ## purify
+        # purify
         text = []
         for t in r.text.encode("utf-8").split(" "):
             tag = t.split("/")[1]
@@ -40,7 +41,7 @@ class QueryUtils:
     def static_corenlp_cut(query, remove_tags=[]):
         q = query
         r = requests.get(url=QueryUtils.static_tokenizer_url + q)
-        ## purify
+        # purify
         text = []
         for t in r.text.encode("utf-8").split(" "):
             tag = t.split("/")[1]
@@ -52,8 +53,8 @@ class QueryUtils:
     def pos(self, query, remove_tags=[]):
         try:
             q = query
-            r = requests.get(url=self.tokenizer_url+q)
-            ## purify
+            r = requests.get(url=self.tokenizer_url + q)
+            # purify
             text = []
             for t in r.text.encode("utf-8").split(" "):
                 tag = t.split("/")[1]
@@ -67,8 +68,8 @@ class QueryUtils:
     def static_pos(query, remove_tags=[]):
         try:
             q = query
-            r = requests.get(url=QueryUtils.static_tokenizer_url+q)
-            ## purify
+            r = requests.get(url=QueryUtils.static_tokenizer_url + q)
+            # purify
             text = []
             for t in r.text.encode("utf-8").split(" "):
                 tag = t.split("/")[1]
@@ -78,7 +79,7 @@ class QueryUtils:
         except:
             return [query]
 
-    skip_CD = ['一些','一点','一些些','一点点','一点零']
+    skip_CD = ['一些', '一点', '一些些', '一点点', '一点零']
 
     def quant_fix(self, query):
         pos = self.pos(query)
@@ -135,11 +136,11 @@ class QueryUtils:
     def static_remove_cn_punct(q):
         return ''.join(QueryUtils.static_corenlp_cut(q, remove_tags=['PU']))
 
-
     tokenizer_url = "http://localhost:11415/pos?q="
-    transfer_ = {1: '零钱', 200: ' 二百 ', 20000: ' 二万 ', 50000: ' 五万 ', 1000000: ' 一百万 '}
+    transfer_ = {1: '零钱', 200: ' 二百 ', 20000: ' 二万 ',
+                 50000: ' 五万 ', 1000000: ' 一百万 '}
     # transfer_ = {200: ' 200 ', 20000: ' 20000 ', 50000: ' 50000 ', 1000000: ' 1000000 '}
-    ## 0-20K,20K-50K,50K-100K,100K-
+    # 0-20K,20K-50K,50K-100K,100K-
     breakpoints_map = {"转账": [-10, 0, 49999, 1000000 - 1, 9999999999999],
                        "存款": [-10, 0, 199, 50000 - 1, 9999999999999],
                        "取款": [-10, 0, 199, 20000 - 1, 50000 - 1, 9999999999999]}
@@ -169,8 +170,8 @@ class QueryUtils:
                 values = [1000000]
             return QueryUtils.static_transfer(values)
 
-        ## 转账
-        ## 0-20K,20K-50K,50K-100K,100K-
+        # 转账
+        # 0-20K,20K-50K,50K-100K,100K-
         if "转账" in slot:
             if num >= 0 and num <= 49999:
                 values = [1, 200, 20000]
@@ -180,8 +181,8 @@ class QueryUtils:
                 values = [1000000]
             return QueryUtils.static_transfer(values)
 
-        ## 存款
-        ## 0-20K,20K-50K,50K-100K,100K-
+        # 存款
+        # 0-20K,20K-50K,50K-100K,100K-
         if "存款" in slot:
             if num >= 0 and num < 199:
                 values = [1]
@@ -191,8 +192,8 @@ class QueryUtils:
                 values = [50000, 1000000]
             return QueryUtils.static_transfer(values)
 
-        ## 取款
-        ## 0-20K,20K-50K,50K-100K,100K-
+        # 取款
+        # 0-20K,20K-50K,50K-100K,100K-
         if "取款" in slot:
             if num >= 0 and num < 100:
                 values = [1]
@@ -221,8 +222,8 @@ class QueryUtils:
                 values = [1000000]
             return self.transfer(values)
 
-        ## 转账
-        ## 0-20K,20K-50K,50K-100K,100K-
+        # 转账
+        # 0-20K,20K-50K,50K-100K,100K-
         if "转账" in slot:
             if num >= 0 and num <= 49999:
                 values = [1, 200, 20000]
@@ -232,8 +233,8 @@ class QueryUtils:
                 values = [1000000]
             return self.transfer(values)
 
-        ## 存款
-        ## 0-20K,20K-50K,50K-100K,100K-
+        # 存款
+        # 0-20K,20K-50K,50K-100K,100K-
         if "存款" in slot:
             if num >= 0 and num < 199:
                 values = [1]
@@ -243,8 +244,8 @@ class QueryUtils:
                 values = [50000, 1000000]
             return self.transfer(values)
 
-        ## 取款
-        ## 0-20K,20K-50K,50K-100K,100K-
+        # 取款
+        # 0-20K,20K-50K,50K-100K,100K-
         if "取款" in slot:
             if num >= 0 and num < 100:
                 values = [1]
@@ -325,4 +326,5 @@ if __name__ == '__main__':
     # qu.process_data('../data/train_pruned.txt', '../data/train_pruned_fixed2.txt')
 
     print(QueryUtils.static_remove_cn_punct(u'我在电视上见过你，听说你很聪明啊?'))
+    cn_util.print_cn(qu.quant_bucket_fix('我要取三百'))
     cn_util.print_cn(qu.quant_bucket_fix('我要取500.0'))
