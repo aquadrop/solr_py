@@ -83,18 +83,23 @@ class GKernel:
         # last try of RANGE
         if not num_found and "RANGE" in value_types:
             for t in tokens:
-                if t.isdigit():
-                    try:
-                        next_node = node.go(q=float(t), value_type="RANGE")
-                        num_found = next_node is not None
-                        if num_found:
-                            print('found type by RANGE:', next_node.slot)
-                            self.last_slot = node.slot
-                            key = t
-                            break
-                    except Exception, e:
-                        print(e.message)
-                        num_found = False
+                try:
+                    t = cn2arab.cn2arab(t)[1]
+                    if t.isdigit():
+                        try:
+                            next_node = node.go(q=float(t), value_type="RANGE")
+                            num_found = next_node is not None
+                            if num_found:
+                                print('found type by RANGE:', next_node.slot)
+                                self.last_slot = node.slot
+                                key = t
+                                break
+                        except Exception, e:
+                            print(e.message)
+                            num_found = False
+                except Exception,e:
+                    print(e.message)
+                    num_found = False
 
         if not key_found and "KEY" in value_types and gbdt_recursion:
             try:
