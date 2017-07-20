@@ -17,7 +17,7 @@ class IKernel:
     i_url = 'http://localhost:11403/solr/interactive/select?wt=json&q=g:(%s) OR exact_g:(%s)^4'
     simple_context_i_url = 'http://localhost:11403/solr/interactive/select?wt=json&q=g:(%s)^10 OR exact_g:(%s)^20 OR last_g:(%s)^2 OR exact_last_g:(%s)^8'
 
-    null_anwer = ['我没听懂您的意思', '我该怎么说呢...[晕][晕][晕]', '[晕][晕][晕]您能再说一遍吗?我刚刚没听清']
+    null_anwer = ['我没听懂您的意思', '我好像不明白...[晕][晕][晕]', '[晕][晕][晕]您能再说一遍吗?我刚刚没听清']
 
     def __init__(self):
         print('initilizing interactive kernel...')

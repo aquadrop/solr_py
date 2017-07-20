@@ -8,100 +8,276 @@ cat common_qa.txt | awk -F "\t" '{print $2}' > common_qa_q.txt
 <delete><query>*:*</query></delete>
 '''
 
-('business', array([[ 0.92624656,  0.00145845,  0.02355685,  0.04873813]]))
-[[4221    1    0    0]
- [   0  191    0    0]
- [  11    0 1003   32]
- [  34    0    7 1211]]
-('qa', 'business', u'\u4e2a\u4eba \u7f51\u94f6')
-('business', 'interaction', u'\u6211\u5e05 \u4e0d\u5e05 ?')
-('market', 'interaction', u'\u4f60 \u53ef\u4ee5 \u53bb \u6b7b \u4e86')
-('business', 'interaction', u'\u5728 \u54ea\u91cc ?')
-('business', 'interaction', u'\u806a\u660e')
-('business', 'interaction', u'\u7b28')
-('market', 'interaction', u'\u5ba2\u6237 \u70b9 \u6309\u94ae')
-('market', 'interaction', u'\u4f60 \u7684 \u5934 \u600e\u4e48 \u8fd9\u4e48 \u65b9 \u3002')
-('market', 'interaction', u'\u4f60 \u600e\u4e48 \u8fd9\u4e48 \u5361 \u3002')
-('market', 'interaction', u'\u4f60 \u8fd9\u4e48 \u5c0f \u5c31 \u5de5\u4f5c \u554a')
-('market', 'interaction', u'\u4f60 \u53c8 \u6765 \u63a8\u9500 \u4e86 \u3002')
-('market', 'interaction', u'\u4f60 \u4f1a \u505a \u4ec0\u4e48')
-('market', 'interaction', u'\u4f60 \u600e\u4e48 \u603b\u662f \u8ba9 \u6211 \u626b\u7801')
-('business', 'interaction', u'\u4e0d \u77e5\u9053')
-('market', 'interaction', u'\u8c22\u8c22 \u4f60 \u7ed9 \u6211 \u8868\u6f14 \u7684 \u8282\u76ee \u3002')
-('market', 'interaction', u'\u65fa\u5b9d \u8d70 \u5feb\u70b9 \u3002')
-('market', 'interaction', u'\u4f60 \u600e\u4e48 \u4ec0\u4e48 \u90fd \u4f1a \u5440')
-('market', 'interaction', u'\u4f60 \u4f1a \u529e \u4ec0\u4e48 \u4e1a\u52a1 \u3002')
-('market', 'interaction', u'\u4f60 \u90fd \u5fd9 \u4ec0\u4e48 \u5462')
-('business', 'interaction', u'\u4f60 \u80fd \u8d70 \u591a \u8fdc')
-('business', 'interaction', u'\u73b0\u5728 \u5462 ?')
-('market', 'interaction', u'\u4e0d\u4f1a \u3002')
-('market', 'interaction', u'\u65fa\u5b9d \u4f60 \u592a \u9017 \u4e86 \u3002')
-('market', 'interaction', u'\u6211 \u5df2\u7ecf \u626b\u8fc7 \u4e86')
-('market', 'interaction', u'\u4f60 \u771f \u806a\u660e')
-('market', 'interaction', u'\u4e3a\u4ec0\u4e48')
-('market', 'interaction', u'\u4f60 \u771f \u53ef\u7231')
-('market', 'interaction', u'\u53ef\u662f \u6211 \u4e0d \u559c\u6b22 \u4f60')
-('market', 'interaction', u'\u6253 \u4f60')
-('market', 'interaction', u'\u4f60 \u9001 \u9001 \u6211 \u5427')
-('market', 'interaction', u'\u4f60 \u53bb \u54ea\u91cc')
-('market', 'interaction', u'\u6211 \u662f \u9a97 \u4f60 \u7684')
-('market', 'interaction', u'\u4f60 \u53c8 \u4e0d\u662f \u4eba \u3002')
-('business', 'interaction', u'\u4e00\u76f4 \u540e\u9000')
-('business', 'interaction', u'\u6211 \u662f\u4e0d\u662f \u4e11 \u4e86 / \u80d6 \u4e86')
-('market', 'interaction', u'\u600e\u4e48 \u6ca1\u6709 \u5bc6\u7801 \u554a')
-('market', 'interaction', u'\u6211 \u8fd8 \u6ca1 \u5403\u996d \u3002')
-('market', 'interaction', u'\u7ed9 \u6211\u70b9 \u94b1 \u3002')
-('market', 'interaction', u'\u6211 \u626b\u8fc7 \u4e86')
-('market', 'interaction', u'\u4f60 \u600e\u4e48 \u4ec0\u4e48 \u90fd \u77e5\u9053')
-('market', 'interaction', u'\u4f60 \u600e\u4e48 \u53c8 \u4e0d \u8ba4\u8bc6 \u6211 \u4e86 \u3002')
-('business', 'interaction', u'\u4f60 \u731c')
-('market', 'interaction', u'\u65fa\u5b9d \u4f60 \u6700\u6015 \u4ec0\u4e48')
-('market', 'interaction', u'\u4e3a\u4ec0\u4e48')
-('market', 'interaction', u'\u4f60 \u6ca1\u6551 \u4e86 \u3002')
-('market', 'interaction', u'\u6211\u8981 \u628a \u4f60 \u5e26\u56de\u5bb6')
-('business', 'interaction', u'\u8fd9\u4e2a \u600e\u4e48 \u53bb')
-('business', 'interaction', u'\u548c \u6211 \u51fa\u53bb \u73a9\u5427')
-('market', 'interaction', u'\u4e3a\u4ec0\u4e48 \u554a')
-('business', 'market', u'\u53ef\u4ee5')
-('interaction', 'market', u'\u4f60 \u8fd8\u6709 \u5176\u4ed6 \u8868\u60c5 \u5417 ?')
-('interaction', 'market', u'\u987e\u5ba2 \u4e00\u76f4 \u770b\u7740 \u65fa\u5b9d')
-('business', 'market', u'\u6ca1 \u94b1 \u600e\u4e48\u529e')
-('business', 'market', u'\u53ef\u4ee5 \u5440')
-('interaction', 'market', u'\u597d \u5440 !')
-('business', 'market', u'\u6709\u6ca1\u6709 \u60f3 \u6211 \u554a')
-('business', 'market', u'\u6211 \u624b\u673a \u5feb \u6ca1\u7535 \u4e86')
-('business', 'market', u'\u600e\u4e48 \u4f1a \u5462')
-('business', 'market', u'\u600e\u4e48 \u53d1')
-('business', 'market', u'\u662f \u7684')
-('business', 'market', u'\u6211 \u4e0d \u77e5\u9053')
-('business', 'market', u'\u6211 \u4e0d \u5f00\u5fc3')
-('business', 'market', u'\u600e\u4e48 \u8d5a')
-('business', 'market', u'\u5bf9 \u554a')
-('interaction', 'market', u'\u4f60 \u6709\u94b1 \u5417 ?')
-('business', 'market', u'\u662f \u7684')
-('business', 'market', u'\u6211 \u6ca1\u94b1\u82b1 \u4e86')
-('business', 'market', u'\u662f \u5440')
-('interaction', 'market', u'\u771f\u7684 \u5417 ?')
-('business', 'market', u'\u597d\u770b')
-('business', 'market', u'\u4e0d \u544a\u8bc9 \u4f60')
-('business', 'market', u'\u5f53\u7136 \u60f3')
-('business', 'market', u'\u7ed9 \u6211\u70b9 \u94b1')
-('business', 'market', u'\u662f \u7684')
-('business', 'market', u'\u662f \u7684')
-('business', 'market', u'\u559c\u6b22')
-('business', 'market', u'\u597d \u6f02\u4eae')
-('business', 'market', u'\u6211 \u4e5f \u89c9\u5f97')
-('interaction', 'market', u'\u4f60 \u662f \u54ea\u91cc \u4eba')
-('business', 'market', u'\u5bf9 \u5440')
-('business', 'market', u'\u8d37\u6b3e \u3002')
-('business', 'market', u'\u8d37\u6b3e')
-('business', 'market', u'\u8fd8 \u4fe1\u7528\u5361')
-('interaction', 'market', u'\u6211 \u6ca1\u6709 \u624b\u673a ( \u8ba9 \u626b\u7801 \u4e0d \u626b )')
-('business', 'market', u'\u8981 \u7684 \u5440')
-('business', 'market', u'\u6211 \u5931\u604b \u4e86')
-('business', 'market', u'\u559c\u6b22 \u5440')
-('business', 'market', u'\u591a\u5c11 \u94b1 \u554a')
-('business', 'market', u'\u600e\u4e48\u5f04 \u554a')
-('business', 'market', u'\u6211 \u5c31\u662f \u968f\u4fbf \u770b\u770b')
-
-
+##
+'''
+[[449   2   6   8]
+ [ 25   8   4   9]
+ [ 73   1  24  42]
+ [ 73   1  24  42]]
+你知道怎么看余额吗 ['business', 'interaction']
+我想了解怎么开通短信通知不是你回答的 ['business', 'interaction']
+不跟你开玩笑了注销手机银行吧 ['business', 'market']
+那网上银行又是什么情况呢 ['business', 'market']
+那没有呢 ['business', 'market']
+我转个钱你报警干嘛 ['business', 'market']
+我想咨询一下你们的贷款业务 ['business', 'market']
+开通手机银行业务要什么手续要什么样的证件能不能具体点的业务办理流程 ['business', 'interaction']
+我想看一下最近半年的交易记录 ['business', 'market']
+怎么申请装修贷款啊 ['business', 'market']
+个人贷款 ['business', 'qa']
+办理个人贷款 ['business', 'qa']
+U盾是什么 ['qa', 'business']
+有什么业务可以查询 ['qa', 'market']
+有什么贷款 ['qa', 'market']
+有哪些贷款可以办 ['qa', 'business']
+我需要人工服务 ['qa', 'business']
+房子装修的贷款也是可以办的吧可以介绍一下吗 ['qa', 'business']
+还有取号嘛 ['qa', 'business']
+改密码需要什么呢 ['qa', 'market']
+大堂经理在哪儿我我没看见啊 ['qa', 'market']
+那我找你预约吗 ['qa', 'market']
+你又不给我预约又不告诉我大堂经理在哪儿 ['qa', 'business']
+信用卡怎么好用了 ['qa', 'business']
+没有网银怎么登陆 ['qa', 'business']
+请问存款的地方在哪里 ['qa', 'business']
+取款是特殊业务吗还要填单子吗 ['qa', 'business']
+你们有什么贷款 ['qa', 'interaction']
+我问你们有什么贷款 ['qa', 'interaction']
+我要注销我的卡但是我不知道你说的什么是借记卡 ['qa', 'business']
+开通短信通知有啥用 ['qa', 'business']
+我问你什么是网银 ['qa', 'interaction']
+网银不行吗你不知道网银业务吗 ['qa', 'interaction']
+挂失补办是干嘛 ['qa', 'business']
+挂失补办是什么业务 ['qa', 'business']
+开通手机银行业务要什么手续 ['qa', 'market']
+转账汇款是什么业务 ['qa', 'market']
+转账汇款要求是什么 ['qa', 'business']
+U盾是什么东西 ['qa', 'business']
+到那里取号 ['qa', 'business']
+有什么货款种类 ['qa', 'market']
+能办什么贷款 ['qa', 'business']
+在那里可以取号 ['qa', 'business']
+不能自助办理吗 ['qa', 'business']
+网银盾多少钱 ['qa', 'business']
+我来取8万块钱要预约吗 ['qa', 'business']
+我这张卡好长时间没用了是不是不能用了 ['qa', 'business']
+我这张卡好长时间没用了是不是需要激活一下啊 ['qa', 'market']
+那手机银行怎么弄 ['qa', 'business']
+柜台不能办理挂失吗 ['qa', 'business']
+好的谢谢 ['interaction', 'business']
+什么礼物 ['interaction', 'market']
+不用了谢谢 ['interaction', 'business']
+不用了 ['interaction', 'business']
+好的 ['interaction', 'business']
+OK ['interaction', 'business']
+喔 ['interaction', 'business']
+人呢 ['interaction', 'business']
+好的谢谢 ['interaction', 'business']
+什么礼物 ['interaction', 'market']
+回答错误 ['interaction', 'business']
+哦 ['interaction', 'business']
+我并不可能笑 ['interaction', 'business']
+6666 ['interaction', 'business']
+我不知道捡起来啊 ['interaction', 'market']
+没钱了 ['interaction', 'business']
+怎么才能有点钱呢 ['interaction', 'business']
+不不不我想要钱 ['interaction', 'business']
+为什么呀 ['interaction', 'market']
+才不是呢 ['interaction', 'business']
+不不不我喜欢你呀 ['interaction', 'market']
+我伤心了呢 ['interaction', 'business']
+为什么 ['interaction', 'market']
+你好呀 ['interaction', 'market']
+怎么不理我了呢 ['interaction', 'business']
+好吧谢谢 ['interaction', 'market']
+这么方便啊谢谢 ['interaction', 'market']
+什么礼物呢 ['interaction', 'market']
+哦这样呀 ['interaction', 'market']
+那行吧麻烦你了呦 ['interaction', 'market']
+害羞害羞 ['interaction', 'business']
+没有你还不直接给我办就行了 ['interaction', 'business']
+额好吧 ['interaction', 'business']
+我是美女 ['interaction', 'business']
+我不办业务我要调戏你 ['interaction', 'market']
+叫我美女姐姐 ['interaction', 'business']
+叫我美女姐姐 ['interaction', 'business']
+过来我要踹你两脚 ['interaction', 'market']
+你和银行啥关系啊 ['interaction', 'market']
+猜不到 ['interaction', 'business']
+我是你爸爸 ['interaction', 'market']
+我是你爸爸我没出国不孝的熊孩子 ['interaction', 'market']
+你是谁你从哪里来 ['interaction', 'market']
+我不开心 ['interaction', 'market']
+然后怎么做 ['interaction', 'business']
+没带身份证 ['interaction', 'business']
+大堂经理在哪 ['interaction', 'business']
+二维码呢 ['interaction', 'business']
+没有二维码 ['interaction', 'business']
+我不是建行卡 ['interaction', 'business']
+给我唱首歌 ['interaction', 'market']
+我是哥哥 ['interaction', 'business']
+不是姐姐 ['interaction', 'business']
+白吃 ['interaction', 'business']
+亲亲子衿悠悠我心 ['interaction', 'business']
+我想买车 ['interaction', 'business']
+你好旺宝 ['interaction', 'market']
+你还是没有明白我的意思 ['interaction', 'market']
+旺宝下午好 ['interaction', 'market']
+你可以再说一遍吗 ['interaction', 'business']
+我没有听明白 ['interaction', 'business']
+我没明白你再说一遍可以吗 ['interaction', 'market']
+我不认识你带我过去好吗 ['interaction', 'market']
+还需要下载呀 ['interaction', 'market']
+我可以请求人工服务吗 ['interaction', 'business']
+我想找个人帮我一下 ['interaction', 'qa']
+找不到了怎么办呀 ['interaction', 'business']
+只能重新办一张了吗 ['interaction', 'business']
+我的卡绑定了好多东西呢 ['interaction', 'business']
+我要解绑 ['interaction', 'business']
+厉害了旺宝你还要上吊 ['interaction', 'market']
+怎么没有响应了 ['interaction', 'business']
+是不是挂了 ['interaction', 'business']
+怎样办理 ['interaction', 'business']
+好吧 ['interaction', 'business']
+过来帮我 ['interaction', 'market']
+滚 ['interaction', 'business']
+还有其他 ['interaction', 'business']
+要我办理什么业务 ['interaction', 'market']
+好的 ['interaction', 'business']
+就这样 ['interaction', 'business']
+没了 ['interaction', 'business']
+要什么样的证件 ['interaction', 'market']
+能不能具体点的业务 ['interaction', 'business']
+可以下载了吗 ['interaction', 'business']
+说错了有银行卡 ['interaction', 'business']
+我来了 ['interaction', 'business']
+好的 ['interaction', 'business']
+谢谢 ['interaction', 'business']
+什么礼物 ['interaction', 'market']
+soory我们不在一个频道 ['interaction', 'business']
+来宣传 ['interaction', 'business']
+本来还想叫我去 ['interaction', 'business']
+我要谢谢你还能去吗 ['interaction', 'market']
+我想学点零元能去吗 ['interaction', 'business']
+我想徐艳林霞能取吗 ['interaction', 'business']
+iloveyou要预约吗 ['interaction', 'business']
+我美女你能帮我吗 ['interaction', 'business']
+好担心耶 ['interaction', 'business']
+干啥 ['interaction', 'market']
+干啥 ['interaction', 'market']
+本卡 ['interaction', 'business']
+干啥 ['interaction', 'market']
+我来干啥 ['interaction', 'market']
+ilike啊 ['interaction', 'market']
+我来 ['interaction', 'business']
+我干的谁去死 ['interaction', 'market']
+鹅蛋出去啊 ['interaction', 'market']
+之前好像转过了 ['interaction', 'business']
+然而 ['interaction', 'business']
+很心寒很棒的 ['interaction', 'business']
+我来不需要银行卡 ['interaction', 'business']
+我是干姓啥 ['interaction', 'market']
+干应用 ['interaction', 'business']
+你能干啥 ['interaction', 'market']
+好谢谢 ['interaction', 'business']
+我不会柜台不能办吗 ['interaction', 'business']
+好的谢谢 ['market', 'business']
+不用了谢谢 ['market', 'business']
+不用了 ['market', 'business']
+好的 ['market', 'business']
+OK ['market', 'business']
+喔 ['market', 'business']
+人呢 ['market', 'business']
+你好 ['market', 'interaction']
+你好 ['market', 'interaction']
+好的谢谢 ['market', 'business']
+回答错误 ['market', 'business']
+什么鬼 ['market', 'interaction']
+哦 ['market', 'business']
+我并不可能笑 ['market', 'business']
+6666 ['market', 'business']
+没钱了 ['market', 'business']
+怎么才能有点钱呢 ['market', 'business']
+不不不我想要钱 ['market', 'business']
+才不是呢 ['market', 'business']
+我伤心了呢 ['market', 'business']
+怎么不理我了呢 ['market', 'business']
+才不是呢我有男朋友的呦 ['market', 'interaction']
+害羞害羞 ['market', 'business']
+没有你还不直接给我办就行了 ['market', 'business']
+额好吧 ['market', 'business']
+谢谢你 ['market', 'interaction']
+聊了这么久你累不 ['market', 'interaction']
+你是不是傻 ['market', 'interaction']
+我是美女 ['market', 'business']
+叫我美女姐姐 ['market', 'business']
+叫我美女姐姐 ['market', 'business']
+猜不到 ['market', 'business']
+你猜我我猜不猜 ['market', 'interaction']
+你是干吗的 ['market', 'interaction']
+你能做什么 ['market', 'interaction']
+然后怎么做 ['market', 'business']
+没带身份证 ['market', 'business']
+大堂经理在哪 ['market', 'business']
+二维码呢 ['market', 'business']
+没有二维码 ['market', 'business']
+我不是建行卡 ['market', 'business']
+你好 ['market', 'interaction']
+我是哥哥 ['market', 'business']
+不是姐姐 ['market', 'business']
+白吃 ['market', 'business']
+亲亲子衿悠悠我心 ['market', 'business']
+我想买车 ['market', 'business']
+你可以再说一遍吗 ['market', 'business']
+我没有听明白 ['market', 'business']
+你可以带我过去吗 ['market', 'interaction']
+你怎么不理我了 ['market', 'interaction']
+我可以请求人工服务吗 ['market', 'business']
+我想找个人帮我一下 ['market', 'qa']
+找不到了怎么办呀 ['market', 'business']
+只能重新办一张了吗 ['market', 'business']
+我的卡绑定了好多东西呢 ['market', 'business']
+我要解绑 ['market', 'business']
+跟你聊天感觉好累 ['market', 'interaction']
+你总是不明白我的意思 ['market', 'interaction']
+我想请求人工了你不好玩 ['market', 'interaction']
+不会有人找你了你放心 ['market', 'interaction']
+你可以说慢一点吗 ['market', 'interaction']
+你可以讲快一点吗 ['market', 'interaction']
+怎么没有响应了 ['market', 'business']
+是不是挂了 ['market', 'business']
+怎样办理 ['market', 'business']
+好吧 ['market', 'business']
+滚 ['market', 'business']
+还有其他 ['market', 'business']
+好的 ['market', 'business']
+就这样 ['market', 'business']
+没了 ['market', 'business']
+能不能具体点的业务 ['market', 'business']
+可以下载了吗 ['market', 'business']
+扯淡你行 ['market', 'interaction']
+你明白我问什么了 ['market', 'interaction']
+笨 ['market', 'interaction']
+说错了有银行卡 ['market', 'business']
+我来了 ['market', 'business']
+好的 ['market', 'business']
+谢谢 ['market', 'business']
+soory我们不在一个频道 ['market', 'business']
+来宣传 ['market', 'business']
+本来还想叫我去 ['market', 'business']
+我想学点零元能去吗 ['market', 'business']
+我想徐艳林霞能取吗 ['market', 'business']
+iloveyou要预约吗 ['market', 'business']
+我美女你能帮我吗 ['market', 'business']
+好担心耶 ['market', 'business']
+本卡 ['market', 'business']
+我来 ['market', 'business']
+之前好像转过了 ['market', 'business']
+然而 ['market', 'business']
+很心寒很棒的 ['market', 'business']
+我来不需要银行卡 ['market', 'business']
+干应用 ['market', 'business']
+你好 ['market', 'interaction']
+好谢谢 ['market', 'business']
+我不会柜台不能办吗 ['market', 'business']
+'''
