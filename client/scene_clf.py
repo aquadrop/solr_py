@@ -33,7 +33,8 @@ class SceneClassifier(object):
         self.kernel = None
         # self.embeddings = list()
         self.labels = list()
-        self.named_labels = ['business', 'qa', 'interaction', 'market']
+        self.named_labels = ['business', 'qa',
+                             'interaction', 'market', 'repeat']
 
     def _bulid_ngram(self, files):
         print 'build ngramer...'
@@ -62,10 +63,24 @@ class SceneClassifier(object):
 
         self.bigramer = bigram_vectorizer.fit(corpus)
 
+    def _get_w2v_instance(path):
+        import gensim
+        self.w2v = gensim.models.Word2Vec.load('../module/word2vec.bin')
+
     def cut(self, input_):
         seg = " ".join(jieba.cut(input_, cut_all=False))
         tokens = _uniout.unescape(str(seg), 'utf8')
         return tokens
+
+    # remain to fix...
+    def embedding_by_w2v(self, line):
+        tokens = self.cut(line)
+        embedding = []
+        for word in tokens:
+            if model.__contains__(word.strip()):
+                vector = model.__getitem__(word.strip())
+                result = [v for v in vector]
+            return result
 
     def _prepare_data(self, files):
         print 'prepare data...'
@@ -129,10 +144,7 @@ class SceneClassifier(object):
         self.metrics_(embeddings, labels, queries)
 
     def metrics_(self, embeddings, labels, queries):
-        # line = "取款"
-        # print(self.predict(line))
         pre = self.kernel.predict(embeddings)
-        # pre = self.predict(embeddings)
         print metrics.confusion_matrix(labels, pre)
 
         for i in xrange(len(queries)):
@@ -141,16 +153,6 @@ class SceneClassifier(object):
             label_, probs = self.predict(query)
             if label_ != self.named_labels[label]:
                 cn_util.print_cn(query, [self.named_labels[label], label_])
-
-        # precision_score = metrics.precision_score(self.labels, pre)
-        # recall_score = metrics.recall_score(self.labels, pre)
-        # f1_score = metrics.f1_score(self.labels, pre)
-
-        # print 'precision_score:{0}, recall_score:{1},
-        # f1_score:{2}'.format(precision_score, recall_score, f1_score)
-
-    def find_wrong(self):
-        pass
 
     def validate(self, files):
         embeddings, labels, tokens = self._prepare_data(files)
@@ -178,6 +180,10 @@ class SceneClassifier(object):
         embedding = np.reshape(embedding, [1, -1])
         label = self.kernel.predict(embedding)[0]
         probs = self.kernel.predict_proba(embedding)
+
+
+        return self.named_labels[label], probs
+
         # print probs
         # print prob
 
@@ -195,6 +201,7 @@ class SceneClassifier(object):
             return label_index
         return label_index
 
+
     def interface(self, q):
         label, probs = self.predict(q)
         probs_dict = {}
@@ -211,10 +218,8 @@ class SceneClassifier(object):
 def train():
     clf = SceneClassifier()
     files = ['../data/scene/business_q.txt', '../data/scene/common_qa_q.txt',
-             '../data/scene/interactive_g.txt', '../data/scene/market_q.txt']
-    clf.train('../model/scene/sceneclf.pkl', files)
-    # clf.train('../model/scene/sceneclf.pkl', '../data/scene/a.txt', '../data/scene/b.txt',
-    # '../data/scene/c.txt')
+             '../data/scene/interactive_g.txt', '../data/scene/market_q.txt', '../data/scene/repeat_q.txt']
+    clf.train('../model/scene/sceneclf_five.pkl', files)
 
 
 def online_validation():
@@ -232,15 +237,15 @@ def online_validation():
 def offline_validation():
     clf = SceneClassifier.get_instance('../model/scene/sceneclf.pkl')
     print('loaded model file...')
-    files = ['../data/scene/test/business', '../data/scene/test/common_qa', '../data/scene/test/interactive',
-             '../data/scene/test/market']
+    files = ['../data/scene/test/business.txt', '../data/scene/test/common_qa.txt', '../data/scene/test/interactive.txt',
+             '../data/scene/test/market.txt']
     clf.validate(files)
 
 
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--mode', choices={'train', 'online_validation', 'offline_validation'},
-                        default='online_validation', help='mode.if not specified,it is in prediction mode')
+                        default='train', help='mode.if not specified,it is in prediction mode')
     args = parser.parse_args()
 
     if args.mode == 'train':

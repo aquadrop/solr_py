@@ -4,6 +4,9 @@ curl 'http://localhost:8983/solr/techproducts/update?commit=true' --data-binary 
 <delete><query>*:*</query></delete>
 
 cat common_qa.txt | awk -F "\t" '{print $2}' > common_qa_q.txt
+'''
+<delete><query>*:*</query></delete>
+'''
 
 ('business', array([[ 0.92624656,  0.00145845,  0.02355685,  0.04873813]]))
 [[4221    1    0    0]
