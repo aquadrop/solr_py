@@ -27,12 +27,15 @@ class QAKernel:
         return answer
 
     def _extract_answer(self, r, random_range=1):
-        num = self._num_answer(r)
-        if num > 0:
-            x = random.randint(0, min(random_range - 1, num - 1))
-            response = self._get_response(r, x)
-            return response
-        else:
+        try:
+            num = self._num_answer(r)
+            if num > 0:
+                x = random.randint(0, min(random_range - 1, num - 1))
+                response = self._get_response(r, x)
+                return response
+            else:
+                return np.random.choice(self.null_anwer, 1)[0]
+        except:
             return np.random.choice(self.null_anwer, 1)[0]
 
     def _request_solr(self, q):
