@@ -15,7 +15,7 @@ class QAKernel:
 
     qa_url = 'http://localhost:11403/solr/qa/select?wt=json&q=question:(%s)'
 
-    null_anwer = ['这个我不知道,您可以谷歌或百度', '我知识有限,这个我不知道怎么回答...']
+    null_anwer = ['这个我不知道,您可以谷歌或百度', '我知识有限,这个我不知道怎么回答...[晕][晕][晕]']
 
     def __init__(self):
         print('initilizing qa kernel...')
