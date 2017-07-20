@@ -5,6 +5,7 @@ import sys
 import csv
 import jieba
 import json
+import re
 
 import unicodedata
 
@@ -180,7 +181,26 @@ class SceneClassifier(object):
         label = self.kernel.predict(embedding)[0]
         probs = self.kernel.predict_proba(embedding)
 
+
         return self.named_labels[label], probs
+
+        # print probs
+        # print prob
+
+        corrected = self.named_labels[self.rule_correct(question, label)]
+        return corrected, probs
+
+    qa_match_rule = re.compile(r"什么|如何|介绍")
+    def rule_correct(self, q, label_index):
+        if not self.qa_match_rule:
+            self.qa_match_rule = re.compile(r"什么|如何|介绍")
+
+        if label_index == 1: ## qa, correct it to business accordingly
+            if not re.match(self.qa_match_rule, q):
+                return 0
+            return label_index
+        return label_index
+
 
     def interface(self, q):
         label, probs = self.predict(q)
