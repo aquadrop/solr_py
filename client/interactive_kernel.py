@@ -68,4 +68,4 @@ class IKernel:
     def purify_q(self, q):
         q = self.qu.remove_cn_punct(q)
         pos_q = self.qu.corenlp_cut(q, remove_tags=["CD", "PN", "VA", "AD", "VC","SP"])
-        return ' AND '.join(pos_q), q
+        return ''.join(pos_q), q

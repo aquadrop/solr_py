@@ -184,10 +184,10 @@ class SceneClassifier(object):
         corrected = self.named_labels[self.rule_correct(question, label)]
         return corrected, probs
 
-    qa_match_rule = re.compile(r"什么|如何|介绍")
+    qa_match_rule = re.compile(ur"什么|如何|介绍")
     def rule_correct(self, q, label_index):
         if not self.qa_match_rule:
-            self.qa_match_rule = re.compile(r"什么|如何|介绍")
+            self.qa_match_rule = re.compile(ur"什么|如何|介绍")
 
         if label_index == 1: ## qa, correct it to business accordingly
             if not re.match(self.qa_match_rule, q):
@@ -240,7 +240,7 @@ def offline_validation():
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--mode', choices={'train', 'online_validation', 'offline_validation'},
-                        default='offline_validation', help='mode.if not specified,it is in prediction mode')
+                        default='online_validation', help='mode.if not specified,it is in prediction mode')
     args = parser.parse_args()
 
     if args.mode == 'train':
