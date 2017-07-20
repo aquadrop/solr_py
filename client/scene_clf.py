@@ -81,6 +81,8 @@ class SceneClassifier(object):
                     try:
                         line = line[0].replace(" ", "").replace("\t", "")
                         line = QueryUtils.static_remove_cn_punct(line)
+                        line = QueryUtils.static_quant_bucket_fix(line)
+                        line = ''.join(line)
                         if line:
                             b = line.encode('utf-8')
                             # print(b)
@@ -112,7 +114,7 @@ class SceneClassifier(object):
         embeddings, labels, queries = self._build(files)
         print 'train classifier...'
 
-        self.kernel = GradientBoostingClassifier(max_depth=5, n_estimators=200)
+        self.kernel = GradientBoostingClassifier(max_depth=7, n_estimators=200)
         self.kernel.fit(embeddings, labels)
 
         pickle.dump(self, open(pkl, 'wb'))
@@ -153,7 +155,7 @@ class SceneClassifier(object):
         b = QueryUtils.static_remove_cn_punct(line)
         b = QueryUtils.static_quant_bucket_fix(b)
         b = ''.join(b)
-        print('check predict query', b)
+        # print('check predict query', b)
         embedding = self.bigramer.transform(
             [self.cut(b)]).toarray()
         embedding = np.squeeze(embedding)
@@ -180,7 +182,7 @@ class SceneClassifier(object):
 def train():
     clf = SceneClassifier()
     files = ['../data/scene/business_q.txt','../data/scene/common_qa_q.txt','../data/scene/interactive_g.txt', '../data/scene/market_q.txt']
-    clf.train('../model/scene/sceneclf.pkl', files)
+    clf.train('../model/scene/sceneclf1.pkl', files)
     # clf.train('../model/scene/sceneclf.pkl', '../data/scene/a.txt', '../data/scene/b.txt',
               # '../data/scene/c.txt')
 
@@ -198,14 +200,14 @@ def online_validation():
 def offline_validation():
     clf = SceneClassifier.get_instance('../model/scene/sceneclf.pkl')
     print('loaded model file...')
-    files = ['../data/scene/business_q.txt', '../data/scene/common_qa_q.txt', '../data/scene/interactive_g.txt',
-             '../data/scene/market_q.txt']
+    files = ['../data/scene/test/business.txt', '../data/scene/test/common_qa.txt', '../data/scene/test/interactive.txt',
+             '../data/scene/test/market.txt']
     clf.validate(files)
 
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--mode', choices={'train', 'online_validation', 'offline_validation'},
-                        default='online_validation', help='mode.if not specified,it is in prediction mode')
+                        default='train', help='mode.if not specified,it is in prediction mode')
     args = parser.parse_args()
 
     if args.mode == 'train':
