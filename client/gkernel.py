@@ -164,6 +164,7 @@ class GKernel:
         response = None
         if given_slot == '#NULL#':
             given_slot = None
+            self.last_slot = None
         if self.state_cleared:
             if given_slot:
                 self.should_clear_state(self.last_slot)
