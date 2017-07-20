@@ -84,7 +84,7 @@ class GKernel:
         if not num_found and "RANGE" in value_types:
             for t in tokens:
                 try:
-                    t = cn2arab.cn2arab(t)[1]
+                    t = cn2arab.cn2arab(t)[1].replace(' ', '').replace('\t', '').encode('utf-8')
                     if t.isdigit():
                         try:
                             next_node = node.go(q=float(t), value_type="RANGE")
