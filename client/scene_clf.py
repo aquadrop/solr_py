@@ -63,9 +63,9 @@ class SceneClassifier(object):
 
         self.bigramer = bigram_vectorizer.fit(corpus)
 
-    def _get_w2v_instance(path):
-        import gensim
-        self.w2v = gensim.models.Word2Vec.load('../module/word2vec.bin')
+    # def _get_w2v_instance(path):
+    #     import gensim
+    #     self.w2v = gensim.models.Word2Vec.load('../module/word2vec.bin')
 
     def cut(self, input_):
         seg = " ".join(jieba.cut(input_, cut_all=False))
@@ -73,14 +73,14 @@ class SceneClassifier(object):
         return tokens
 
     # remain to fix...
-    def embedding_by_w2v(self, line):
-        tokens = self.cut(line)
-        embedding = []
-        for word in tokens:
-            if model.__contains__(word.strip()):
-                vector = model.__getitem__(word.strip())
-                result = [v for v in vector]
-            return result
+    # def embedding_by_w2v(self, line):
+    #     tokens = self.cut(line)
+    #     embedding = []
+    #     for word in tokens:
+    #         if model.__contains__(word.strip()):
+    #             vector = model.__getitem__(word.strip())
+    #             result = [v for v in vector]
+    #         return result
 
     def _prepare_data(self, files):
         print 'prepare data...'
@@ -144,15 +144,19 @@ class SceneClassifier(object):
         self.metrics_(embeddings, labels, queries)
 
     def metrics_(self, embeddings, labels, queries):
-        pre = self.kernel.predict(embeddings)
-        print metrics.confusion_matrix(labels, pre)
+        # pre = self.kernel.predict(embeddings)
+        # print metrics.confusion_matrix(labels, pre)
+
+        cm = np.zeros((len(self.named_labels), len(self.named_labels)), dtype=np.float32)
 
         for i in xrange(len(queries)):
             query = queries[i]
             label = labels[i]
             label_, probs = self.predict(query)
+            cm[label][self.named_labels.index(label_)] += 1
             if label_ != self.named_labels[label]:
-                cn_util.print_cn(query, [self.named_labels[label], label_])
+                cn_util.print_cn(query, [self.named_labels[label], label_, probs])
+        print(cm)
 
     def validate(self, files):
         embeddings, labels, tokens = self._prepare_data(files)
@@ -181,7 +185,7 @@ class SceneClassifier(object):
         label = self.kernel.predict(embedding)[0]
         probs = self.kernel.predict_proba(embedding)
 
-        corrected = self.named_labels[self.rule_correct(question, label)]
+        corrected = self.named_labels[self.rule_correct(question, label, probs[0])]
 
         # print probs
         # print prob
@@ -189,7 +193,7 @@ class SceneClassifier(object):
 
     qa_match_rule = re.compile(ur".*?(什么|如何|介绍).*?")
     interactive_match_rule = re.compile(ur".*?(没有|好的|是的|不是).*?")
-    def rule_correct(self, q, label_index):
+    def rule_correct(self, q, label_index, probs):
         if not self.qa_match_rule:
             self.qa_match_rule = re.compile(ur".*?(什么|如何|介绍).*?")
         if not self.interactive_match_rule:
@@ -202,6 +206,10 @@ class SceneClassifier(object):
         if label_index == 2 or label_index == 3:
             if re.match(self.interactive_match_rule, q.decode('utf-8')):
                 return 0
+
+        # if label_index != 0:
+        #     if probs[label_index] < 0.6:
+        #         return 0
         return label_index
 
 
@@ -247,7 +255,7 @@ def offline_validation():
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--mode', choices={'train', 'online_validation', 'offline_validation'},
-                        default='offline_validation', help='mode.if not specified,it is in prediction mode')
+                        default='online_validation', help='mode.if not specified,it is in prediction mode')
     args = parser.parse_args()
 
     if args.mode == 'train':
