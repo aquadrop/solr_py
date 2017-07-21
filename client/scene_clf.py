@@ -34,7 +34,7 @@ class SceneClassifier(object):
         # self.embeddings = list()
         self.labels = list()
         self.named_labels = ['business', 'qa',
-                             'interaction', 'market', 'repeat']
+                             'interaction', 'market', 'repeat_guest', 'repeat_machine']
 
     def _bulid_ngram(self, files):
         print 'build ngramer...'
@@ -100,7 +100,7 @@ class SceneClassifier(object):
                         # line = QueryUtils.static_quant_bucket_fix(line)
                         # line = ''.join(line)
                         # print('......')
-                        cn_util.print_cn(line)
+                        # cn_util.print_cn(line)
                         # line = QueryUtils.quant_bucket_fix(line)
                         # print(line)
                         if line:
@@ -147,7 +147,7 @@ class SceneClassifier(object):
         # pre = self.kernel.predict(embeddings)
         # print metrics.confusion_matrix(labels, pre)
 
-        cm = np.zeros((len(self.named_labels), len(self.named_labels)), dtype=np.float32)
+        cm = np.zeros((len(self.named_labels), len(self.named_labels)), dtype=np.int32)
 
         for i in xrange(len(queries)):
             query = queries[i]
@@ -191,27 +191,24 @@ class SceneClassifier(object):
         # print prob
         return corrected, probs
 
-    qa_match_rule = re.compile(ur".*?(什么|如何|介绍).*?")
-    interactive_match_rule = re.compile(ur".*?(没有|好的|是的|不是).*?")
-    def rule_correct(self, q, label_index, probs):
-        if not self.qa_match_rule:
-            self.qa_match_rule = re.compile(ur".*?(什么|如何|介绍).*?")
-        if not self.interactive_match_rule:
-            self.interactive_match_rule = re.compile(ur".*?(没有|好的|是的|不是).*?")
+    qa_match_rule = re.compile(r"什么|如何|介绍")
 
-        if label_index == 1: ## qa, correct it to business accordingly
-            if not re.match(self.qa_match_rule, q.decode('utf-8')):
+    qa_match_rule = re.compile(ur".*?(什么|如何|介绍|方法|办法|条件|期限).*?")
+    interactive_match_rule = re.compile(ur".*?(没有|没啊|对啊|好的|是的|不是|有|好|没|对|是|不).*?")
+    def rule_correct(self, q, label_index, probs):
+
+        if label_index == 1:  # qa, correct it to business accordingly
+            if not re.match(self.qa_match_rule, q.decode('utf-8')) and probs[label_index] < 0.9:
                 return 0
             return label_index
         if label_index == 2 or label_index == 3:
-            if re.match(self.interactive_match_rule, q.decode('utf-8')):
+            if re.match(self.interactive_match_rule, q.decode('utf-8')) and probs[label_index] < 0.9:
                 return 0
 
         # if label_index != 0:
         #     if probs[label_index] < 0.6:
         #         return 0
         return label_index
-
 
     def interface(self, q):
         label, probs = self.predict(q)
@@ -229,12 +226,12 @@ class SceneClassifier(object):
 def train():
     clf = SceneClassifier()
     files = ['../data/scene/business_q.txt', '../data/scene/common_qa_q.txt',
-             '../data/scene/interactive_g.txt', '../data/scene/market_q.txt', '../data/scene/repeat_q.txt']
-    clf.train('../model/scene/sceneclf_five.pkl', files)
+             '../data/scene/interactive_g.txt', '../data/scene/market_q.txt', '../data/scene/repeat_guest.txt', '../data/scene/repeat_machine.txt']
+    clf.train('../model/scene/sceneclf_six.pkl', files)
 
 
 def online_validation():
-    clf = SceneClassifier.get_instance('../model/scene/sceneclf.pkl')
+    clf = SceneClassifier.get_instance('../model/scene/sceneclf_six.pkl')
     print('loaded model file...')
     try:
         while True:
@@ -245,17 +242,20 @@ def online_validation():
 
 
 def offline_validation():
-    clf = SceneClassifier.get_instance('../model/scene/sceneclf.pkl')
+    clf = SceneClassifier.get_instance('../model/scene/sceneclf_six.pkl')
     print('loaded model file...')
+    # files = ['../data/scene/business_q.txt', '../data/scene/common_qa_q.txt',
+    #          '../data/scene/interactive_g.txt', '../data/scene/market_q.txt', '../data/scene/repeat_guest.txt',
+    #          '../data/scene/repeat_machine.txt']
     files = ['../data/scene/test/business.txt', '../data/scene/test/common_qa.txt', '../data/scene/test/interactive.txt',
-             '../data/scene/test/market.txt']
+             '../data/scene/test/market.txt', '../data/scene/test/repeat_guest.txt', '../data/scene/test/repeat_machine.txt']
     clf.validate(files)
 
 
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--mode', choices={'train', 'online_validation', 'offline_validation'},
-                        default='online_validation', help='mode.if not specified,it is in prediction mode')
+                        default='offline_validation', help='mode.if not specified,it is in prediction mode')
     args = parser.parse_args()
 
     if args.mode == 'train':
