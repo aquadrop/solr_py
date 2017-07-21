@@ -34,7 +34,7 @@ class SceneClassifier(object):
         # self.embeddings = list()
         self.labels = list()
         self.named_labels = ['business', 'qa',
-                             'interaction', 'market', 'repeat']
+                             'interaction', 'market', 'repeat_guest', 'repeat_machine']
 
     def _bulid_ngram(self, files):
         print 'build ngramer...'
@@ -63,9 +63,9 @@ class SceneClassifier(object):
 
         self.bigramer = bigram_vectorizer.fit(corpus)
 
-    def _get_w2v_instance(path):
-        import gensim
-        self.w2v = gensim.models.Word2Vec.load('../module/word2vec.bin')
+    # def _get_w2v_instance(path):
+    #     import gensim
+    #     self.w2v = gensim.models.Word2Vec.load('../module/word2vec.bin')
 
     def cut(self, input_):
         seg = " ".join(jieba.cut(input_, cut_all=False))
@@ -73,14 +73,14 @@ class SceneClassifier(object):
         return tokens
 
     # remain to fix...
-    def embedding_by_w2v(self, line):
-        tokens = self.cut(line)
-        embedding = []
-        for word in tokens:
-            if model.__contains__(word.strip()):
-                vector = model.__getitem__(word.strip())
-                result = [v for v in vector]
-            return result
+    # def embedding_by_w2v(self, line):
+    #     tokens = self.cut(line)
+    #     embedding = []
+    #     for word in tokens:
+    #         if model.__contains__(word.strip()):
+    #             vector = model.__getitem__(word.strip())
+    #             result = [v for v in vector]
+    #         return result
 
     def _prepare_data(self, files):
         print 'prepare data...'
@@ -181,21 +181,29 @@ class SceneClassifier(object):
         label = self.kernel.predict(embedding)[0]
         probs = self.kernel.predict_proba(embedding)
 
+        return self.named_labels[label], probs
+
         corrected = self.named_labels[self.rule_correct(question, label)]
 
         # print probs
         # print prob
         return corrected, probs
 
+    qa_match_rule = re.compile(r"什么|如何|介绍")
+
     qa_match_rule = re.compile(ur".*?(什么|如何|介绍).*?")
     interactive_match_rule = re.compile(ur".*?(没有|好的|是的|不是).*?")
+
     def rule_correct(self, q, label_index):
         if not self.qa_match_rule:
             self.qa_match_rule = re.compile(ur".*?(什么|如何|介绍).*?")
         if not self.interactive_match_rule:
             self.interactive_match_rule = re.compile(ur".*?(没有|好的|是的|不是).*?")
 
-        if label_index == 1: ## qa, correct it to business accordingly
+        if label_index == 1:  # qa, correct it to business accordingly
+            if not re.match(self.qa_match_rule, q):
+
+        if label_index == 1:  # qa, correct it to business accordingly
             if not re.match(self.qa_match_rule, q.decode('utf-8')):
                 return 0
             return label_index
@@ -203,7 +211,6 @@ class SceneClassifier(object):
             if re.match(self.interactive_match_rule, q.decode('utf-8')):
                 return 0
         return label_index
-
 
     def interface(self, q):
         label, probs = self.predict(q)
@@ -221,8 +228,8 @@ class SceneClassifier(object):
 def train():
     clf = SceneClassifier()
     files = ['../data/scene/business_q.txt', '../data/scene/common_qa_q.txt',
-             '../data/scene/interactive_g.txt', '../data/scene/market_q.txt', '../data/scene/repeat_q.txt']
-    clf.train('../model/scene/sceneclf_five.pkl', files)
+             '../data/scene/interactive_g.txt', '../data/scene/market_q.txt', '../data/scene/repeat_guest.txt', '../data/scene/repeat_machine.txt']
+    clf.train('../model/scene/sceneclf_six.pkl', files)
 
 
 def online_validation():
