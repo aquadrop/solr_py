@@ -15,7 +15,7 @@ class QAKernel:
 
     qa_url = 'http://localhost:11403/solr/qa/select?wt=json&q=question:(%s)'
 
-    null_anwer = ['这个我不知道,您可以百度', '我知识有限,这个我不知道怎么回答...']
+    null_anwer = ['这个我不知道,您可以谷歌或百度', '我知识有限,这个我不知道怎么回答...[晕][晕][晕]']
 
     def __init__(self):
         print('initilizing qa kernel...')
@@ -27,17 +27,20 @@ class QAKernel:
         return answer
 
     def _extract_answer(self, r, random_range=1):
-        num = self._num_answer(r)
-        if num > 0:
-            x = random.randint(0, min(random_range - 1, num - 1))
-            response = self._get_response(r, x)
-            return response
-        else:
-            return np.random.choice(self.null_anwer, 1, p=[0.5, 0.5])[0]
+        try:
+            num = self._num_answer(r)
+            if num > 0:
+                x = random.randint(0, min(random_range - 1, num - 1))
+                response = self._get_response(r, x)
+                return response
+            else:
+                return np.random.choice(self.null_anwer, 1)[0]
+        except:
+            return np.random.choice(self.null_anwer, 1)[0]
 
     def _request_solr(self, q):
         tokenized, exact_q = self.purify_q(q)
-        url = self.qa_url % tokenized
+        url = self.qa_url % tokenized.decode('utf-8')
         print('qa_debug:', url)
         r = requests.get(url)
         return r
@@ -55,4 +58,4 @@ class QAKernel:
     def purify_q(self, q):
         q = self.qu.remove_cn_punct(q)
         pos_q = self.qu.corenlp_cut(q, remove_tags=["CD", "VA", "AD", "VC"])
-        return ' AND '.join(pos_q), q
+        return ''.join(pos_q), q

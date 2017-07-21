@@ -183,22 +183,33 @@ class SceneClassifier(object):
 
         return self.named_labels[label], probs
 
+        corrected = self.named_labels[self.rule_correct(question, label)]
+
         # print probs
         # print prob
-
-        corrected = self.named_labels[self.rule_correct(question, label)]
         return corrected, probs
 
     qa_match_rule = re.compile(r"什么|如何|介绍")
 
+    qa_match_rule = re.compile(ur".*?(什么|如何|介绍).*?")
+    interactive_match_rule = re.compile(ur".*?(没有|好的|是的|不是).*?")
+
     def rule_correct(self, q, label_index):
         if not self.qa_match_rule:
-            self.qa_match_rule = re.compile(r"什么|如何|介绍")
+            self.qa_match_rule = re.compile(ur".*?(什么|如何|介绍).*?")
+        if not self.interactive_match_rule:
+            self.interactive_match_rule = re.compile(ur".*?(没有|好的|是的|不是).*?")
 
         if label_index == 1:  # qa, correct it to business accordingly
             if not re.match(self.qa_match_rule, q):
+
+        if label_index == 1:  # qa, correct it to business accordingly
+            if not re.match(self.qa_match_rule, q.decode('utf-8')):
                 return 0
             return label_index
+        if label_index == 2 or label_index == 3:
+            if re.match(self.interactive_match_rule, q.decode('utf-8')):
+                return 0
         return label_index
 
     def interface(self, q):
@@ -227,7 +238,6 @@ def online_validation():
     try:
         while True:
             question = raw_input('input something...\n')
-            print clf.predict(question)[0]
             print 'prediction:{0}'.format(clf.predict(question))
     except KeyboardInterrupt:
         print('interaction interrupted')
@@ -244,7 +254,7 @@ def offline_validation():
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--mode', choices={'train', 'online_validation', 'offline_validation'},
-                        default='train', help='mode.if not specified,it is in prediction mode')
+                        default='offline_validation', help='mode.if not specified,it is in prediction mode')
     args = parser.parse_args()
 
     if args.mode == 'train':
