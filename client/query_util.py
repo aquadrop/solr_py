@@ -79,42 +79,25 @@ class QueryUtils:
         except:
             return [query]
 
-    skip_CD = ['一些', '一点', '一些些', '一点点', '一点零']
+    skip_CD = ['一些', '一点', '一些些', '一点点', '一点零', '不少','很多']
 
     def quant_fix(self, query):
-        pos = self.pos(query)
-        fixed = False
-        new_query = []
-        for t in pos:
-            word, tag = t.split("/")
-            if tag == 'CD' and word not in self.skip_CD:
-                _, word = cn2arab.cn2arab(word)
-                word = re.sub("[^0-9]", "", word)
-                fixed = True
-            new_query.append(word)
-        return fixed, new_query
+        return QueryUtils.static_quant_fix(query)
 
     def quant_bucket_fix(self, query):
-        b, q = self.quant_fix(query)
-        if b:
-            new_q = []
-            for token in q:
-                if token.isdigit():
-                    token = self.fix_money(token)[0]
-                new_q.append(token)
-            return new_q
-        return query
+        return QueryUtils.static_quant_bucket_fix(query)
 
     @staticmethod
     def static_quant_fix(query):
+        query = query.replace('两','二')
         pos = QueryUtils.static_pos(query)
         fixed = False
         new_query = []
         for t in pos:
             word, tag = t.split("/")
             if tag == 'CD' and word not in QueryUtils.skip_CD:
-                _, word = cn2arab.cn2arab(word)
-                word = re.sub("[^0-9]", "", word)
+                word = str(cn2arab.cn2arab(word)[1])
+                word = re.sub("[^0-9.]", "", word)
                 fixed = True
             new_query.append(word)
         return fixed, new_query
@@ -186,9 +169,9 @@ class QueryUtils:
         # 存款
         # 0-20K,20K-50K,50K-100K,100K-
         if "存款" in slot:
-            if num >= 0 and num < 199:
+            if num >= 0 and num < 99:
                 values = [1]
-            if num >= 200 and num <= 49999:
+            if num >= 100 and num <= 49999:
                 values = [200, 20000]
             elif num >= 50000 and num <= 9999999999999:
                 values = [50000, 1000000]
@@ -238,9 +221,9 @@ class QueryUtils:
         # 存款
         # 0-20K,20K-50K,50K-100K,100K-
         if "存款" in slot:
-            if num >= 0 and num < 199:
+            if num >= 0 and num < 100:
                 values = [1]
-            if num >= 200 and num <= 49999:
+            if num >= 100 and num <= 49999:
                 values = [200, 20000]
             elif num >= 50000 and num <= 9999999999999:
                 values = [50000, 1000000]
@@ -325,8 +308,8 @@ class QueryUtils:
 
 if __name__ == '__main__':
     qu = QueryUtils()
-    # qu.process_data('../data/train_pruned.txt', '../data/train_pruned_fixed2.txt')
+    qu.process_data('../data/business/intention_pair_q', '../data/business/business_train_v7')
 
-    print(QueryUtils.static_remove_cn_punct(u'我在电视上见过你，听说你很聪明啊?'))
-    cn_util.print_cn(qu.quant_bucket_fix('我要取三百'))
-    cn_util.print_cn(qu.quant_bucket_fix('我要取500.0'))
+    # print(QueryUtils.static_remove_cn_punct(u'我在电视上见过你，听说你很聪明啊?'))
+    cn_util.print_cn(qu.quant_bucket_fix('一点钱'))
+    # cn_util.print_cn(qu.quant_bucket_fix('我要取1千零1百'))

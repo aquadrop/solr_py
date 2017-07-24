@@ -229,20 +229,20 @@ class SeqClassifier:
 
 
 if __name__ == "__main__":
-    clf = SeqClassifier("../data/train_pruned_fixed2.txt")
+    clf = SeqClassifier("../data/business/business_train_v7")
     clf.build()
     clf.train_classifier()
-    with open("../model/seq_clf.pkl", 'wb') as pickle_file:
+    with open("../model/seq_clf_v7.pkl", 'wb') as pickle_file:
         pickle.dump(clf, pickle_file, pickle.HIGHEST_PROTOCOL)
 
-    with open("../model/seq_clf.pkl", "rb") as input_file:
+    with open("../model/seq_clf_v7.pkl", "rb") as input_file:
         _clf = pickle.load(input_file)
         # input_ = '取'
         # print(cn_util.cn(_clf.predict('取款两万以下', input_)))
         # input_ = '取两百不用银行卡'
         # print(cn_util.cn(_clf.predict('ROOT', input_)))
 
-        _clf.test("../data/train_pruned_fixed.txt")
+        _clf.test("../data/business/business_train_v7")
 
         # print("self.classes:", _uniout.unescape(str(self.classes), 'utf-8'))
         # print('************************************************************')

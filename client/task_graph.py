@@ -31,8 +31,8 @@ def preprocess(path):
         print key
 
 breakpoints_map = {"转账":[-10,0,49999,1000000-1,9999999999999],
-                   "存款":[-10,0,50000-1,9999999999999],
-                   "取款":[-10,0,20000-1,50000-1,9999999999999]}
+                   "存款":[-10,0,99,50000-1,9999999999999],
+                   "取款":[-10,0,99,20000-1,50000-1,9999999999999]}
 def build_graph(path, output):
     graph = Graph()
     all_nodes = {}
@@ -78,10 +78,10 @@ def build_graph(path, output):
     #         node1.add_node(node2)
 
     graph.all_nodes = all_nodes
-    for key, node in graph.all_nodes.iteritems():
-        ## initital nodes
-        if len(node.classified_in_neighbors) == 0:
-            graph.add_node(node)
+    # for key, node in graph.all_nodes.iteritems():
+    #     ## initital nodes
+    #     if len(node.classified_in_neighbors) == 0:
+    #         graph.add_node(node)
     with open(output, 'wb') as pickle_file:
         pickle.dump(graph, pickle_file, pickle.HIGHEST_PROTOCOL)
 
@@ -114,4 +114,4 @@ def compute_intention_graph(path):
 
 
 if __name__ == '__main__':
-    build_graph("../data/slot_p.txt", "../model/graph.pkl")
+    build_graph("../data/business/intention_pair", "../model/graph_v7.pkl")

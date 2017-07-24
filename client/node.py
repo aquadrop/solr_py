@@ -21,9 +21,11 @@ class Node:
         self.breakpoints = breakpoints
         self.classified_out_neighbors = {}
         self.classified_in_neighbors = {}
+        self.parent_node = None
 
     # value_type must be set
     def add_node(self, node, value_type, values):
+        node.parent_node = self
         if not node.classified_in_neighbors.has_key(value_type):
             node.classified_in_neighbors[value_type] = {}
         node.classified_in_neighbors[value_type][self.slot] = self
