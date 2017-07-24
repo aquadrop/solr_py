@@ -49,7 +49,6 @@ class Node:
             if value_type == "RANGE":
                 return Node.grade(float(q), self.breakpoints, self.classified_out_neighbors[value_type])
         except Exception, e:
-            print e.message
             return None
     # def grade(score, breakpoints=[60, 70, 80, 90], grades='FDCBA'):
     #     i = bisect(breakpoints, score)

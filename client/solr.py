@@ -20,7 +20,7 @@ sys.setdefaultencoding("utf-8")
 
 app = Flask(__name__)
 
-kernel = GKernel("../model/graph.pkl", "../model/seq_clf.pkl")
+kernel = GKernel("../model/graph_v7.pkl", "../model/seq_clf_v7.pkl")
 qa_kernel = QAKernel()
 i_kernel = IKernel()
 
