@@ -112,7 +112,7 @@ class QueryUtils:
                     token = QueryUtils.static_fix_money(token)[0]
                 new_q.append(token)
             return new_q
-        return query
+        return [query]
 
     def remove_cn_punct(self, q):
         return ''.join(self.corenlp_cut(q, remove_tags=['PU']))

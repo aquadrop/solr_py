@@ -58,7 +58,10 @@ class Node:
     def grade(score, breakpoints, nodes):
         i = bisect.bisect(breakpoints, score)
         print i, nodes, breakpoints
-        return nodes[i - 2]
+        ii = i - 2
+        if ii in nodes:
+            return nodes[ii]
+        return nodes[str(ii)]
 
 if __name__ == "__main__":
     bp = [-10, 0, 20000, 50000, 9999999999999]

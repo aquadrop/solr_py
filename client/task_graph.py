@@ -39,32 +39,48 @@ def build_graph(path, output):
     ## first round
     with open(path, "rb") as f:
         for line in f.readlines():
+            # print(line)
             edge, value, _type = line.strip('\n').split(" ")
-            slot1s, slot2 = edge.split(",")
+            slot1s, slot2s = edge.split(",")
             slot1s = slot1s.split("|")
+            slot2s = slot2s.split("|")
             slot1 = slot1s[0]
+            slot2 = slot2s[0]
+            values = value.split("|")
             if _type == "RANGE":
+                breakpoints = breakpoints_map[slot1]
                 if not all_nodes.has_key(slot1):
                     if breakpoints_map.has_key(slot1):
-                        breakpoints = breakpoints_map[slot1]
                         node1 = Node(slot=slot1, slot_syno=slot1s, breakpoints=breakpoints)
-                        all_nodes[slot1] = node1
+                        for s1 in slot1s:
+                            if s1 != 'ROOT':
+                                all_nodes[s1] = node1
+                else:
+                    all_nodes[slot1].breakpoints = breakpoints
                 if not all_nodes.has_key(slot2):
-                    node2 = Node(slot=slot2)
-                    all_nodes[slot2] = node2
+                    node2 = Node(slot=slot2, slot_syno=slot2)
+                    for s2 in slot2s:
+                        all_nodes[s2] = node2
                 value = int(value)
 
             if _type == "KEY":
                 if not all_nodes.has_key(slot1):
                     node1 = Node(slot=slot1, slot_syno=slot1s)
-                    all_nodes[slot1] = node1
+                    for s1 in slot1s:
+                        if s1 != 'ROOT':
+                            all_nodes[s1] = node1
                 if not all_nodes.has_key(slot2):
-                    node2 = Node(slot=slot2)
-                    all_nodes[slot2] = node2
+                    node2 = Node(slot=slot2, slot_syno=slot2s)
+                    for s2 in slot2s:
+                        all_nodes[s2] = node2
             print slot1, slot1s
-            _node1 = all_nodes[slot1]
-            _node2 = all_nodes[slot2]
-            _node1.add_node(_node2, _type, [value])
+            if slot1 != 'ROOT':
+                _node1 = all_nodes[slot1]
+                _node2 = all_nodes[slot2]
+                _node1.add_node(_node2, _type, values)
+            else:
+                _node2 = all_nodes[slot2]
+                graph.add_node(_node2)
     # with open(path, "rb") as f:
     #     for line in f.readlines():
     #         edge, value, _type = line.strip('\n').split(" ")
