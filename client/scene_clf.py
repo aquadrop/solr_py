@@ -135,7 +135,7 @@ class SceneClassifier(object):
         embeddings, labels, queries = self._build(files)
         print 'train classifier...'
 
-        self.kernel = GradientBoostingClassifier(max_depth=5, n_estimators=200)
+        self.kernel = GradientBoostingClassifier(max_depth=8, n_estimators=1000)
         self.kernel.fit(embeddings, labels)
 
         pickle.dump(self, open(pkl, 'wb'))
@@ -225,8 +225,8 @@ class SceneClassifier(object):
 
 def train():
     clf = SceneClassifier()
-    files = ['../data/scene/business_q.txt', '../data/scene/common_qa_q.txt',
-             '../data/scene/interactive_g.txt', '../data/scene/market_q.txt', '../data/scene/repeat_guest.txt', '../data/scene/repeat_machine.txt']
+    files = ['../data/bank/scene/train/business_q.txt', '../data/bank/scene/train/common_qa_q.txt',
+             '../data/bank/scene/train/interactive_g.txt', '../data/bank/scene/train/market_q.txt', '../data/bank/scene/train/repeat_guest.txt', '../data/bank/scene/train/repeat_machine.txt']
     clf.train('../model/scene/sceneclf_six.pkl', files)
 
 
@@ -255,7 +255,7 @@ def offline_validation():
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--mode', choices={'train', 'online_validation', 'offline_validation'},
-                        default='offline_validation', help='mode.if not specified,it is in prediction mode')
+                        default='train', help='mode.if not specified,it is in prediction mode')
     args = parser.parse_args()
 
     if args.mode == 'train':
