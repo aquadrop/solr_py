@@ -98,5 +98,5 @@ def cn2arab_core(chinese_digits, encoding="utf-8"):
     return result
 
 if __name__ == '__main__':
-    s = '不少'
+    s = '不少100'
     print cn2arab(s)[1]
