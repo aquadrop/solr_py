@@ -237,13 +237,16 @@ if __name__ == "__main__":
         pickle.dump(clf, pickle_file, pickle.HIGHEST_PROTOCOL)
 
     with open("../model/ss_clf.pkl", "rb") as input_file:
+
         _clf = pickle.load(input_file)
         # input_ = '取'
         # print(cn_util.cn(_clf.predict('取款两万以下', input_)))
         # input_ = '取两百不用银行卡'
         # print(cn_util.cn(_clf.predict('ROOT', input_)))
 
+
         _clf.test("../data/supermarket/pruned_dialogue.txt")
+
 
         # print("self.classes:", _uniout.unescape(str(self.classes), 'utf-8'))
         # print('************************************************************')

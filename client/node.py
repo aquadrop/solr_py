@@ -21,9 +21,11 @@ class Node:
         self.breakpoints = breakpoints
         self.classified_out_neighbors = {}
         self.classified_in_neighbors = {}
+        self.parent_node = None
 
     # value_type must be set
     def add_node(self, node, value_type, values):
+        node.parent_node = self
         if not node.classified_in_neighbors.has_key(value_type):
             node.classified_in_neighbors[value_type] = {}
         node.classified_in_neighbors[value_type][self.slot] = self
@@ -47,7 +49,6 @@ class Node:
             if value_type == "RANGE":
                 return Node.grade(float(q), self.breakpoints, self.classified_out_neighbors[value_type])
         except Exception, e:
-            print e.message
             return None
     # def grade(score, breakpoints=[60, 70, 80, 90], grades='FDCBA'):
     #     i = bisect(breakpoints, score)
@@ -57,7 +58,10 @@ class Node:
     def grade(score, breakpoints, nodes):
         i = bisect.bisect(breakpoints, score)
         print i, nodes, breakpoints
-        return nodes[i - 2]
+        ii = i - 2
+        if ii in nodes:
+            return nodes[ii]
+        return nodes[str(ii)]
 
 if __name__ == "__main__":
     bp = [-10, 0, 20000, 50000, 9999999999999]
