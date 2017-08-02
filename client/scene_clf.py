@@ -181,7 +181,7 @@ class SceneClassifier(object):
         label = self.kernel.predict(embedding)[0]
         probs = self.kernel.predict_proba(embedding)
 
-        return self.named_labels[label], probs
+        # return self.named_labels[label], probs
 
         corrected = self.named_labels[self.rule_correct(question, label)]
 
