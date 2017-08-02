@@ -127,6 +127,8 @@ class Multilabel_Clf():
         except KeyboardInterrupt:
             print('interaction interrupted')
 
+    def predict(self, question, parent_class):
+        return None
 
     def test(self):
         questions=list()

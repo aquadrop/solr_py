@@ -2,9 +2,14 @@
 # -*- coding: utf-8 -*-
 import bisect
 import _uniout
-
+import re
 
 class Node:
+
+    KEY = 'KEY'
+    RANGE = 'RANGE'
+    REGEX = 'REGEX'
+
     def __init__(self, slot, breakpoints=None, slot_syno=[]):
         self.slot = slot  # use as to query solr
         self.slot_syno = slot_syno
@@ -34,8 +39,11 @@ class Node:
             self.classified_out_neighbors[value_type] = {}
 
         # synonym consideration
-        for value in values:
-            self.classified_out_neighbors[value_type][value] = node
+        if value_type == self.REGEX:
+            self.classified_out_neighbors[value_type][values] = node
+        else:
+            for value in values:
+                self.classified_out_neighbors[value_type][value] = node
 
         self.value_types.add(value_type)
 
@@ -54,6 +62,14 @@ class Node:
                 return self.classified_out_neighbors[value_type][q]
             if value_type == "RANGE":
                 return Node.grade(float(q), self.breakpoints, self.classified_out_neighbors[value_type])
+            if value_type == "REGEX":
+                neighbors = self.classified_out_neighbors[value_type]
+                ## match everyone
+                matched = []
+                for key, value in neighbors.iteritems():
+                    if re.match(key, q):
+                        matched.append(value)
+
         except Exception, e:
             return None
     # def grade(score, breakpoints=[60, 70, 80, 90], grades='FDCBA'):
