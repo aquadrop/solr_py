@@ -20,12 +20,12 @@ sys.setdefaultencoding("utf-8")
 
 app = Flask(__name__)
 
-kernel = GKernel("../model/graph.pkl", "../model/seq_clf.pkl")
+kernel = GKernel("../model/graph_v7.pkl", "../model/seq_clf_v7.pkl")
 qa_kernel = QAKernel()
 i_kernel = IKernel()
 
 multi_l_kernels = LRU(200)
-s_clf = SceneClassifier.get_instance('../model/scene/sceneclf.six.pkl')
+s_clf = SceneClassifier.get_instance('../model/scene/sceneclf_six.pkl')
 
 
 @app.route('/scene', methods=['GET', 'POST'])

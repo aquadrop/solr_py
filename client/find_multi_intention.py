@@ -8,7 +8,7 @@ import csv
 reload(sys)
 sys.setdefaultencoding("utf-8")
 
-data_path = '../data/train_pruned_fixed.txt'
+data_path = '../data/business/business_train_v7'
 classes = list()
 inputs = dict()
 results = dict()
@@ -20,7 +20,7 @@ if __name__ == '__main__':
             a = line[0]
             if a not in classes:
                 classes.append(a)
-    print("classes:", _uniout.unescape(str(classes), 'utf8'))
+    # print("classes:", _uniout.unescape(str(classes), 'utf8'))
 
     with open(data_path, 'r') as f:
         reader = csv.reader(f, delimiter='\t')

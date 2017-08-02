@@ -31,40 +31,56 @@ def preprocess(path):
         print key
 
 breakpoints_map = {"转账":[-10,0,49999,1000000-1,9999999999999],
-                   "存款":[-10,0,50000-1,9999999999999],
-                   "取款":[-10,0,20000-1,50000-1,9999999999999]}
+                   "存款":[-10,0,99,50000-1,9999999999999],
+                   "取款":[-10,0,99,20000-1,50000-1,9999999999999]}
 def build_graph(path, output):
     graph = Graph()
     all_nodes = {}
     ## first round
     with open(path, "rb") as f:
         for line in f.readlines():
+            # print(line)
             edge, value, _type = line.strip('\n').split(" ")
-            slot1s, slot2 = edge.split(",")
+            slot1s, slot2s = edge.split(",")
             slot1s = slot1s.split("|")
+            slot2s = slot2s.split("|")
             slot1 = slot1s[0]
+            slot2 = slot2s[0]
+            values = value.split("|")
             if _type == "RANGE":
+                breakpoints = breakpoints_map[slot1]
                 if not all_nodes.has_key(slot1):
                     if breakpoints_map.has_key(slot1):
-                        breakpoints = breakpoints_map[slot1]
                         node1 = Node(slot=slot1, slot_syno=slot1s, breakpoints=breakpoints)
-                        all_nodes[slot1] = node1
+                        for s1 in slot1s:
+                            if s1 != 'ROOT':
+                                all_nodes[s1] = node1
+                else:
+                    all_nodes[slot1].breakpoints = breakpoints
                 if not all_nodes.has_key(slot2):
-                    node2 = Node(slot=slot2)
-                    all_nodes[slot2] = node2
+                    node2 = Node(slot=slot2, slot_syno=slot2)
+                    for s2 in slot2s:
+                        all_nodes[s2] = node2
                 value = int(value)
 
             if _type == "KEY":
                 if not all_nodes.has_key(slot1):
                     node1 = Node(slot=slot1, slot_syno=slot1s)
-                    all_nodes[slot1] = node1
+                    for s1 in slot1s:
+                        if s1 != 'ROOT':
+                            all_nodes[s1] = node1
                 if not all_nodes.has_key(slot2):
-                    node2 = Node(slot=slot2)
-                    all_nodes[slot2] = node2
+                    node2 = Node(slot=slot2, slot_syno=slot2s)
+                    for s2 in slot2s:
+                        all_nodes[s2] = node2
             print slot1, slot1s
-            _node1 = all_nodes[slot1]
-            _node2 = all_nodes[slot2]
-            _node1.add_node(_node2, _type, [value])
+            if slot1 != 'ROOT':
+                _node1 = all_nodes[slot1]
+                _node2 = all_nodes[slot2]
+                _node1.add_node(_node2, _type, values)
+            else:
+                _node2 = all_nodes[slot2]
+                graph.add_node(_node2)
     # with open(path, "rb") as f:
     #     for line in f.readlines():
     #         edge, value, _type = line.strip('\n').split(" ")
@@ -78,10 +94,10 @@ def build_graph(path, output):
     #         node1.add_node(node2)
 
     graph.all_nodes = all_nodes
-    for key, node in graph.all_nodes.iteritems():
-        ## initital nodes
-        if len(node.classified_in_neighbors) == 0:
-            graph.add_node(node)
+    # for key, node in graph.all_nodes.iteritems():
+    #     ## initital nodes
+    #     if len(node.classified_in_neighbors) == 0:
+    #         graph.add_node(node)
     with open(output, 'wb') as pickle_file:
         pickle.dump(graph, pickle_file, pickle.HIGHEST_PROTOCOL)
 
@@ -114,4 +130,4 @@ def compute_intention_graph(path):
 
 
 if __name__ == '__main__':
-    build_graph("../data/slot_p.txt", "../model/graph.pkl")
+    build_graph("../data/business/intention_pair", "../model/graph_v7.pkl")

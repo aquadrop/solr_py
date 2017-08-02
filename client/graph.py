@@ -32,7 +32,8 @@ class Graph(Node, object):
         # print
         # _uniout.unescape(str(self.classified_out_neighbors[self.value_type][slot]),
         # 'utf8')
-        return self.all_nodes[slot]
+        node = self.all_nodes[slot]
+        return node
 
     @staticmethod
     def load(path):
