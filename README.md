@@ -8,6 +8,8 @@ cat common_qa.txt | awk -F "\t" '{print $2}' > common_qa_q.txt
 <delete><query>*:*</query></delete>
 '''
 
+awk -F '"' '{print $2}' your_input_file
+
 ##
 '''
 [[449   2   6   8]

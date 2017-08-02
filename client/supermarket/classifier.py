@@ -16,6 +16,9 @@ cs20si.stanford.edu
 This file contains the code to build the model
 
 See readme.md for instruction on how to run the starter code.
+
+Multi-Label classification
+https://stackoverflow.com/questions/10526579/use-scikit-learn-to-classify-into-multiple-categories
 """
 from __future__ import print_function
 

@@ -194,16 +194,16 @@ class SceneClassifier(object):
     qa_match_rule = re.compile(r"什么|如何|介绍")
 
     qa_match_rule = re.compile(ur".*?(什么|如何|介绍|方法|办法|条件|期限).*?")
-    interactive_match_rule = re.compile(ur".*?(没有|没啊|对啊|好的|是的|不是|有|好|没|对|是|不).*?")
+    # interactive_match_rule = re.compile(ur".*?().*?")
     def rule_correct(self, q, label_index, probs):
 
         if label_index == 1:  # qa, correct it to business accordingly
             if not re.match(self.qa_match_rule, q.decode('utf-8')) and probs[label_index] < 0.9:
                 return 0
             return label_index
-        if label_index == 2 or label_index == 3:
-            if re.match(self.interactive_match_rule, q.decode('utf-8')) and probs[label_index] < 0.9:
-                return 0
+        # if label_index == 2 or label_index == 3:
+        #     if re.match(self.interactive_match_rule, q.decode('utf-8')) and probs[label_index] < 0.9:
+        #         return 0
 
         # if label_index != 0:
         #     if probs[label_index] < 0.6:
@@ -247,15 +247,15 @@ def offline_validation():
     # files = ['../data/scene/business_q.txt', '../data/scene/common_qa_q.txt',
     #          '../data/scene/interactive_g.txt', '../data/scene/market_q.txt', '../data/scene/repeat_guest.txt',
     #          '../data/scene/repeat_machine.txt']
-    files = ['../data/scene/test/business.txt', '../data/scene/test/common_qa.txt', '../data/scene/test/interactive.txt',
-             '../data/scene/test/market.txt', '../data/scene/test/repeat_guest.txt', '../data/scene/test/repeat_machine.txt']
+    files = ['../data/bank/scene/test/business.txt', '../data/bank/scene/test/common_qa.txt', '../data/bank/scene/test/interactive.txt',
+             '../data/bank/scene/test/market.txt', '../data/bank/scene/test/repeat_guest.txt', '../data/bank/scene/test/repeat_machine.txt']
     clf.validate(files)
 
 
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--mode', choices={'train', 'online_validation', 'offline_validation'},
-                        default='train', help='mode.if not specified,it is in prediction mode')
+                        default='offline_validation', help='mode.if not specified,it is in prediction mode')
     args = parser.parse_args()
 
     if args.mode == 'train':

@@ -115,7 +115,10 @@ class QueryUtils:
         return [query]
 
     def remove_cn_punct(self, q):
-        return ''.join(self.corenlp_cut(q, remove_tags=['PU']))
+        try:
+            return ''.join(self.corenlp_cut(q, remove_tags=['PU']))
+        except:
+            return q
 
     @staticmethod
     def static_remove_cn_punct(q):

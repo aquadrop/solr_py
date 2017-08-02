@@ -39,6 +39,12 @@ class Node:
 
         self.value_types.add(value_type)
 
+    def is_leaf(self):
+        return len(self.classified_out_neighbors) == 0
+
+    def is_root(self):
+        return len(self.classified_in_neighbors) == 0
+
     def go(self, q, value_type=None):
         return self.decide(q, value_type)
 
