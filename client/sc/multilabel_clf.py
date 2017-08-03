@@ -201,9 +201,9 @@ def test(test_data_path, model_path):
 
 
 def main():
-    model_path = '../../model/supermarket/multilabel_clf.pkl'
-    train_data_path = '../../data/supermarket/pruned_dialogue.txt'
-    test_data_path = '../../data/supermarket/pruned_dialogue.txt'
+    model_path = '../../model/sc/multilabel_clf.pkl'
+    train_data_path = '../../data/sc/pruned_dialogue.txt'
+    test_data_path = '../../data/sc/pruned_dialogue.txt'
     parser = argparse.ArgumentParser()
     parser.add_argument('-m', choices={'train', 'test'},
                         default='test', help='mode.if not specified,it is in test mode')
