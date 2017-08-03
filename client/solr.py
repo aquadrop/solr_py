@@ -46,7 +46,7 @@ def query():
     return kernel.kernel(q)
 
 
-@app.route("/chat", methods=['GET', 'POST'])
+@app.route("/base", methods=['GET', 'POST'])
 def chat():
     args = request.args
     q = args['q']

@@ -229,7 +229,7 @@ class SceneClassifier(object):
 def train():
     clf = SceneClassifier()
     files = ['../data/bank/scene/train/business_q.txt', '../data/bank/scene/train/common_qa_q.txt',
-             '../data/bank/scene/train/interactive_g.txt', '../data/bank/scene/train/market_q.txt', '../data/bank/scene/train/repeat_guest.txt', '../data/bank/scene/train/repeat_machine.txt']
+             '../data/bank/scene/train/interactive_g.txt', '../data/bank/scene/train/market_q.txt', '../data/bank/scene/train/repeat_guest', '../data/bank/scene/train/repeat_machine']
     clf.train('../model/scene/sceneclf_six.pkl', files)
 
 
@@ -248,10 +248,10 @@ def offline_validation():
     clf = SceneClassifier.get_instance('../model/scene/sceneclf_six.pkl')
     print('loaded model file...')
     # files = ['../data/scene/business_q.txt', '../data/scene/common_qa_q.txt',
-    #          '../data/scene/interactive_g.txt', '../data/scene/market_q.txt', '../data/scene/repeat_guest.txt',
-    #          '../data/scene/repeat_machine.txt']
+    #          '../data/scene/interactive_g.txt', '../data/scene/market_q.txt', '../data/scene/repeat_guest',
+    #          '../data/scene/repeat_machine']
     files = ['../data/bank/scene/test/business.txt', '../data/bank/scene/test/common_qa.txt', '../data/bank/scene/test/interactive.txt',
-             '../data/bank/scene/test/market.txt', '../data/bank/scene/test/repeat_guest.txt', '../data/bank/scene/test/repeat_machine.txt']
+             '../data/bank/scene/test/market.txt', '../data/bank/scene/test/repeat_guest', '../data/bank/scene/test/repeat_machine']
     clf.validate(files)
 
 

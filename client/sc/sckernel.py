@@ -107,14 +107,14 @@ class SCKernel:
             if moved:
                 return self.search(parent_slots=self.last_slots, current_slots=slots)
             else:
-                return None, self.trick(query)
+                return 'unclear', self.trick(query)
 
         else:
             moved, slots = self.travel_with_clf(self.single_parent_slot(), query)
             if moved:
                 return self.search(parent_slots=self.last_slots, current_slots=slots)
             else:
-                return None, self.trick(query)
+                return 'unclear', self.trick(query)
     
     def single_parent_slot(self, split=' OR '):
         return self.single_slot(self.last_slots, split=split    )
@@ -126,17 +126,20 @@ class SCKernel:
         self.state_cleared = False
 
     def search(self, parent_slots, current_slots):
-        moved_parent_slot = ''
-        if self.last_slots:
-            moved_parent_slot = self.single_slot(parent_slots)
-        current_slot = self.single_slot(current_slots)
-        url = self.guide_url + "&fq=intention:(%s)" % current_slot
-        print("gbdt_result_url", url)
-        r = requests.get(url)
-        if SolrUtils.num_answer(r) > 0:
-            self.last_slots = current_slots
-            self.should_clear_state(current_slots)
-            return current_slots, SolrUtils.get_response(r)
+        try:
+            moved_parent_slot = ''
+            if self.last_slots:
+                moved_parent_slot = self.single_slot(parent_slots)
+            current_slot = self.single_slot(current_slots)
+            url = self.guide_url + "&fq=intention:(%s)" % current_slot
+            print("gbdt_result_url", url)
+            r = requests.get(url)
+            if SolrUtils.num_answer(r) > 0:
+                self.last_slots = current_slots
+                self.should_clear_state(current_slots)
+                return current_slots, SolrUtils.get_response(r)
+        except:
+            return 'unclear', self.travel_with_clf(None)
     
     def trick(self, query):
         # ## do trick
@@ -149,7 +152,7 @@ class SCKernel:
         #     return response
         # else:
         #     return "我没听懂！"
-        return "我不知道"
+        return "out of domain knowledge"
 
     def should_clear_state(self, multi_slots):
         try:

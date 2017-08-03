@@ -19,7 +19,7 @@ app = Flask(__name__)
 kernel = Kernel()
 multi_l_kernels = LRU(200)
 
-@app.route('/sc/chat', methods=['GET', 'POST'])
+@app.route('/sc/base', methods=['GET', 'POST'])
 def chat():
     try:
         args = request.args
