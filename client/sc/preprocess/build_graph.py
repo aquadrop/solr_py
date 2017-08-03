@@ -53,11 +53,12 @@ def build_graph(path, output):
             if slot1 != 'ROOT':
                 _node1 = all_nodes[slot1]
                 _node2 = all_nodes[slot2]
-                value = re.compile(value)
                 _node1.add_node(_node2, _type, value)
             else:
                 _node2 = all_nodes[slot2]
-                graph.add_node(_node2)
+                graph.add_node(_node2, _type, value)
+
+    all_nodes[graph.slot] = graph
     # with open(path, "rb") as f:
     #     for line in f.readlines():
     #         edge, value, _type = line.strip('\n').split(" ")
@@ -71,6 +72,8 @@ def build_graph(path, output):
     #         node1.add_node(node2)
 
     graph.all_nodes = all_nodes
+
+    # print(graph.go('购物', value_type=Node.REGEX))
     # for key, node in graph.all_nodes.iteritems():
     #     ## initital nodes
     #     if len(node.classified_in_neighbors) == 0:
@@ -78,6 +81,9 @@ def build_graph(path, output):
     with open(output, 'wb') as pickle_file:
         pickle.dump(graph, pickle_file, pickle.HIGHEST_PROTOCOL)
 
+    with open(output, "rb") as input_file:
+        graph_ = pickle.load(input_file)
+        print(graph_.go(q='购物', value_type=Node.REGEX))
 
 def compute_intention_graph(path):
     with open(path, "r") as file:

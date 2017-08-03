@@ -47,16 +47,19 @@ class Node:
 
         self.value_types.add(value_type)
 
-    def is_leaf(self):
-        return len(self.classified_out_neighbors) == 0
+    def is_leaf(self, value_type):
+        try:
+            return len(self.classified_out_neighbors[value_type]) == 0
+        except:
+            return True
 
     def is_root(self):
         return len(self.classified_in_neighbors) == 0
 
-    def go(self, q, value_type=None):
+    def go(self, q, value_type):
         return self.decide(q, value_type)
 
-    def decide(self, q, value_type=None):
+    def decide(self, q, value_type):
         try:
             if value_type == "KEY":
                 return self.classified_out_neighbors[value_type][q]
@@ -67,9 +70,10 @@ class Node:
                 ## match everyone
                 matched = []
                 for key, value in neighbors.iteritems():
-                    if re.match(key, q):
+                    pattern = re.compile(key)
+                    if re.match(pattern, q):
                         matched.append(value)
-
+                return matched
         except Exception, e:
             return None
     # def grade(score, breakpoints=[60, 70, 80, 90], grades='FDCBA'):
