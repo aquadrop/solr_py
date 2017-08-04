@@ -3,19 +3,19 @@
 
 import numpy as np
 
-from client.sc.scene_clf import SceneClassifier
+from sc_scene_clf import SceneClassifier
 
 class SceneKernel:
     def __init__(self):
         try:
             print('attaching scene kernel...')
-            self.clf = SceneClassifier.get_instance('../../model/sc/scene_clf.pkl')
+            self.clf = SceneClassifier.get_instance('../model/sc/scene_clf.pkl')
         except Exception,e:
             print('failed to attach scene kernel..all inquires will be redirected to main kernel..', e.message)
 
     def kernel(self, q):
         if not self.clf:
-            return None
+            return 'sale'
         labels, _ = self.clf.predict(question=q)
         return self.select_label(labels)
 

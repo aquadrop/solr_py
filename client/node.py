@@ -49,9 +49,14 @@ class Node:
 
     def is_leaf(self, value_type):
         try:
-            return len(self.classified_out_neighbors[value_type]) == 0
+            return len(self.classified_out_neighbors) == 0 or len(self.classified_out_neighbors[value_type]) == 0
         except:
-            return True
+            if len(self.classified_out_neighbors) == 0:
+                return True
+            for vt in self.value_types:
+                if len(self.classified_out_neighbors[vt]) == 0:
+                    return True
+            return False
 
     def is_root(self):
         return len(self.classified_in_neighbors) == 0

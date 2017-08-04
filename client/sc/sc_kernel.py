@@ -2,14 +2,14 @@
 # -*- coding: utf-8 -*-
 
 from client.sc.sckernel import SCKernel
-from client.sc.qa_kernel import QAKernel
-from client.sc.greeting_kernel import GreetingKernel
-from client.sc.base_kernel import BaseKernel
-from client.sc.scene_kernel import SceneKernel
-from client.sc.repeat_kernel import RepeatKernel
+from client.sc.sc_qa_kernel import QAKernel
+from client.sc.sc_greeting_kernel import GreetingKernel
+from client.sc.sc_base_kernel import BaseKernel
+from client.sc.sc_scene_kernel import SceneKernel
+from client.sc.sc_repeat_kernel import RepeatKernel
 
 from client.sc.multilabel_clf import Multilabel_Clf
-from client.sc.scene_clf import SceneClassifier
+from client.sc.sc_scene_clf import SceneClassifier
 
 class Kernel:
     ## static

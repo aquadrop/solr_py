@@ -10,7 +10,7 @@ import random
 import numpy as np
 
 from client.query_util import QueryUtils
-from client.sc.qa_kernel import QAKernel
+from client.sc.sc_qa_kernel import QAKernel
 import cn_util
 
 class GreetingKernel(QAKernel):

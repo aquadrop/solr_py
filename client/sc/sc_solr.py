@@ -6,10 +6,7 @@ from flask import request
 import json
 
 from lru import LRU
-
-from client.sc.multilabel_clf import Multilabel_Clf
-from client.sc.scene_clf import SceneClassifier
-from client.sc.kernel import Kernel
+from client.sc.sc_kernel import Kernel
 
 import sys
 reload(sys)
@@ -42,4 +39,4 @@ def chat():
         return json.dumps({"msg": e.message})
 
 if __name__ == "__main__":
-    app.run(host='0.0.0.0', port=11303, threaded=True)
+    app.run(host='0.0.0.0', port=11304, threaded=True)

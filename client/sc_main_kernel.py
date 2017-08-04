@@ -4,10 +4,10 @@
 import requests
 import cPickle as pickle
 
-from client.node import Node
-from client.query_util import QueryUtils
-from client.sc.multilabel_clf import Multilabel_Clf
-from client.solr_utils import SolrUtils
+from node import Node
+from query_util import QueryUtils
+from sc_multilabel_clf import Multilabel_Clf
+from solr_utils import SolrUtils
 
 class SCKernel:
 
