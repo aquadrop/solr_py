@@ -38,7 +38,9 @@ class SCKernel:
     def _load_clf(self, path):
         try:
             print('attaching gbdt classifier...100%')
-            self.gbdt = Multilabel_Clf.load(path)
+            with open(path, "rb") as input_file:
+                self.gbdt = pickle.load(input_file)
+            # self.gbdt = Multilabel_Clf.load(path)
         except Exception,e:
             print('failed to attach gbdt classifier...detaching...', e.message)
 

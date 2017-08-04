@@ -282,7 +282,7 @@ def main():
 
 
 if __name__ == '__main__':
-    # main()
+    main()
 
     model_path = '../model/sc/multilabel_clf.pkl'
     clf = Multilabel_Clf.load(model_path=model_path)
