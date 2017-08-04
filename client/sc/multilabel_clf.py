@@ -21,7 +21,10 @@ import numpy as np
 import csv
 import cPickle as pickle
 import argparse
+
 from cn_util import print_cn
+from client.query_util import QueryUtils
+
 
 reload(sys)
 sys.setdefaultencoding("utf-8")
@@ -73,6 +76,7 @@ class Multilabel_Clf:
             self.feature_extractor = tfidf_vectorizer.fit(corpus)
 
     def cut(self, input_):
+        input_ = QueryUtils.static_remove_cn_punct(input_)
         seg = " ".join(jieba.cut(input_, cut_all=False))
         tokens = _uniout.unescape(str(seg), 'utf8')
         return tokens
@@ -215,7 +219,7 @@ def main():
     test_data_path = '../../data/sc/pruned_dialogue.txt'
     parser = argparse.ArgumentParser()
     parser.add_argument('-m', choices={'train', 'test'},
-                        default='test', help='mode.if not specified,it is in test mode')
+                        default='train', help='mode.if not specified,it is in test mode')
 
     args = parser.parse_args()
 
@@ -228,8 +232,9 @@ def main():
 
 
 if __name__ == '__main__':
+    main()
+
     model_path = '../../model/sc/multilabel_clf.pkl'
     clf = Multilabel_Clf.load(model_path=model_path)
     labels, probs = clf.predict(parent_slot='购物', input_='给爸爸买件衣服')
     print(labels, probs)
-    main()

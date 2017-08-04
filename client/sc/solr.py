@@ -7,8 +7,9 @@ import json
 
 from lru import LRU
 
-from multilabel_clf import Multilabel_Clf
-from kernel import Kernel
+from client.sc.multilabel_clf import Multilabel_Clf
+from client.sc.scene_clf import SceneClassifier
+from client.sc.kernel import Kernel
 
 import sys
 reload(sys)
@@ -19,7 +20,7 @@ app = Flask(__name__)
 kernel = Kernel()
 multi_l_kernels = LRU(200)
 
-@app.route('/sc/base', methods=['GET', 'POST'])
+@app.route('/sc/chat', methods=['GET', 'POST'])
 def chat():
     try:
         args = request.args

@@ -6,7 +6,7 @@ import cPickle as pickle
 
 from client.node import Node
 from client.query_util import QueryUtils
-from multilabel_clf import Multilabel_Clf
+from client.sc.multilabel_clf import Multilabel_Clf
 from client.solr_utils import SolrUtils
 
 
@@ -23,9 +23,8 @@ class SCKernel:
 
     last_slots = None
 
-    guide_url = "http://localhost:11403/solr/sc_guide/select?defType=edismax&indent=on&wt=json&q=*:*"
-    qa_url = "http://localhost:11403/solr/sc_qa/select?defType=edismax&indent=on&wt=json&q=*:*"
-    greeting_url = "http://localhost:11403/solr/sc_greeting/select?defType=edismax&indent=on&wt=json&q=*:*"
+
+    guide_url = "http://localhost:11403/solr/sc_sale/select?defType=edismax&indent=on&wt=json&q=*:*"
 
     # tokenizer_url = "http://localhost:5000/pos?q="
 

@@ -12,14 +12,12 @@ import numpy as np
 from client.query_util import QueryUtils
 
 class QAKernel:
-
-    qa_url = 'http://localhost:11403/solr/sc_qa/select?wt=json&q=question:(%s)'
-
     null_anwer = ['忘了,请去服务台问询哦..']
     # null_answer = ['null']
 
     def __init__(self):
         print('attaching qa kernel...')
+        self.qa_url = 'http://localhost:11403/solr/sc_qa/select?wt=json&q=question:(%s)'
         self.qu = QueryUtils()
 
     def kernel(self, q):

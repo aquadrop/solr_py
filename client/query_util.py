@@ -122,7 +122,10 @@ class QueryUtils:
 
     @staticmethod
     def static_remove_cn_punct(q):
-        return ''.join(QueryUtils.static_corenlp_cut(q, remove_tags=['PU']))
+        try:
+            return ''.join(QueryUtils.static_corenlp_cut(q, remove_tags=['PU']))
+        except:
+            return q
 
     tokenizer_url = "http://localhost:11415/pos?q="
     transfer_ = {1: '零钱', 200: ' 二百 ', 20000: ' 二万 ',

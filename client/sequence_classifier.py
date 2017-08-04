@@ -35,6 +35,8 @@ from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.naive_bayes import MultinomialNB
 import cPickle as pickle
 
+from client.query_util import QueryUtils
+
 reload(sys)
 sys.setdefaultencoding("utf-8")
 
@@ -50,6 +52,7 @@ class SeqClassifier:
         self.index_classes = {}
         self.classes_num_sub = {}
         self.classifiers = {}
+        self.qu = QueryUtils()
 
     def _ngram(self):
         corpus = list()
