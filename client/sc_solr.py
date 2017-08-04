@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import Queue
+
 from flask import Flask
 from flask import request
 import json
@@ -19,6 +21,8 @@ app = Flask(__name__)
 kernel = EntryKernel()
 multi_sc_kernels = LRU(200)
 
+kernel_backups = Queue.Queue(50)
+
 @app.route('/sc/chat', methods=['GET', 'POST'])
 def chat():
     try:
@@ -27,7 +31,14 @@ def chat():
         try:
             u = args['u']
             if not multi_sc_kernels.has_key(u):
-                multi_sc_kernels[u] = EntryKernel()
+                if kernel_backups.qsize() > 0:
+                    ek = kernel_backups.get_nowait()
+                    multi_sc_kernels[u] = ek
+                else:
+                    for i in xrange(30):
+                        k = EntryKernel()
+                        kernel_backups.put_nowait(k)
+                        print('========================')
             u_i_kernel = multi_sc_kernels[u]
             r = u_i_kernel.kernel(q)
             result = {"question": q, "result": {"answer": r}, "user": u}
@@ -43,4 +54,8 @@ def chat():
 if __name__ == "__main__":
     # SK = SceneKernel()
     # print(SK.kernel('你叫什么名字'))
-    app.run(host='0.0.0.0', port=11304, threaded=True)
+    for i in xrange(30):
+        k = EntryKernel()
+        kernel_backups.put_nowait(k)
+        print('========================')
+    app.run(host='0.0.0.0', port=3000, threaded=True)
