@@ -21,13 +21,15 @@ app = Flask(__name__)
 kernel = EntryKernel()
 multi_sc_kernels = LRU(200)
 
-kernel_backups = Queue.Queue(50)
+QSIZE = 5
+kernel_backups = Queue.Queue(QSIZE)
 
 @app.route('/sc/chat', methods=['GET', 'POST'])
 def chat():
     try:
         args = request.args
         q = args['q']
+        q = q.decode('unicode-escape').encode('utf-8')
         try:
             u = args['u']
             if not multi_sc_kernels.has_key(u):
@@ -54,8 +56,8 @@ def chat():
 if __name__ == "__main__":
     # SK = SceneKernel()
     # print(SK.kernel('你叫什么名字'))
-    for i in xrange(30):
+    for i in xrange(QSIZE):
+        print('========================')
         k = EntryKernel()
         kernel_backups.put_nowait(k)
-        print('========================')
     app.run(host='0.0.0.0', port=3000, threaded=True)
