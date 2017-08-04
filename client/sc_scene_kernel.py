@@ -1,23 +1,36 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import requests
+
 import numpy as np
 
 from sc_scene_clf import SceneClassifier
 
 class SceneKernel:
-    def __init__(self):
-        try:
-            print('attaching scene kernel...')
-            self.clf = SceneClassifier.get_instance('../model/sc/scene_clf.pkl')
-        except Exception,e:
-            print('failed to attach scene kernel..all inquires will be redirected to main kernel..', e.message)
+    def __init__(self, web=False):
+        self.web = web
+        if not web:
+            try:
+                print('attaching scene kernel...')
+                self.clf = SceneClassifier.get_instance('../model/sc/scene_clf.pkl')
+            except Exception,e:
+                print('failed to attach scene kernel..all inquires will be redirected to main kernel..', e.message)
+        else:
+            print('attaching scene web kernel...')
 
     def kernel(self, q):
-        if not self.clf:
-            return 'sale'
-        labels, _ = self.clf.predict(question=q)
-        return self.select_label(labels)
+        try:
+            if not self.web:
+                if not self.clf:
+                    return 'sale'
+                labels, _ = self.clf.predict(question=q)
+                return self.select_label(labels)
+            else:
+                text = requests.get('http://localhost:11305/sc/scene?q=' + q)
+                return text.text
+        except:
+            return None
 
     def select_label(self, labels):
         """

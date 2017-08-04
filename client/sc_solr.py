@@ -27,7 +27,7 @@ def chat():
         try:
             u = args['u']
             if not multi_sc_kernels.has_key(u):
-                multi_sc_kernels[u] = Kernel()
+                multi_sc_kernels[u] = EntryKernel()
             u_i_kernel = multi_sc_kernels[u]
             r = u_i_kernel.kernel(q)
             result = {"question": q, "result": {"answer": r}, "user": u}

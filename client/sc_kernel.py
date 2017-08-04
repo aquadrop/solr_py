@@ -21,7 +21,7 @@ class EntryKernel:
     BASE = 'base'
 
     def __init__(self):
-        self.scene_kernel = SceneKernel()
+        self.scene_kernel = SceneKernel(True)
         self.main_kernel = SCKernel("../model/sc_graph_v7.pkl", '../model/sc/multilabel_clf.pkl')
         self.qa_kernel = QAKernel()
         self.greeting_kernel = GreetingKernel()
@@ -32,6 +32,8 @@ class EntryKernel:
         if not direction:
             ## first determined by SceneKernel about directions
             direction = self.scene_kernel.kernel(q)
+            if not direction:
+                return 'unable to respond as scene kernel is detached...'
             ## store value in repeat kernel
             self.repeat_kernel.store_user_q(q)
 
