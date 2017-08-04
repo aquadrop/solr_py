@@ -31,11 +31,13 @@ class EntryKernel:
     def kernel(self, q, direction=None):
         if not direction:
             ## first determined by SceneKernel about directions
-            direction = self.scene_kernel.kernel(q)
+            direction, fixed_q = self.scene_kernel.kernel(q)
             if not direction:
                 return 'unable to respond as scene kernel is detached...'
             ## store value in repeat kernel
             self.repeat_kernel.store_user_q(q)
+
+        q = fixed_q
 
         response = None
         if direction == EntryKernel.BASE:

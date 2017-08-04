@@ -24,18 +24,18 @@ class SceneKernel:
         ## first try regex_plugin:
         scene, q = self.regex_plugin(q)
         if scene:
-            return scene
+            return scene, q
         try:
             if not self.web:
                 if not self.clf:
                     return 'sale'
                 labels, _ = self.clf.predict(question=q)
-                return self.select_label(labels)
+                return self.select_label(labels), q
             else:
                 text = requests.get('http://localhost:11305/sc/scene?q=' + q)
-                return text.text
+                return text.text, q
         except:
-            return None
+            return None, q
 
     qa_pattern = re.compile(r'在哪|在几楼|怎么走|带我去|卫生间|厕所|停车场|电梯|出口')
     qa_clean_pattern = re.compile(r'在哪|在哪里|怎么走|带我去')
