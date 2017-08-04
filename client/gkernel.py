@@ -83,18 +83,23 @@ class GKernel:
         # last try of RANGE
         if not num_found and "RANGE" in value_types:
             for t in tokens:
-                if t.isdigit():
-                    try:
-                        next_node = node.go(q=float(t), value_type="RANGE")
-                        num_found = next_node is not None
-                        if num_found:
-                            print('found type by RANGE:', next_node.slot)
-                            self.last_slot = node.slot
-                            key = t
-                            break
-                    except Exception, e:
-                        print(e.message)
-                        num_found = False
+                try:
+                    t = cn2arab.cn2arab(t)[1].replace(' ', '').replace('\t', '').encode('utf-8')
+                    if t.isdigit():
+                        try:
+                            next_node = node.go(q=float(t), value_type="RANGE")
+                            num_found = next_node is not None
+                            if num_found:
+                                print('found type by RANGE:', next_node.slot)
+                                self.last_slot = node.slot
+                                key = t
+                                break
+                        except Exception, e:
+                            print(e.message)
+                            num_found = False
+                except Exception,e:
+                    print(e.message)
+                    num_found = False
 
         if not key_found and "KEY" in value_types and gbdt_recursion:
             try:
@@ -162,6 +167,10 @@ class GKernel:
     def r_walk_with_pointer_with_clf(self, query, given_slot=None):
         r = None
         response = None
+        if given_slot == '#NULL#':
+            given_slot = None
+            self.last_slot = None
+            self.clear_state()
         if self.state_cleared:
             if given_slot:
                 self.should_clear_state(self.last_slot)
@@ -214,9 +223,10 @@ class GKernel:
                 self.last_slot = given_slot
             else:
                 if not self.last_slot:
+                    parent_slot = self.graph.get_global_node(self.last_slot).parent_node.slot
+                    print('retrace...', self.last_slot, parent_slot)
                     self.clear_state()
-                    print 'restart'
-                    slot, response = self.r_walk_with_pointer_with_clf(query)
+                    slot, response = self.r_walk_with_pointer_with_clf(query, parent_slot)
                     return slot, response
             url = self.base_url + "&q=exact_question:" + query + \
                 "%20AND%20exact_last_intention:" + self.last_slot
@@ -241,8 +251,10 @@ class GKernel:
                 next_node = self.travel_with_clf(node, fixed_query_tokens)
                 if next_node == node:
                     # query solr
+                    parent_slot = self.graph.get_global_node(self.last_slot).parent_node.slot
+                    print('retrace...', self.last_slot, parent_slot)
                     self.clear_state()
-                    return self.r_walk_with_pointer_with_clf(query)
+                    return self.r_walk_with_pointer_with_clf(query, parent_slot)
                 else:
                     url = self.base_url + "&q=last_intention:" + \
                         self.last_slot + "%20AND%20intention:" + next_node.slot
@@ -346,7 +358,7 @@ class GKernel:
         return url
 
 if __name__ == "__main__":
-    K = GKernel("../model/graph.pkl", "../model/seq_clf.pkl")
+    K = GKernel("../model/graph_v7.pkl", "../model/seq_clf_v7.pkl")
     while 1:
         ipt = raw_input()
         # chinese comma

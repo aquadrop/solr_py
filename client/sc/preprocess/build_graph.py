@@ -2,13 +2,13 @@
 # -*- coding: utf-8 -*-
 
 import sys
+import re
+
 import json
 import _uniout
 import cPickle as pickle
-from graph import Graph
-from key_search_node import KeySearchNode
-from range_search_node import RangeSearchNode
-from node import Node
+from client.graph import Graph
+from client.node import Node
 
 reload(sys)
 sys.setdefaultencoding("utf-8")
@@ -41,46 +41,24 @@ def build_graph(path, output):
         for line in f.readlines():
             # print(line)
             edge, value, _type = line.strip('\n').split(" ")
-            slot1s, slot2s = edge.split(",")
-            slot1s = slot1s.split("|")
-            slot2s = slot2s.split("|")
-            slot1 = slot1s[0]
-            slot2 = slot2s[0]
-            values = value.split("|")
-            if _type == "RANGE":
-                breakpoints = breakpoints_map[slot1]
-                if not all_nodes.has_key(slot1):
-                    if breakpoints_map.has_key(slot1):
-                        node1 = Node(slot=slot1, slot_syno=slot1s, breakpoints=breakpoints)
-                        for s1 in slot1s:
-                            if s1 != 'ROOT':
-                                all_nodes[s1] = node1
-                else:
-                    all_nodes[slot1].breakpoints = breakpoints
-                if not all_nodes.has_key(slot2):
-                    node2 = Node(slot=slot2, slot_syno=slot2)
-                    for s2 in slot2s:
-                        all_nodes[s2] = node2
-                value = int(value)
+            slot1, slot2 = edge.split(",")
 
-            if _type == "KEY":
+            if _type == "REGEX":
                 if not all_nodes.has_key(slot1):
-                    node1 = Node(slot=slot1, slot_syno=slot1s)
-                    for s1 in slot1s:
-                        if s1 != 'ROOT':
-                            all_nodes[s1] = node1
+                    node1 = Node(slot=slot1)
+                    all_nodes[slot1] = node1
                 if not all_nodes.has_key(slot2):
-                    node2 = Node(slot=slot2, slot_syno=slot2s)
-                    for s2 in slot2s:
-                        all_nodes[s2] = node2
-            print slot1, slot1s
+                    node2 = Node(slot=slot2)
+                    all_nodes[slot2] = node2
             if slot1 != 'ROOT':
                 _node1 = all_nodes[slot1]
                 _node2 = all_nodes[slot2]
-                _node1.add_node(_node2, _type, values)
+                _node1.add_node(_node2, _type, value)
             else:
                 _node2 = all_nodes[slot2]
-                graph.add_node(_node2)
+                graph.add_node(_node2, _type, value)
+
+    all_nodes[graph.slot] = graph
     # with open(path, "rb") as f:
     #     for line in f.readlines():
     #         edge, value, _type = line.strip('\n').split(" ")
@@ -94,6 +72,8 @@ def build_graph(path, output):
     #         node1.add_node(node2)
 
     graph.all_nodes = all_nodes
+
+    # print(graph.go('购物', value_type=Node.REGEX))
     # for key, node in graph.all_nodes.iteritems():
     #     ## initital nodes
     #     if len(node.classified_in_neighbors) == 0:
@@ -101,6 +81,9 @@ def build_graph(path, output):
     with open(output, 'wb') as pickle_file:
         pickle.dump(graph, pickle_file, pickle.HIGHEST_PROTOCOL)
 
+    with open(output, "rb") as input_file:
+        graph_ = pickle.load(input_file)
+        print(graph_.go(q='购物', value_type=Node.REGEX))
 
 def compute_intention_graph(path):
     with open(path, "r") as file:
@@ -130,4 +113,5 @@ def compute_intention_graph(path):
 
 
 if __name__ == '__main__':
-    build_graph("../data/business/intention_pair", "../model/graph_v7.pkl")
+    build_graph("/home/deep/solr/solr-6.5.1/solr_py/data/sc/graph.txt",
+                "/home/deep/solr/solr-6.5.1/solr_py/model/sc_graph_v7.pkl")

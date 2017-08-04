@@ -20,12 +20,12 @@ sys.setdefaultencoding("utf-8")
 
 app = Flask(__name__)
 
-kernel = GKernel("../model/graph.pkl", "../model/seq_clf.pkl")
+kernel = GKernel("../model/graph_v7.pkl", "../model/seq_clf_v7.pkl")
 qa_kernel = QAKernel()
 i_kernel = IKernel()
 
 multi_l_kernels = LRU(200)
-s_clf = SceneClassifier.get_instance('../model/scene/sceneclf.pkl')
+s_clf = SceneClassifier.get_instance('../model/scene/sceneclf_six.pkl')
 
 
 @app.route('/scene', methods=['GET', 'POST'])
@@ -46,7 +46,7 @@ def query():
     return kernel.kernel(q)
 
 
-@app.route("/chat", methods=['GET', 'POST'])
+@app.route("/base", methods=['GET', 'POST'])
 def chat():
     args = request.args
     q = args['q']
@@ -55,7 +55,8 @@ def chat():
     result = {"question": q, "result": {"answer": r}, "user": "solr"}
     return json.dumps(result, ensure_ascii=False)
 
-@app.route("/qa",methods=['GET', 'POST'])
+
+@app.route("/qa", methods=['GET', 'POST'])
 def qa():
     try:
         args = request.args
@@ -63,10 +64,11 @@ def qa():
         r = qa_kernel.kernel(q)
         result = {"question": q, "result": {"answer": r}, "user": "solr"}
         return json.dumps(result, ensure_ascii=False)
-    except Exception,e:
-        return json.dumps({"msg":e.message})
+    except Exception, e:
+        return json.dumps({"msg": e.message})
 
-@app.route("/interactive",methods=['GET', 'POST'])
+
+@app.route("/interactive", methods=['GET', 'POST'])
 def interactive():
     try:
         args = request.args
@@ -84,10 +86,11 @@ def interactive():
             r = i_kernel.kernel(q)
             result = {"question": q, "result": {"answer": r}, "user": "solr"}
             return json.dumps(result, ensure_ascii=False)
-    except Exception,e:
-        return json.dumps({"msg":e.message})
+    except Exception, e:
+        return json.dumps({"msg": e.message})
 
-@app.route("/walk",methods=['GET', 'POST'])
+
+@app.route("/walk", methods=['GET', 'POST'])
 def r_walk_with_pointer():
     msg = "normal"
     try:
@@ -95,9 +98,11 @@ def r_walk_with_pointer():
         q = args['q']
         try:
             s = args['s']
-            slot, r = kernel.r_walk_with_pointer_with_clf(q.encode('utf-8'), s.encode('utf8'))
+            slot, r = kernel.r_walk_with_pointer_with_clf(
+                q.encode('utf-8'), s.encode('utf8'))
         except Exception, e:
-            slot, r = kernel.r_walk_with_pointer_with_clf(q.encode('utf-8'), None)
+            slot, r = kernel.r_walk_with_pointer_with_clf(
+                q.encode('utf-8'), None)
     except Exception, e:
         kernel.clear_state()
         slot = None

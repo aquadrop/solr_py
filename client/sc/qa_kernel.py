@@ -9,17 +9,15 @@ import random
 
 import numpy as np
 
-from query_util import QueryUtils
+from client.query_util import QueryUtils
 
 class QAKernel:
-
-    qa_url = 'http://localhost:11403/solr/qa/select?wt=json&q=question:(%s)'
-
-    # null_anwer = ['这个我不知道,您可以谷歌或百度', '我知识有限,这个我不知道怎么回答...[晕][晕][晕]']
-    null_answer = ['null']
+    null_anwer = ['忘了,请去服务台问询哦..']
+    # null_answer = ['null']
 
     def __init__(self):
-        print('initilizing qa kernel...')
+        print('attaching qa kernel...')
+        self.qa_url = 'http://localhost:11403/solr/sc_qa/select?wt=json&q=question:(%s)'
         self.qu = QueryUtils()
 
     def kernel(self, q):

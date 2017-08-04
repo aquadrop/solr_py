@@ -2,9 +2,14 @@
 # -*- coding: utf-8 -*-
 import bisect
 import _uniout
-
+import re
 
 class Node:
+
+    KEY = 'KEY'
+    RANGE = 'RANGE'
+    REGEX = 'REGEX'
+
     def __init__(self, slot, breakpoints=None, slot_syno=[]):
         self.slot = slot  # use as to query solr
         self.slot_syno = slot_syno
@@ -21,9 +26,11 @@ class Node:
         self.breakpoints = breakpoints
         self.classified_out_neighbors = {}
         self.classified_in_neighbors = {}
+        self.parent_node = None
 
     # value_type must be set
     def add_node(self, node, value_type, values):
+        node.parent_node = self
         if not node.classified_in_neighbors.has_key(value_type):
             node.classified_in_neighbors[value_type] = {}
         node.classified_in_neighbors[value_type][self.slot] = self
@@ -32,22 +39,42 @@ class Node:
             self.classified_out_neighbors[value_type] = {}
 
         # synonym consideration
-        for value in values:
-            self.classified_out_neighbors[value_type][value] = node
+        if value_type == self.REGEX:
+            self.classified_out_neighbors[value_type][values] = node
+        else:
+            for value in values:
+                self.classified_out_neighbors[value_type][value] = node
 
         self.value_types.add(value_type)
 
-    def go(self, q, value_type=None):
+    def is_leaf(self, value_type):
+        try:
+            return len(self.classified_out_neighbors[value_type]) == 0
+        except:
+            return True
+
+    def is_root(self):
+        return len(self.classified_in_neighbors) == 0
+
+    def go(self, q, value_type):
         return self.decide(q, value_type)
 
-    def decide(self, q, value_type=None):
+    def decide(self, q, value_type):
         try:
             if value_type == "KEY":
                 return self.classified_out_neighbors[value_type][q]
             if value_type == "RANGE":
                 return Node.grade(float(q), self.breakpoints, self.classified_out_neighbors[value_type])
+            if value_type == "REGEX":
+                neighbors = self.classified_out_neighbors[value_type]
+                ## match everyone
+                matched = []
+                for key, value in neighbors.iteritems():
+                    pattern = re.compile(key)
+                    if re.match(pattern, q):
+                        matched.append(value)
+                return matched
         except Exception, e:
-            print e.message
             return None
     # def grade(score, breakpoints=[60, 70, 80, 90], grades='FDCBA'):
     #     i = bisect(breakpoints, score)
@@ -57,7 +84,10 @@ class Node:
     def grade(score, breakpoints, nodes):
         i = bisect.bisect(breakpoints, score)
         print i, nodes, breakpoints
-        return nodes[i - 2]
+        ii = i - 2
+        if ii in nodes:
+            return nodes[ii]
+        return nodes[str(ii)]
 
 if __name__ == "__main__":
     bp = [-10, 0, 20000, 50000, 9999999999999]
