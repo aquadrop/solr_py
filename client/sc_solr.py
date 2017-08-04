@@ -62,11 +62,11 @@ if __name__ == "__main__":
     # print(SK.kernel('你叫什么名字'))
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('--q_size', choices={'1', '5', '20'},
+    parser.add_argument('--qsize', choices={'1', '5', '20'},
                         default='1', help='q_size initializes number of the starting instances...')
     args = parser.parse_args()
 
-    QSIZE = int(args.q_size)
+    QSIZE = int(args.qsize)
 
     for i in xrange(QSIZE):
         print('========================')
