@@ -3,6 +3,7 @@
 
 import Queue
 
+from urllib import unquote
 from flask import Flask
 from flask import request
 import json
@@ -29,7 +30,9 @@ def chat():
     try:
         args = request.args
         q = args['q']
-        q = q.decode('unicode-escape').encode('utf-8')
+        q = unquote(q)
+        if isinstance(q, str):
+            q = q.decode('unicode-escape').encode('utf-8')
         try:
             u = args['u']
             if not multi_sc_kernels.has_key(u):
