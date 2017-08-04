@@ -152,7 +152,7 @@ class Multilabel_Clf:
                 self.classifiers[last_slot] = clf
 
         print ('Train done.')
-        self.test(self.data_path)
+        self.validation(self.data_path)
 
     def predict(self, parent_slot, input_):
         if self.classes_num_sub[parent_slot] == 1:
@@ -173,11 +173,11 @@ class Multilabel_Clf:
         ## note that in prediction stage, n_samples == 1
         return labels[0], probs[0][prediction_index_first_sample]
 
-    def test(self, test_path):
+    def validation(self, valid_path):
         correct = 0.0
         total = 0.0
 
-        with open(test_path, 'r') as f:
+        with open(valid_path, 'r') as f:
             reader = csv.reader(f, delimiter='\t')
             for line in reader:
                 # print_cn(line)
@@ -207,26 +207,26 @@ def train(train_data_path, model_path):
         pickle.dump(clf, pickle_file, pickle.HIGHEST_PROTOCOL)
 
 
-def test(test_data_path, model_path):
+def validation(valid_data_path, model_path):
     with open(model_path, "rb") as input_file:
         clf = pickle.load(input_file)
-        clf.test(test_data_path)
+        clf.validation(valid_data_path)
 
 
 def main():
     model_path = '../../model/sc/multilabel_clf.pkl'
     train_data_path = '../../data/sc/pruned_dialogue.txt'
-    test_data_path = '../../data/sc/pruned_dialogue.txt'
+    valid_data_path = '../../data/sc/pruned_dialogue.txt'
     parser = argparse.ArgumentParser()
-    parser.add_argument('-m', choices={'train', 'test'},
-                        default='train', help='mode.if not specified,it is in test mode')
+    parser.add_argument('-m', choices={'train', 'valid'},
+                        default='train', help='mode.if not specified,it is in valid mode')
 
     args = parser.parse_args()
 
     if args.m == 'train':
         train(train_data_path, model_path)
-    elif args.m == 'test':
-        test(test_data_path, model_path)
+    elif args.m == 'valid':
+        validation(valid_data_path, model_path)
     else:
         print('Unknow mode, exit.')
 
@@ -236,5 +236,5 @@ if __name__ == '__main__':
 
     model_path = '../../model/sc/multilabel_clf.pkl'
     clf = Multilabel_Clf.load(model_path=model_path)
-    labels, probs = clf.predict(parent_slot='购物', input_='给爸爸买件衣服')
-    print(labels, probs)
+    labels, probs = clf.predict(parent_slot='ROOT', input_='我要买鞋')
+    print_cn(labels, probs)

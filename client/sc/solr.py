@@ -7,6 +7,7 @@ import json
 
 from lru import LRU
 
+
 from client.sc.multilabel_clf import Multilabel_Clf
 from client.sc.scene_clf import SceneClassifier
 from client.sc.kernel import Kernel

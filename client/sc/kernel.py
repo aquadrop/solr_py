@@ -10,7 +10,7 @@ from client.sc.repeat_kernel import RepeatKernel
 
 from client.sc.multilabel_clf import Multilabel_Clf
 from client.sc.scene_clf import SceneClassifier
-
+from cn_util import print_cn
 class Kernel:
     ## static
     scene_kernel = SceneKernel()
@@ -31,6 +31,7 @@ class Kernel:
         if not direction:
             ## first determined by SceneKernel about directions
             direction = Kernel.scene_kernel.kernel(q)
+            print_cn('direction:',direction)
             ## store value in repeat kernel
             self.repeat_kernel.store_user_q(q)
 
