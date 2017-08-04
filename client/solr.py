@@ -7,13 +7,12 @@ import json
 
 from lru import LRU
 
+from kernel import Kernel
 from gkernel import GKernel
 from qa_kernel import QAKernel
 from interactive_kernel import IKernel
 from sequence_classifier import SeqClassifier
 from scene_clf import SceneClassifier
-
-# from client.sc.kernel import Kernel
 
 import sys
 reload(sys)
@@ -27,30 +26,6 @@ i_kernel = IKernel()
 
 multi_l_kernels = LRU(200)
 s_clf = SceneClassifier.get_instance('../model/scene/sceneclf_six.pkl')
-
-kernel = Kernel()
-multi_sc_kernels = LRU(200)
-
-@app.route('/sc/chat', methods=['GET', 'POST'])
-def chat():
-    try:
-        args = request.args
-        q = args['q']
-        try:
-            u = args['u']
-            if not multi_l_kernels.has_key(u):
-                multi_l_kernels[u] = Kernel()
-            u_i_kernel = multi_l_kernels[u]
-            r = u_i_kernel.kernel(q)
-            result = {"question": q, "result": {"answer": r}, "user": u}
-            return json.dumps(result, ensure_ascii=False)
-
-        except:
-            r = kernel.kernel(q)
-            result = {"question": q, "result": {"answer": r}, "user": "solr"}
-            return json.dumps(result, ensure_ascii=False)
-    except Exception, e:
-        return json.dumps({"msg": e.message})
 
 
 @app.route('/scene', methods=['GET', 'POST'])
