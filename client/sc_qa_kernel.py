@@ -49,8 +49,10 @@ class QAKernel:
 
     def _get_response(self, r, i = 0):
         try:
-            a = r.json()["response"]["docs"]
-            return a[i]["answer"][0].encode('utf8')
+            a = r.json()["response"]["docs"][i]['answer']
+            rr = np.random.choice(a, 1)[0]
+            x = random.randint(0, min(0, len(a) - 1))
+            return rr.encode('utf8')
         except:
             return None
 
