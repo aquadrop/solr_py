@@ -64,4 +64,4 @@ class EntryKernel:
 
 if __name__ == '__main__':
     kernel = EntryKernel()
-    print(kernel.kernel('购物'))
+    print(kernel.kernel(u'停车场在哪'))

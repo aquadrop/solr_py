@@ -8,6 +8,10 @@ import numpy as np
 
 from sc_scene_clf import SceneClassifier
 
+import sys
+reload(sys)
+sys.setdefaultencoding("utf-8")
+
 class SceneKernel:
     def __init__(self, web=False):
         self.web = web
@@ -37,10 +41,10 @@ class SceneKernel:
         except:
             return None, q
 
-    qa_pattern = re.compile(r'在哪|在几楼|怎么走|带我去|卫生间|厕所|停车场|电梯|出口')
-    qa_clean_pattern = re.compile(r'在哪|在哪里|怎么走|带我去')
-    greeting_pattern = re.compile(r'在吗|在嘛|你好|您好')
-    greeting_clean_pattern = re.compile(r'啊|呢')
+    qa_pattern = re.compile(ur'在哪|在几楼|怎么走|带我去|卫生间|厕所|停车场|电梯|出口')
+    qa_clean_pattern = re.compile(ur'在哪|在哪里|怎么走|带我去')
+    greeting_pattern = re.compile(ur'在吗|在嘛|你好|您好')
+    greeting_clean_pattern = re.compile(ur'啊|呢')
     def regex_plugin(self, q):
         try:
             if re.match(self.qa_pattern, q):
@@ -77,4 +81,4 @@ class SceneKernel:
 
 if __name__ == '__main__':
     SK = SceneKernel()
-    print(SK.kernel('厕所在哪'))
+    print(SK.kernel(u'停车场'))
