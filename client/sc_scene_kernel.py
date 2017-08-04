@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import requests
+import re
 
 import numpy as np
 
@@ -20,6 +21,10 @@ class SceneKernel:
             print('attaching scene web kernel...')
 
     def kernel(self, q):
+        ## first try regex_plugin:
+        scene, q = self.regex_plugin(q)
+        if not scene:
+            return scene
         try:
             if not self.web:
                 if not self.clf:
@@ -31,6 +36,20 @@ class SceneKernel:
                 return text.text
         except:
             return None
+
+    qa_pattern = re.compile(ur'在哪|在几楼|怎么走|带我去|卫生间|厕所|停车场|电梯|出口')
+    qa_clean_pattern = re.compile(ur'在哪|怎么走|带我去')
+    greeting_pattern = re.compile(ur'在吗|在嘛|你好|您好')
+    greeting_clean_pattern = re.compile(ur'啊|呢')
+    def regex_plugin(self, q):
+        if re.match(self.qa_pattern, q):
+            q = re.sub(self.qa_clean_pattern, q)
+            return 'qa', q
+        if re.match(self.greeting_pattern, q):
+            if (len(q)) > 1:
+                q = re.sub(self.greeting_clean_pattern, q)
+            return 'greeting', q
+        return None, q
 
     def select_label(self, labels):
         """
