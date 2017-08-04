@@ -21,7 +21,7 @@ app = Flask(__name__)
 kernel = EntryKernel()
 multi_sc_kernels = LRU(200)
 
-QSIZE = 5
+QSIZE = 1
 kernel_backups = Queue.Queue(QSIZE)
 
 @app.route('/sc/chat', methods=['GET', 'POST'])
