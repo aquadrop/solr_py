@@ -59,6 +59,7 @@ class SceneClassifier(object):
             self.feature_extractor = tfidf_vectorizer.fit(corpus)
 
     def cut(self, input_):
+        input_ = QueryUtils.static_remove_cn_punct(input_)
         seg = " ".join(jieba.cut(input_, cut_all=False))
         tokens = _uniout.unescape(str(seg), 'utf8')
         return tokens
@@ -151,7 +152,7 @@ class SceneClassifier(object):
         embeddings, labels, queries = self._build(files)
         print 'train classifier...'
 
-        self.kernel = OneVsRestClassifier(GradientBoostingClassifier(max_depth=5, n_estimators=200))
+        self.kernel = OneVsRestClassifier(GradientBoostingClassifier(max_depth=8, n_estimators=1000))
         self.kernel.fit(embeddings, labels)
 
         pickle.dump(self, open(pkl, 'wb'))
@@ -164,17 +165,26 @@ class SceneClassifier(object):
         # print(confusion_matrix.T)
 
     def metrics_(self, labels, queries):
+        correct = 0.0
+        total = 0
         for i in xrange(len(queries)):
             query = queries[i]
+            if not query:
+                continue
+            total += 1
             label = labels[i]
             label = np.expand_dims(label, axis=0)
-            label = self.mlb.inverse_transform(label)
-
+            real = self.mlb.inverse_transform(label)[0]
+            real = list(real)
             label_, probs = self.predict(query)
-            label_ = self.mlb.inverse_transform(label_)
+            label_ = list(set(label_))
+            # label_ = self.mlb.inverse_transform(label_)
 
-            if set(label_[0]) != set(label[0]):
-                print_cn(query, [label[0], label_[0], np.squeeze(probs)])
+            if ' '.join(real) != ' '.join(list(label_)):
+                print('{0}: {1}-->{2}'.format(query, ' '.join(real), ' '.join(list(label_))))
+            else:
+                correct += 1
+        print('accuracy:{0}'.format(correct / total))
 
     def validate(self, files):
         embeddings, labels, queries = self._prepare_data(files)
@@ -188,9 +198,17 @@ class SceneClassifier(object):
         embedding = np.squeeze(embedding)
         embedding = np.reshape(embedding, [1, -1])
         prediction = self.kernel.predict(embedding)
+        prediction_index_first_sample = np.where(prediction[0] == 1)
         # label = self.mlb.inverse_transform(prediction)
         probs = self.kernel.predict_proba(embedding)
-        return prediction, probs
+        ## note that in prediction stage n_sample==1
+        label_ = self.mlb.inverse_transform(prediction)
+        if len(label_[0]) == 0:
+            index = np.argmax(probs[0])
+            l = self.named_labels[index]
+            prob = probs[0][index]
+            return [l], [prob]
+        return label_[0], probs[0][prediction_index_first_sample]
 
     def interface(self, q):
         label, probs = self.predict(q)
@@ -221,7 +239,7 @@ def online_validation():
             question = raw_input('input something...\n')
             prediction, probs = clf.predict(question)
             probs = np.squeeze(probs)
-            print 'prediction: {0}, probs: {1}'.format(np.squeeze(clf.mlb.inverse_transform(prediction)), probs)
+            print 'prediction: {0}, probs: {1}'.format(np.squeeze(prediction), probs)
             print('-------------------------')
     except KeyboardInterrupt:
         print('interaction interrupted')
@@ -230,8 +248,9 @@ def online_validation():
 def offline_validation():
     clf = SceneClassifier.get_instance('../../model/sc/scene_clf.pkl')
     print('loaded model file...')
-    files = ['../../data/sc/dialogue.txt', '../../data/sc/greetings.txt',
-             '../../data/sc/qa.txt', ]
+    files = ['../../data/sc/scene/base', '../../data/sc/scene/greetings',
+             '../../data/sc/scene/qa', '../../data/sc/scene/repeat_guest',
+             '../../data/sc/scene/repeat_machine', '../../data/sc/scene/sale']
     clf.validate(files)
     # print(clf.interface('我要买鞋'))
 

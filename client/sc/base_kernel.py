@@ -6,4 +6,4 @@ class BaseKernel:
         print('attaching base kernel...')
 
     def kernel(self, q):
-        print('base kernel is not attached...try again later..')
+        return 'base kernel is not attached...try again later..'

@@ -1,14 +1,15 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from sckernel import SCKernel
-from qa_kernel import QAKernel
-from greeting_kernel import GreetingKernel
-from base_kernel import BaseKernel
-from scene_kernel import SceneKernel
-from repeat_kernel import RepeatKernel
+from client.sc.sckernel import SCKernel
+from client.sc.qa_kernel import QAKernel
+from client.sc.greeting_kernel import GreetingKernel
+from client.sc.base_kernel import BaseKernel
+from client.sc.scene_kernel import SceneKernel
+from client.sc.repeat_kernel import RepeatKernel
 
-from multilabel_clf import Multilabel_Clf
+from client.sc.multilabel_clf import Multilabel_Clf
+from client.sc.scene_clf import SceneClassifier
 
 class Kernel:
     ## static
@@ -26,26 +27,31 @@ class Kernel:
         self.repeat_kernel = RepeatKernel()
         self.base_kernel = BaseKernel()
 
-    def kernel(self, q):
-        ## first determined by SceneKernel about directions
-        direction = Kernel.scene_kernel.kernel(q)
-        ## store value in repeat kernel
-        self.repeat_kernel.store_user_q(q)
+    def kernel(self, q, direction=None):
+        if not direction:
+            ## first determined by SceneKernel about directions
+            direction = Kernel.scene_kernel.kernel(q)
+            ## store value in repeat kernel
+            self.repeat_kernel.store_user_q(q)
 
+        response = None
         if direction == Kernel.BASE:
             response = self.base_kernel.kernel(q)
         if direction == Kernel.QA:
             response = self.qa_kernel.kernel(q)
         if direction == Kernel.GREETING:
-            response = self.greeting_kernel(q)
-        if direction == Kernel.BASE:
-            response = self.base_kernel.kernel(q)
+            response = self.greeting_kernel.kernel(q)
+            if not response:
+                self.kernel(q, direction=Kernel.BASE)
         if direction == RepeatKernel.MACHINE:
             response = self.repeat_kernel.kernel(type_=RepeatKernel.MACHINE)
         if direction == RepeatKernel.USER:
             response = self.repeat_kernel.kernel(type_=RepeatKernel.USER)
         if direction == Kernel.SALE:
             _, response = self.main_kernel.kernel(query=q)
+
+        if not response:
+            self.kernel(q=q, direction=Kernel.BASE)
 
         ## store response in repeat kernel:
         self.repeat_kernel.store_machine_q(r=response)
