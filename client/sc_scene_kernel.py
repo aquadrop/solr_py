@@ -41,8 +41,8 @@ class SceneKernel:
         except:
             return None, q
 
-    qa_pattern = re.compile(ur'在哪|在几楼|怎么走|带我去|卫生间|厕所|停车场|电梯|出口')
-    qa_clean_pattern = re.compile(ur'在哪|在哪里|怎么走|带我去')
+    qa_pattern = re.compile(ur'在哪|在几楼|在几层|怎么走|带我去|卫生间|厕所|停车场|电梯|出口')
+    qa_clean_pattern = re.compile(ur'在哪里|在哪|怎么走|带我去下|带我去')
     greeting_pattern = re.compile(ur'在吗|在嘛|你好|您好')
     greeting_clean_pattern = re.compile(ur'啊|呢')
     def regex_plugin(self, q):
@@ -81,4 +81,4 @@ class SceneKernel:
 
 if __name__ == '__main__':
     SK = SceneKernel()
-    print(SK.kernel(u'停车场'))
+    print(SK.kernel(u'停车场在哪'))
