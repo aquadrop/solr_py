@@ -23,7 +23,7 @@ app = Flask(__name__)
 kernel = EntryKernel()
 multi_sc_kernels = LRU(200)
 
-QSIZE = 1
+QSIZE = 5
 kernel_backups = Queue.Queue(QSIZE)
 
 @app.route('/sc/chat', methods=['GET', 'POST'])
@@ -63,7 +63,7 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
     parser.add_argument('--qsize', choices={'1', '5', '20'},
-                        default='1', help='q_size initializes number of the starting instances...')
+                        default='5', help='q_size initializes number of the starting instances...')
     args = parser.parse_args()
 
     QSIZE = int(args.qsize)
