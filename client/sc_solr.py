@@ -41,7 +41,7 @@ def chat():
                     ek = kernel_backups.get_nowait()
                     multi_sc_kernels[u] = ek
                 else:
-                    for i in xrange(QSIZE):
+                    for i in xrange(2):
                         k = EntryKernel()
                         kernel_backups.put_nowait(k)
                         result = {"question": q, "result": \
