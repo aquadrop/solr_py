@@ -24,7 +24,7 @@ kernel = EntryKernel()
 multi_sc_kernels = LRU(200)
 
 QSIZE = 5
-kernel_backups = Queue.Queue(QSIZE)
+kernel_backups = Queue.Queue(200)
 
 @app.route('/sc/chat', methods=['GET', 'POST'])
 def chat():
@@ -41,10 +41,14 @@ def chat():
                     ek = kernel_backups.get_nowait()
                     multi_sc_kernels[u] = ek
                 else:
-                    for i in xrange(30):
+                    for i in xrange(QSIZE):
                         k = EntryKernel()
                         kernel_backups.put_nowait(k)
+                        result = {"question": q, "result": \
+                            {"answer": "maximum online number reached, assigning instance for you..please wait..."},
+                                  "user": u}
                         print('========================')
+                    return json.dumps(result, ensure_ascii=False)
             u_i_kernel = multi_sc_kernels[u]
             r = u_i_kernel.kernel(q)
             result = {"question": q, "result": {"answer": r}, "user": u}
@@ -55,7 +59,8 @@ def chat():
             result = {"question": q, "result": {"answer": r}, "user": "solr"}
             return json.dumps(result, ensure_ascii=False)
     except Exception, e:
-        return json.dumps({"msg": e.message})
+        result = {"question": q, "result": {"answer": "mainframe currently unavailable to respond..."}, "user": "solr"}
+        return json.dumps(result, ensure_ascii=False)
 
 if __name__ == "__main__":
     # SK = SceneKernel()
