@@ -49,19 +49,21 @@ class SceneKernel:
     def regex_plugin(self, q):
         # q = QueryUtils.static_corenlp_cut(q, remove_tags=QueryUtils.remove_tags)
         try:
-            try:
-                q = QueryUtils.static_corenlp_cut(q, remove_tags=QueryUtils.remove_tags)
-                q = ''.join(q)
-                if not q:
-                    q = u'你好'
-            except:
-                pass
             if re.match(self.qa_pattern, q):
                 q = re.sub(self.qa_clean_pattern, '', q)
                 return 'qa', q
             if re.match(self.greeting_pattern, q):
                 if (len(q)) > 1:
                     q = re.sub(self.greeting_clean_pattern, '', q)
+                try:
+                    q = QueryUtils.static_corenlp_cut(q, remove_tags=QueryUtils.remove_tags)
+                    q = ''.join(q)
+                    if not q:
+                        q = u'你好'
+                except:
+                    pass
+                if isinstance(q, str):
+                    q = q.decode('unicode-escape').encode('utf-8')
                 return 'greeting', q
             return None, q
         except:
@@ -89,7 +91,7 @@ class SceneKernel:
 
 
 if __name__ == '__main__':
-    # SK = SceneKernel()
+    SK = SceneKernel()
     # greeting_pattern = re.compile(ur'在吗|在嘛|名字')
-    print(re.match(SceneKernel.greeting_pattern, u'说你叫什么名字呀'))
-    # print(SK.kernel(u'说你叫什么名字呀'))
+    print(re.match(SceneKernel.qa_pattern, u'我问下卫生间在哪里'))
+    print(SK.regex_plugin(u'我问下卫生间在哪里'))
