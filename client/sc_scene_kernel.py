@@ -7,6 +7,7 @@ import re
 import numpy as np
 
 from sc_scene_clf import SceneClassifier
+from query_util import QueryUtils
 
 import sys
 reload(sys)
@@ -41,12 +42,20 @@ class SceneKernel:
         except:
             return None, q
 
-    qa_pattern = re.compile(ur'在哪|在几楼|在几层|怎么走|带我去|卫生间|厕所|停车场|电梯|出口')
-    qa_clean_pattern = re.compile(ur'在哪里|在哪|怎么走|带我去下|带我去')
-    greeting_pattern = re.compile(ur'在吗|在嘛|你好|您好')
-    greeting_clean_pattern = re.compile(ur'啊|呢')
+    qa_pattern = re.compile(ur'.*?(在哪|在那|在几楼|在几层|怎么走|带我去|卫生间|厕所|停车场|电梯|出口|我想去).*?')
+    qa_clean_pattern = re.compile(ur'在哪里|在哪|在那里|在那|怎么走|带我去下|带我去')
+    greeting_pattern = re.compile(ur".*?(在吗|在嘛|名字).*?")
+    greeting_clean_pattern = re.compile(ur'啊|呢|呀')
     def regex_plugin(self, q):
+        # q = QueryUtils.static_corenlp_cut(q, remove_tags=QueryUtils.remove_tags)
         try:
+            try:
+                q = QueryUtils.static_corenlp_cut(q, remove_tags=QueryUtils.remove_tags)
+                q = ''.join(q)
+                if not q:
+                    q = u'你好'
+            except:
+                pass
             if re.match(self.qa_pattern, q):
                 q = re.sub(self.qa_clean_pattern, '', q)
                 return 'qa', q
@@ -80,5 +89,7 @@ class SceneKernel:
 
 
 if __name__ == '__main__':
-    SK = SceneKernel()
-    print(SK.kernel(u'停车场在哪'))
+    # SK = SceneKernel()
+    # greeting_pattern = re.compile(ur'在吗|在嘛|名字')
+    print(re.match(SceneKernel.greeting_pattern, u'说你叫什么名字呀'))
+    # print(SK.kernel(u'说你叫什么名字呀'))

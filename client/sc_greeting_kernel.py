@@ -23,7 +23,7 @@ class GreetingKernel(QAKernel):
         print('attaching greeting kernel...')
         self.last_g = None
         self.qu = QueryUtils()
-        self.greeting_url = 'http://localhost:11403/solr/sc_greeting/select?wt=json&q=question:(%s)'
+        self.greeting_url = 'http://localhost:11403/solr/sc_greeting/select?q.op=OR&wt=json&q=question:(%s)'
 
     def _request_solr(self, q):
         tokenized, exact_q = self.purify_q(q)

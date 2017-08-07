@@ -3,6 +3,7 @@
 
 from flask import Flask
 from flask import request
+from urllib import unquote
 import json
 
 from lru import LRU
@@ -23,7 +24,11 @@ def chat():
     try:
         args = request.args
         q = args['q']
-        return scene_kernel.kernel(q)
+        q = unquote(q)
+        if isinstance(q, str):
+            q = q.decode('unicode-escape').encode('utf-8')
+        scene, _ = scene_kernel.kernel(q)
+        return scene
     except:
         return 'sale'
 

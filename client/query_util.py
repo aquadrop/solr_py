@@ -13,7 +13,7 @@ import re
 
 class QueryUtils:
     static_tokenizer_url = "http://localhost:11415/pos?q="
-
+    remove_tags = ["PN", "VA", "AD", "PU", "SP", "DT"]
     def __init__(self):
         self.remove_tags = ["PN", "VA", "AD"]
         self.tokenizer_url = "http://localhost:11415/pos?q="
