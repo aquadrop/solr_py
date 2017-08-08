@@ -19,7 +19,7 @@ class QAKernel:
     def __init__(self):
         print('attaching qa kernel...')
         ## http://localhost:11403/solr/sc_qa/select?fq=entity:%E5%8E%95%E6%89%80&indent=on&q=*:*&wt=json
-        self.qa_url = 'http://221.224.161.37:8135/solr/sc_qa/select?q.op=OR&wt=json&q=entity:(%s)'
+        self.qa_url = 'http://localhost:11403/solr/sc_qa/select?q.op=OR&wt=json&q=entity:(%s)'
         self.qu = QueryUtils()
 
     def kernel(self, q):
