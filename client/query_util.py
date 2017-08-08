@@ -13,7 +13,7 @@ import re
 
 class QueryUtils:
     static_tokenizer_url = "http://localhost:11415/pos?q="
-
+    remove_tags = ["PN", "VA", "AD", "PU", "SP", "DT"]
     def __init__(self):
         self.remove_tags = ["PN", "VA", "AD"]
         self.tokenizer_url = "http://localhost:11415/pos?q="
@@ -26,16 +26,19 @@ class QueryUtils:
         return tokens
 
     def corenlp_cut(self, query, remove_tags=[]):
-        q = query
-        r = requests.get(url=self.tokenizer_url + q)
-        # purify
-        text = []
-        for t in r.text.encode("utf-8").split(" "):
-            tag = t.split("/")[1]
-            word = t.split("/")[0]
-            if not tag in remove_tags:
-                text.append(word)
-        return text
+        try:
+            q = query
+            r = requests.get(url=self.tokenizer_url + q)
+            # purify
+            text = []
+            for t in r.text.encode("utf-8").split(" "):
+                tag = t.split("/")[1]
+                word = t.split("/")[0]
+                if not tag in remove_tags:
+                    text.append(word)
+            return text
+        except:
+            return [query]
 
     @staticmethod
     def static_corenlp_cut(query, remove_tags=[]):

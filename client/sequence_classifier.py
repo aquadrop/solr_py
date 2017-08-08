@@ -35,7 +35,7 @@ from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.naive_bayes import MultinomialNB
 import cPickle as pickle
 
-from client.query_util import QueryUtils
+from query_util import QueryUtils
 
 reload(sys)
 sys.setdefaultencoding("utf-8")

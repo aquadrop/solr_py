@@ -23,13 +23,12 @@ import cPickle as pickle
 import argparse
 
 from cn_util import print_cn
-from client.query_util import QueryUtils
-
+from query_util import QueryUtils
 
 reload(sys)
 sys.setdefaultencoding("utf-8")
 
-class Multilabel_Clf:
+class Iterable_Clf:
 
     def __init__(self,data_path):
         self.data_path=data_path
@@ -265,11 +264,9 @@ def test(test_data_path, model_path):
 
 
 def main():
-    model_path = '../../model/sc/multilabel_clf.pkl'
-
-    train_data_path = '../../data/sc/sale.txt'
-    test_data_path = '../../data/sc/sale.txt'
-
+    model_path = '../model/sc/multilabel_clf.pkl'
+    train_data_path = '../data/sc/sale.txt'
+    test_data_path = '../data/sc/sale.txt'
     parser = argparse.ArgumentParser()
     parser.add_argument('-m', choices={'train', 'test'},
                         default='train', help='mode.if not specified,it is in test mode')
@@ -285,11 +282,9 @@ def main():
 
 
 if __name__ == '__main__':
-    # main()
+    main()
 
-
-    model_path = '../../model/sc/multilabel_clf.pkl'
+    model_path = '../model/sc/multilabel_clf.pkl'
     clf = Multilabel_Clf.load(model_path=model_path)
     labels, probs = clf.predict(parent_slot='ROOT', input_='日本料理')
     print_cn(labels)
-
