@@ -42,6 +42,7 @@ class SceneKernel:
         except:
             return None, q
 
+    base_pattern = re.compile(ur'.*?(天气|下雨吗|晴天吗|阴天吗).*?')
     sale_pattern = re.compile(ur'.*?(买|吃).*?')
     qa_pattern = re.compile(ur'.*?((存|寄).*?包|在哪|在那|在几楼|在几层|怎么走|带我去|卫生间|厕所|停车场|电梯|出口|我想去|洗手间|充电).*?')
     qa_clean_pattern = re.compile(ur'在哪里|在哪|在那里|在那|怎么走|带我去下|带我去')
@@ -50,6 +51,8 @@ class SceneKernel:
     def regex_plugin(self, q):
         # q = QueryUtils.static_corenlp_cut(q, remove_tags=QueryUtils.remove_tags)
         try:
+            if re.match(self.base_pattern, q):
+                return 'base', q
             if re.match(self.sale_pattern, q):
                 return 'sale', q
             if re.match(self.qa_pattern, q):
