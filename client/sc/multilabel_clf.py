@@ -106,7 +106,7 @@ class Multilabel_Clf:
                             last_slot] = self.classes_num_sub.get(last_slot) + 1
 
         for key in self.classes.keys():
-            labels = list()
+            labels = list()l
             mlb = MultiLabelBinarizer()
             # print_cn(key)
             for k in self.classes[key].keys():
