@@ -40,7 +40,7 @@ class QAKernel:
 
     def _request_solr(self, q):
         url = self.qa_url % q
-        print('qa_debug:', url)
+        # print('qa_debug:', url)
         r = requests.get(url)
         return r
 
