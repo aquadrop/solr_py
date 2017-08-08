@@ -150,7 +150,7 @@ class BeliefTracker:
             if SolrUtils.num_answer(r) > 0:
                 return ','.join(intentions), SolrUtils.get_response(r)
         except:
-            return 'unclear', '好像没有哦, 问问咨询台呢'
+            return 'unclear', '我好像不知道哦, 问问咨询台呢'
 
     def trick(self, query):
         # ## do trick
