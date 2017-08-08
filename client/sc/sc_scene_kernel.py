@@ -3,7 +3,7 @@
 
 import numpy as np
 
-from client.sc.scene_clf import SceneClassifier
+from client.sc.sc_scene_clf import SceneClassifier
 
 class SceneKernel:
     def __init__(self):

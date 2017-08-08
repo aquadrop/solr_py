@@ -23,15 +23,15 @@ from client.query_util import QueryUtils
 reload(sys)
 sys.setdefaultencoding('utf-8')
 
-parentdir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-sys.path.insert(0, parentdir)
+# parentdir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+# sys.path.insert(0, parentdir)
 
 
 class SceneClassifier(object):
     def __init__(self):
         self.kernel = None
         self.named_labels = ['base','greeting','qa','repeat_user','repeat_machine','sale']
-        self.qu = QueryUtils()
+        # self.qu = QueryUtils()
 
     def _build_feature_extractor(self, mode, files):
         print('Build feature extraction...')
@@ -258,7 +258,8 @@ def offline_validation():
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('-m', choices={'train', 'online', 'offline'},
-                        default='offline', help='mode.if not specified,it is in prediction mode')
+                        default='online', help='mode.if not specified,it is in prediction mode')
+
     args = parser.parse_args()
 
     if args.m == 'train':
