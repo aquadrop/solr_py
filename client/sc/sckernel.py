@@ -8,9 +8,10 @@ from client.node import Node
 from client.query_util import QueryUtils
 from client.sc.multilabel_clf import Multilabel_Clf
 from client.solr_utils import SolrUtils
+from cn_util import print_cn
+
 
 class SCKernel:
-
     def __init__(self, graph_path, clf_path):
         # self.tokenizer = CoreNLP()
         self.graph = None
@@ -24,6 +25,7 @@ class SCKernel:
     last_slots = None
 
     guide_url = "http://localhost:11403/solr/sc_sale/select?defType=edismax&indent=on&wt=json&q=*:*"
+
     # tokenizer_url = "http://localhost:5000/pos?q="
 
     def kernel(self, query):
@@ -38,7 +40,7 @@ class SCKernel:
         try:
             print('attaching gbdt classifier...100%')
             self.gbdt = Multilabel_Clf.load(path)
-        except Exception,e:
+        except Exception, e:
             print('failed to attach gbdt classifier...detaching...', e.message)
 
     def _load_graph(self, path):
@@ -66,6 +68,7 @@ class SCKernel:
                     filtered_slots_list.append(slots_list[i])
 
             filtered_slots_list = set(filtered_slots_list)
+            print_cn('filtered_slots_list:',filtered_slots_list)
             if len(filtered_slots_list) == 0:
                 return False, []
         else:
@@ -113,10 +116,10 @@ class SCKernel:
                 return self.search(parent_slots=self.last_slots, current_slots=slots)
             else:
                 return 'unclear', self.trick(query)
-    
+
     def single_parent_slot(self, split=' OR '):
-        return self.single_slot(self.last_slots, split=split    )
-    
+        return self.single_slot(self.last_slots, split=split)
+
     def single_slot(self, slots, split=' OR '):
         return split.join(slots)
 
@@ -138,7 +141,7 @@ class SCKernel:
                 return current_slots, SolrUtils.get_response(r)
         except:
             return 'unclear', self.travel_with_clf(None)
-    
+
     def trick(self, query):
         # ## do trick
         self.clear_state()
