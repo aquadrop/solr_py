@@ -25,7 +25,7 @@ class BeliefTracker:
 
     last_slots = None
 
-    guide_url = "http://localhost:11403/solr/sc_sale/select?defType=edismax&indent=on&wt=json&q=*:*"
+    guide_url = "http://localhost:11403/solr/sc_sale_adv/select?defType=edismax&indent=on&wt=json"
 
     # tokenizer_url = "http://localhost:5000/pos?q="
 
@@ -60,8 +60,6 @@ class BeliefTracker:
             slots_list, probs = self.gbdt.predict(input_=query)
             for i, prob in enumerate(probs):
                 if prob >= 0.7:
-                    cn_util.print_cn(slots_list[i])
-                    print('classifying...', prob)
                     filtered_slots_list.append(slots_list[i])
 
             filtered_slots_list = set(filtered_slots_list)
@@ -136,16 +134,17 @@ class BeliefTracker:
 
     def compose(self):
         intentions = []
-        for i, slot in enumerate(self.remaining_slots):
+        for slot, i in self.remaining_slots.iteritems():
             score = self.score_stairs[i]
-            intention = slot + '^' + str(score)
+            importance = self.belief_graph.slot_importances[slot]
+            intention = slot + '^' + str(float(score) * float(importance))
             intentions.append(intention)
         return intentions, ' OR '.join(intentions)
 
     def search(self):
         try:
             intentions, fq = self.compose()
-            url = self.guide_url + "&fq=intention:(%s)" % fq
+            url = self.guide_url + "&q=intention:(%s)" % fq
             # print("gbdt_result_url", url)
             r = requests.get(url)
             if SolrUtils.num_answer(r) > 0:
@@ -178,9 +177,9 @@ class BeliefTracker:
 
 if __name__ == "__main__":
     bt = BeliefTracker("../model/sc/belief_graph.pkl", '../model/sc/belief_clf.pkl')
-    ipts = ['麻辣小龙虾','我想买点实惠的面包','我要吃点实惠的牛排','买实惠的辣的单鞋','我要买衣服和鞋子','吃火锅']
+    ipts = ['吃饭','购物',"实惠的日本料理"]
     for ipt in ipts:
         # ipt = raw_input()
         # chinese comma
         bt.travel_with_clf(ipt)
-        cn_util.print_cn(bt.remaining_slots)
+        cn_util.print_cn(bt.compose()[0])

@@ -82,7 +82,9 @@ class QueryUtils:
         except:
             return [query]
 
+
     skip_CD = ['一些', '一点', '一些些', '一点点', '一点零', '不少','很多']
+
 
     def quant_fix(self, query):
         return QueryUtils.static_quant_fix(query)
@@ -125,10 +127,12 @@ class QueryUtils:
 
     @staticmethod
     def static_remove_cn_punct(q):
+
         try:
             return ''.join(QueryUtils.static_corenlp_cut(q, remove_tags=['PU']))
         except:
             return q
+
 
     tokenizer_url = "http://localhost:11415/pos?q="
     transfer_ = {1: '零钱', 200: ' 二百 ', 20000: ' 二万 ',
@@ -318,7 +322,6 @@ class QueryUtils:
 if __name__ == '__main__':
     qu = QueryUtils()
     qu.process_data('../data/business/intention_pair_q', '../data/business/business_train_v7')
-
     # print(QueryUtils.static_remove_cn_punct(u'我在电视上见过你，听说你很聪明啊?'))
     cn_util.print_cn(qu.quant_bucket_fix('一点钱'))
     # cn_util.print_cn(qu.quant_bucket_fix('我要取1千零1百'))

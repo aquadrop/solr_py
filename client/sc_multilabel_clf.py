@@ -64,6 +64,7 @@ class Multilabel_Clf:
                 corpus.append(tokens)
 
         if mode == 'ngram':
+            print_cn('use {0}'.format(mode))
             bigram_vectorizer = CountVectorizer(
                 ngram_range=(1, 2), min_df=0.0, max_df=1.0, analyzer='char', stop_words=[',', '?', '我', '我要'],
                 binary=True)
@@ -265,8 +266,8 @@ def test(test_data_path, model_path):
 
 def main():
     model_path = '../model/sc/multilabel_clf.pkl'
-    train_data_path = '../data/sc/sale.txt'
-    test_data_path = '../data/sc/sale.txt'
+    train_data_path = '../data/sc/sale.json'
+    test_data_path = '../data/sc/sale.json'
     parser = argparse.ArgumentParser()
     parser.add_argument('-m', choices={'train', 'test'},
                         default='train', help='mode.if not specified,it is in test mode')

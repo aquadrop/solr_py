@@ -28,6 +28,6 @@ class GreetingKernel(QAKernel):
     def _request_solr(self, q):
         tokenized, exact_q = self.purify_q(q)
         url = self.greeting_url % tokenized.decode('utf-8')
-        print('qa_debug:', url)
+        # print('qa_debug:', url)
         r = requests.get(url)
         return r

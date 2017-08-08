@@ -10,9 +10,9 @@ from flask import request
 import json
 
 from lru import LRU
-from sc_kernel import EntryKernel
-from sc_scene_clf import SceneClassifier
-from sc_multilabel_clf import Multilabel_Clf
+from sc_entry_kernel import EntryKernel
+from sc_belief_graph import BeliefGraph
+from sc_belief_clf import Multilabel_Clf
 
 import sys
 reload(sys)
@@ -23,7 +23,7 @@ app = Flask(__name__)
 kernel = EntryKernel()
 multi_sc_kernels = LRU(200)
 
-QSIZE = 5
+QSIZE = 1
 kernel_backups = Queue.Queue(200)
 
 @app.route('/sc/chat', methods=['GET', 'POST'])
@@ -47,7 +47,7 @@ def chat():
                         result = {"question": q, "result": \
                             {"answer": "maximum online number reached, assigning instance for you..please wait..."},
                                   "user": u}
-                        print('========================')
+                        # print('========================')
                     return json.dumps(result, ensure_ascii=False)
             u_i_kernel = multi_sc_kernels[u]
             r = u_i_kernel.kernel(q)
@@ -68,7 +68,7 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
     parser.add_argument('--qsize', choices={'1', '5', '20'},
-                        default='5', help='q_size initializes number of the starting instances...')
+                        default='1', help='q_size initializes number of the starting instances...')
     args = parser.parse_args()
 
     QSIZE = int(args.qsize)

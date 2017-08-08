@@ -154,9 +154,9 @@ def test(test_data_path, model_path):
 
 
 def main():
-    model_path = '../model/sc/belief_clf.pkl'
-    train_data_path = '../data/sc/train/pruned_sale.txt'
-    test_data_path = '../data/sc/train/pruned_sale.txt'
+    model_path = '../../model/sc/multilabel_clf2.pkl'
+    train_data_path = '../../data/sc/scene/pruned_sale.txt'
+    test_data_path = '../../data/sc/scene/pruned_sale.txt'
     parser = argparse.ArgumentParser()
     parser.add_argument('-m', choices={'train', 'test'},
                         default='train', help='mode.if not specified,it is in test mode')
@@ -174,9 +174,9 @@ def main():
 if __name__ == '__main__':
     # main()
 
-    model_path = '../model/sc/belief_clf.pkl'
+    model_path = '../../model/sc/multilabel_clf2.pkl'
     clf = Multilabel_Clf.load(model_path=model_path)
-    inputs=['实惠','麻辣小龙虾','我想买点实惠的面包','我要吃点实惠的牛排','买实惠的辣的单鞋','我要买衣服和鞋子','吃火锅','我过来买东西','我要买东西','购物']
+    inputs=['我想吃便宜的麻辣小龙虾','我想买点实惠的面包','我要吃点实惠的牛排','买实惠的辣的单鞋','我要买衣服和鞋子']
     for p in inputs:
         labels, probs = clf.predict(input_=p)
         print_cn(labels, probs)

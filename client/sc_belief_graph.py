@@ -13,6 +13,7 @@ class BeliefGraph(Node, object):
         self.all_nodes = {}
         self.value_types = set()
         self.slot_identities = {}
+        self.slot_importances = {}
 
     # def add_node(self, node):
     #     if not self.classified_out_neighbors.has_key(self.value_type):
@@ -47,16 +48,18 @@ def build_belief_graph(path, output):
     all_nodes = dict()
     all_nodes['ROOT'] = belief_graph
     slot_identities = dict()
+    slot_importances = dict()
     ## first round
     with open(path, "rb") as f:
         for line in f.readlines():
             try:
             # print(line)
                 parent, typed_children = line.strip('\n').split("#")
-                category, children = typed_children.split(":")
+                category, importance, children = typed_children.split(":")
                 children = children.split(",")
                 for child in children:
                     slot_identities[child] = category
+                    slot_importances[child] = float(importance)
             except:
                 pass
 
@@ -80,6 +83,7 @@ def build_belief_graph(path, output):
 
     belief_graph.all_nodes = all_nodes
     belief_graph.slot_identities = slot_identities
+    belief_graph.slot_importances = slot_importances
     # build identity for each non-root node
     def build_identity(cat_dict, belief_graph):
         pass

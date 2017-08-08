@@ -12,13 +12,13 @@ import numpy as np
 from query_util import QueryUtils
 
 class QAKernel:
-    null_anwer = ['忘了,请去服务台问询哦..']
+    null_anwer = ['不知道哦,请去服务台问询..']
     # null_answer = ['null']
 
     def __init__(self):
         print('attaching qa kernel...')
         ## http://localhost:11403/solr/sc_qa/select?fq=entity:%E5%8E%95%E6%89%80&indent=on&q=*:*&wt=json
-        self.qa_url = 'http://localhost:11403/solr/sc_qa/select?q.op=OR&wt=json&q=*:*&fq=entity:(%s)'
+        self.qa_url = 'http://localhost:11403/solr/sc_qa/select?q.op=OR&wt=json&q=entity:(%s)'
         self.qu = QueryUtils()
 
     def kernel(self, q):
@@ -39,8 +39,7 @@ class QAKernel:
             return np.random.choice(self.null_anwer, 1)[0]
 
     def _request_solr(self, q):
-        tokenized, exact_q = self.purify_q(q)
-        url = self.qa_url % tokenized.decode('utf-8')
+        url = self.qa_url % q
         print('qa_debug:', url)
         r = requests.get(url)
         return r
@@ -61,3 +60,7 @@ class QAKernel:
         q = self.qu.remove_cn_punct(q)
         pos_q = self.qu.corenlp_cut(q, remove_tags=["CD", "VA", "AD", "VC"])
         return ''.join(pos_q), q
+
+if __name__ == '__main__':
+    qa = QAKernel()
+    print(qa.kernel(u'这里是一期吗'))
