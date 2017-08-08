@@ -42,13 +42,16 @@ class SceneKernel:
         except:
             return None, q
 
-    qa_pattern = re.compile(ur'.*?(在哪|在那|在几楼|在几层|怎么走|带我去|卫生间|厕所|停车场|电梯|出口|我想去).*?')
+    sale_pattern = re.compile(ur'.*?(买|吃).*?')
+    qa_pattern = re.compile(ur'.*?((存|寄).*?包|在哪|在那|在几楼|在几层|怎么走|带我去|卫生间|厕所|停车场|电梯|出口|我想去|洗手间|充电).*?')
     qa_clean_pattern = re.compile(ur'在哪里|在哪|在那里|在那|怎么走|带我去下|带我去')
-    greeting_pattern = re.compile(ur".*?(在吗|在嘛|名字).*?")
+    greeting_pattern = re.compile(ur".*?(在吗|在嘛|名字|几岁|多少岁).*?")
     greeting_clean_pattern = re.compile(ur'啊|呢|呀')
     def regex_plugin(self, q):
         # q = QueryUtils.static_corenlp_cut(q, remove_tags=QueryUtils.remove_tags)
         try:
+            if re.match(self.sale_pattern, q):
+                return 'sale', q
             if re.match(self.qa_pattern, q):
                 q = re.sub(self.qa_clean_pattern, '', q)
                 return 'qa', q
@@ -94,4 +97,4 @@ if __name__ == '__main__':
     SK = SceneKernel()
     # greeting_pattern = re.compile(ur'在吗|在嘛|名字')
     print(re.match(SceneKernel.qa_pattern, u'我问下卫生间在哪里'))
-    print(SK.regex_plugin(u'你叫什么名字'))
+    print(SK.regex_plugin(u'洗手间在哪里'))
