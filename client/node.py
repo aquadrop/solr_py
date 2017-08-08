@@ -66,9 +66,19 @@ class Node:
 
     def has_child(self, key, value_type):
         if value_type in self.classified_out_neighbors:
-            if key in self.classified_out_neighbors[key]:
+            if key in self.classified_out_neighbors[value_type]:
                 return True
         return False
+
+    # return dictionary
+    def all_children(self, value_type):
+        if value_type in self.classified_out_neighbors:
+            return self.classified_out_neighbors[value_type]
+        return {}
+
+    def remove_node(self, key, value_type):
+        if value_type in self.classified_out_neighbors:
+            del self.classified_out_neighbors[value_type][key]
 
     def decide(self, q, value_type):
         try:

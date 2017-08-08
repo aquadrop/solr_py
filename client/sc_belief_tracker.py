@@ -6,19 +6,21 @@ import cPickle as pickle
 
 from node import Node
 from query_util import QueryUtils
-from sc_multilabel_clf import Multilabel_Clf
+from sc_belief_clf import Multilabel_Clf
 from solr_utils import SolrUtils
-
+import cn_util
+from sc_belief_graph import BeliefGraph
 
 class BeliefTracker:
     def __init__(self, graph_path, clf_path):
-        # self.tokenizer = CoreNLP()
-        self.graph = None
         self.gbdt = None
         self.state_cleared = True
         self._load_graph(graph_path)
         self._load_clf(clf_path)
-
+        self.search_graph = BeliefGraph()
+        ## keep track of remaining slots, the old slots has lower score index, if index = -1, remove that slot
+        self.remaining_slots = {}
+        self.score_stairs = [2,4,6,8,10]
         self.qu = QueryUtils()
 
     last_slots = None
@@ -49,23 +51,19 @@ class BeliefTracker:
         try:
             print('attaching logic graph...100%')
             with open(path, "rb") as input_file:
-                self.graph = pickle.load(input_file)
+                self.belief_graph = pickle.load(input_file)
                 # print(self.graph.go('购物', Node.REGEX))
         except:
             print('failed to attach logic graph...detaching...')
 
-    ## splits slots_list into parent_slot and vertical ones
-    def tree_filter(self, slots_list):
-        return slots_list[0], slots_list[1:-1]
-
-    def travel_with_clf(self, , query):
+    def travel_with_clf(self, query):
         filtered_slots_list = []
-        moved = True
         if self.gbdt:
-            slots_list, probs = self.gbdt.predict(parent_slot='ROOT', input_=query)
+            slots_list, probs = self.gbdt.predict(input_=query)
             for i, prob in enumerate(probs):
                 if prob >= 0.7:
-                    print('classifying...', slots_list[i], prob)
+                    cn_util(slots_list[i])
+                    print('classifying...', prob)
                     filtered_slots_list.append(slots_list[i])
 
             filtered_slots_list = set(filtered_slots_list)
@@ -74,8 +72,47 @@ class BeliefTracker:
         else:
             raise Exception('malfunctioning, main kernel must be attached!')
 
-        ## fix belief classes
-        ## idea:
+        ## build belief graph
+        self.update_remaining_slots(expire=True)
+        self.update_belief_graph(search_parent_node=self.search_graph, slots_list=filtered_slots_list)
+
+    def update_belief_graph(self, search_parent_node, slots_list, slots_marker=None):
+        if not slots_marker:
+            slots_marker = [0] * len(slots_list)
+        slots_list = list(set(slots_list))
+        search_parent_slot = search_parent_node.slot
+        defined_parent_node = self.belief_graph.get_global_node(slot=search_parent_slot)
+        for i, slot in enumerate(slots_list):
+            if slots_marker[i] == 1:
+                continue
+            # check if child node
+            if defined_parent_node.has_child(slot, Node.KEY):
+                slots_marker[i] == 1
+                # check search_node type
+                if search_parent_node.has_child(slot, value_type=Node.KEY):
+                    self.update_remaining_slots(slot)
+                    continue
+                type_ = self.belief_graph.slot_identities[slot]
+                for key, value in search_parent_node.all_children(value_type=Node.KEY).iteritems():
+                    type2_ = self.belief_graph.slot_identities[key]
+                    ## replace the old one with new one
+                    if type2_ == type_:
+                        search_parent_node.remove_node(key=key, value_type=Node.KEY)
+                ## new slot added
+                new_node = Node(slot=slot)
+                search_parent_node.add_node(node=new_node, value_type=Node.KEY, values=[slot])
+                self.update_remaining_slots(slot)
+                defined_new_node = self.belief_graph.get_global_node(slot)
+                if not defined_new_node.is_leaf(Node.KEY):
+                    self.update_belief_graph(new_node, slots_list, slots_marker)
+
+    def update_remaining_slots(self, slot=None, expire=False):
+        if expire:
+            for remaining_slot, index in self.remaining_slots.iteritems():
+                self.remaining_slots[remaining_slot] = index - 1
+            self.remaining_slots = {k: v for k, v in self.remaining_slots.iteritems() if v >= 0}
+        if slot:
+            self.remaining_slots[slot] = len(self.score_stairs) - 1
 
     def r_walk_with_pointer_with_clf(self, query, parent_slot=None):
         ## priority to top-bottom
@@ -146,9 +183,9 @@ class BeliefTracker:
 
 
 if __name__ == "__main__":
-    SC = BeliefTracker("../../model/sc_graph_v7.pkl", '../../model/sc/multilabel_clf.pkl')
+    bt = BeliefTracker("../model/sc/belief_graph.pkl", '../model/sc/belief_clf.pkl')
     while 1:
         ipt = raw_input()
         # chinese comma
-        next_slot, response = SC.r_walk_with_pointer_with_clf(ipt)
-        print(str(response))
+        bt.travel_with_clf(ipt)
+        cn_util.print_cn(bt.remaining_slots)
