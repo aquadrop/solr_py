@@ -70,15 +70,30 @@ class Node:
                 return True
         return False
 
+    def get_child(self, key, value_type):
+        if value_type in self.classified_out_neighbors:
+            if key in self.classified_out_neighbors[value_type]:
+                return self.classified_out_neighbors[value_type][key]
+        return None
+
     # return dictionary
     def all_children(self, value_type):
         if value_type in self.classified_out_neighbors:
             return self.classified_out_neighbors[value_type]
         return {}
 
+    def all_children_names_recursive(self, value_type):
+        children = self.all_children(value_type)
+        children_names = children.keys()
+        for name, child in children.iteritems():
+            sub_names = child.all_children_names_recursive(value_type)
+            children_names.extend(sub_names)
+        return children_names
+
     def remove_node(self, key, value_type):
         if value_type in self.classified_out_neighbors:
-            del self.classified_out_neighbors[value_type][key]
+            if key in self.classified_out_neighbors[value_type]:
+                del self.classified_out_neighbors[value_type][key]
 
     def decide(self, q, value_type):
         try:
