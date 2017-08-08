@@ -8,9 +8,10 @@ from client.node import Node
 from client.query_util import QueryUtils
 from client.sc.multilabel_clf import Multilabel_Clf
 from client.solr_utils import SolrUtils
+from cn_util import print_cn
+
 
 class SCKernel:
-
     def __init__(self, graph_path, clf_path):
         # self.tokenizer = CoreNLP()
         self.graph = None
@@ -23,7 +24,9 @@ class SCKernel:
 
     last_slots = None
 
+
     guide_url = "http://localhost:11403/solr/sc_sale/select?defType=edismax&indent=on&wt=json&q=*:*"
+
     # tokenizer_url = "http://localhost:5000/pos?q="
 
     def kernel(self, query):
@@ -39,7 +42,7 @@ class SCKernel:
         try:
             print('attaching gbdt classifier...100%')
             self.gbdt = Multilabel_Clf.load(path)
-        except Exception,e:
+        except Exception, e:
             print('failed to attach gbdt classifier...detaching...', e.message)
 
     def _load_graph(self, path):
@@ -70,10 +73,11 @@ class SCKernel:
             slots_list, probs = self.gbdt.predict(parent_slot=single_slot, input_=query)
             for i, prob in enumerate(probs):
                 if prob >= 0.7:
-                    print('classifying...', slots_list[i], prob)
+                    # print('classifying...', slots_list[i], prob)
                     filtered_slots_list.append(slots_list[i])
 
             filtered_slots_list = set(filtered_slots_list)
+            # print_cn('filtered_slots_list:',filtered_slots_list)
             if len(filtered_slots_list) == 0:
                 return False, []
         else:
@@ -125,7 +129,8 @@ class SCKernel:
     
     def single_last_slot(self, split=' OR '):
         return self.single_slot(self.last_slots, split=split    )
-    
+
+
     def single_slot(self, slots, split=' OR '):
         return split.join(slots)
 
@@ -143,8 +148,10 @@ class SCKernel:
                 self.should_clear_state(current_slots)
                 return current_slots, SolrUtils.get_response(r)
         except:
+
             return 'unclear', 'out of domain knowledge'
-    
+
+
     def trick(self, query):
         # ## do trick
         self.clear_state()

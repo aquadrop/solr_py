@@ -53,7 +53,7 @@ class SceneClassifier(object):
                 binary=True)
             self.feature_extractor = bigram_vectorizer.fit(corpus)
         if mode == 'tfidf':
-            print_cn('use {0}'.format(mode))
+            # print_cn('use {0}'.format(mode))
             tfidf_vectorizer = TfidfVectorizer(analyzer='char', ngram_range=(1, 2), max_df=1.0, min_df=1,
                                                sublinear_tf=True)
             self.feature_extractor = tfidf_vectorizer.fit(corpus)
@@ -219,7 +219,7 @@ class SceneClassifier(object):
 
     @staticmethod
     def get_instance(path):
-        print('loading model file...')
+        print('Loading model file...')
         return pickle.load(open(path, 'r'))
 
 
@@ -259,6 +259,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('-m', choices={'train', 'online', 'offline'},
                         default='online', help='mode.if not specified,it is in prediction mode')
+
     args = parser.parse_args()
 
     if args.m == 'train':

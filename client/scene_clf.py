@@ -95,14 +95,9 @@ class SceneClassifier(object):
                 reader = csv.reader(f, delimiter='\t')
                 for line in reader:
                     try:
-                        line = line[0].replace(" ", "").replace("\t", "")
-                        line = QueryUtils.static_remove_cn_punct(line)
-                        # line = QueryUtils.static_quant_bucket_fix(line)
-                        # line = ''.join(line)
-                        # print('......')
-                        # cn_util.print_cn(line)
-                        # line = QueryUtils.quant_bucket_fix(line)
-                        # print(line)
+
+                        line = QueryUtils.static_quant_bucket_fix(line)
+                        line = ''.join(line)
                         if line:
                             b = line.encode('utf-8')
                             # print(b)
@@ -135,7 +130,9 @@ class SceneClassifier(object):
         embeddings, labels, queries = self._build(files)
         print 'train classifier...'
 
+
         self.kernel = GradientBoostingClassifier(max_depth=8, n_estimators=1000)
+
         self.kernel.fit(embeddings, labels)
 
         pickle.dump(self, open(pkl, 'wb'))
@@ -167,6 +164,7 @@ class SceneClassifier(object):
         line = str(question).replace(" ", "").replace("\t", "")
         b = QueryUtils.static_remove_cn_punct(line)
 
+
         fixed = QueryUtils.static_quant_bucket_fix(b)
         fixed = ''.join(fixed)
         # print('......')
@@ -177,6 +175,7 @@ class SceneClassifier(object):
         # b = QueryUtils.static_quant_bucket_fix(b)
         # b = ''.join(b)
         # print('check predict query', b)
+
 
         embedding = self.bigramer.transform(
             [self.cut(fixed)]).toarray()
@@ -196,12 +195,14 @@ class SceneClassifier(object):
 
     qa_match_rule = re.compile(r"什么|如何|介绍")
 
+
     qa_match_rule = re.compile(ur".*?(什么|如何|介绍|方法|办法|条件|期限).*?")
     # interactive_match_rule = re.compile(ur".*?().*?")
     def rule_correct(self, q, label_index, probs):
 
         if label_index == 1:  # qa, correct it to business accordingly
             if not re.match(self.qa_match_rule, q.decode('utf-8')) and probs[label_index] < 0.9:
+
                 return 0
             return label_index
         # if label_index == 2 or label_index == 3:
@@ -225,12 +226,19 @@ class SceneClassifier(object):
         print('loading model file...')
         return pickle.load(open(path, 'r'))
 
+    @staticmethod
+    def get_w2v_instance(path):
+        import gensim
+        return gensim.models.Word2Vec.load('../module/word2vec.bin')
+
 
 def train():
     clf = SceneClassifier()
+
     files = ['../data/bank/scene/train/business_q.txt', '../data/bank/scene/train/common_qa_q.txt',
              '../data/bank/scene/train/interactive_g.txt', '../data/bank/scene/train/market_q.txt', '../data/bank/scene/train/repeat_guest', '../data/bank/scene/train/repeat_machine']
     clf.train('../model/scene/sceneclf_six.pkl', files)
+
 
 
 def online_validation():
@@ -247,11 +255,13 @@ def online_validation():
 def offline_validation():
     clf = SceneClassifier.get_instance('../model/scene/sceneclf_six.pkl')
     print('loaded model file...')
+
     # files = ['../data/scene/business_q.txt', '../data/scene/common_qa_q.txt',
     #          '../data/scene/interactive_g.txt', '../data/scene/market_q.txt', '../data/scene/repeat_guest',
     #          '../data/scene/repeat_machine']
     files = ['../data/bank/scene/test/business.txt', '../data/bank/scene/test/common_qa.txt', '../data/bank/scene/test/interactive.txt',
              '../data/bank/scene/test/market.txt', '../data/bank/scene/test/repeat_guest', '../data/bank/scene/test/repeat_machine']
+
     clf.validate(files)
 
 

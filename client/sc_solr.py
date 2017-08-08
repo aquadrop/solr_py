@@ -47,7 +47,7 @@ def chat():
                         result = {"question": q, "result": \
                             {"answer": "maximum online number reached, assigning instance for you..please wait..."},
                                   "user": u}
-                        print('========================')
+                        # print('========================')
                     return json.dumps(result, ensure_ascii=False)
             u_i_kernel = multi_sc_kernels[u]
             r = u_i_kernel.kernel(q)
