@@ -31,7 +31,7 @@ class Kernel:
         if not direction:
             ## first determined by SceneKernel about directions
             direction = Kernel.scene_kernel.kernel(q)
-            print_cn('direction:',direction)
+            # print_cn('direction:',direction)
             ## store value in repeat kernel
             self.repeat_kernel.store_user_q(q)
 

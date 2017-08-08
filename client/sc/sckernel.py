@@ -73,11 +73,11 @@ class SCKernel:
             slots_list, probs = self.gbdt.predict(parent_slot=single_slot, input_=query)
             for i, prob in enumerate(probs):
                 if prob >= 0.7:
-                    print('classifying...', slots_list[i], prob)
+                    # print('classifying...', slots_list[i], prob)
                     filtered_slots_list.append(slots_list[i])
 
             filtered_slots_list = set(filtered_slots_list)
-            print_cn('filtered_slots_list:',filtered_slots_list)
+            # print_cn('filtered_slots_list:',filtered_slots_list)
             if len(filtered_slots_list) == 0:
                 return False, []
         else:

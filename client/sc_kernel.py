@@ -7,9 +7,11 @@ from sc_greeting_kernel import GreetingKernel
 from sc_base_kernel import BaseKernel
 from sc_scene_kernel import SceneKernel
 from sc_repeat_kernel import RepeatKernel
+from cn_util import print_cn
 
 from sc_scene_clf import SceneClassifier
 from sc_multilabel_clf import Multilabel_Clf
+
 
 class EntryKernel:
     ## static
@@ -60,8 +62,11 @@ class EntryKernel:
 
         ## store response in repeat kernel:
         self.repeat_kernel.store_machine_q(r=response)
+        print_cn('问题：{0}, 场景：{1}, 答案：{2}'.format(q, direction, response))
         return response
+
 
 if __name__ == '__main__':
     kernel = EntryKernel()
-    print(kernel.kernel(u'停车场在哪'))
+    response = kernel.kernel(u'我要买东西')
+    # print(response)

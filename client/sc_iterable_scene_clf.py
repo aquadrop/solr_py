@@ -64,6 +64,7 @@ class Iterable_Clf:
                 corpus.append(tokens)
 
         if mode == 'ngram':
+            print_cn('use {0}'.format(mode))
             bigram_vectorizer = CountVectorizer(
                 ngram_range=(1, 2), min_df=0.0, max_df=1.0, analyzer='char', stop_words=[',', '?', '我', '我要'],
                 binary=True)

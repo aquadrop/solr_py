@@ -72,7 +72,7 @@ class SCKernel:
             slots_list, probs = self.gbdt.predict(parent_slot=single_slot, input_=query)
             for i, prob in enumerate(probs):
                 if prob >= 0.7:
-                    print('classifying...', slots_list[i], prob)
+                    # print('classifying...', slots_list[i], prob)
                     filtered_slots_list.append(slots_list[i])
 
             filtered_slots_list = set(filtered_slots_list)
@@ -138,7 +138,7 @@ class SCKernel:
         try:
             current_slot = self.single_slot(current_slots)
             url = self.guide_url + "&fq=intention:(%s)" % current_slot
-            print("gbdt_result_url", url)
+            # print("gbdt_result_url", url)
             r = requests.get(url)
             if SolrUtils.num_answer(r) > 0:
                 self.last_slots = current_slots
