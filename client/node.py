@@ -64,6 +64,12 @@ class Node:
     def go(self, q, value_type):
         return self.decide(q, value_type)
 
+    def has_child(self, key, value_type):
+        if value_type in self.classified_out_neighbors:
+            if key in self.classified_out_neighbors[key]:
+                return True
+        return False
+
     def decide(self, q, value_type):
         try:
             if value_type == "KEY":
