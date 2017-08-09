@@ -30,7 +30,7 @@ class SimpleSingKernel:
         #     return response
         try:
             r = self._request_solr(q)
-            answer = self._extract_answer(r)
+            answer = self._extract_answer(r, 10)
             return answer
         except Exception,e:
             return 'mainframe unable to reply since sing kernel damaged...'
