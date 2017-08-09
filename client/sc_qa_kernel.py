@@ -33,7 +33,7 @@ class QAKernel:
             answer = self._extract_answer(r)
             return answer
         except Exception,e:
-            return 'qa/greeting kernel damaged...'
+            return 'mainframe unable to reply since qa/greeting kernel damaged...'
 
     def exact_match(self, q, random_range=1):
         url = self.qa_exact_match_url % q
