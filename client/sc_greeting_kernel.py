@@ -24,6 +24,21 @@ class GreetingKernel(QAKernel):
         self.last_g = None
         self.qu = QueryUtils()
         self.greeting_url = 'http://localhost:11403/solr/sc_greeting/select?q.op=OR&wt=json&q=question:(%s)'
+        self.exact_greeting_url = 'http://localhost:11403/solr/sc_greeting/select?wt=json&q=exact_question:(%s)'
+
+    def exact_match(self, q, random_range=1):
+        url = self.exact_greeting_url % q
+        r = requests.get(url)
+        try:
+            num = self._num_answer(r)
+            if num > 0:
+                x = random.randint(0, min(random_range - 1, num - 1))
+                response = self._get_response(r, x)
+                return response
+            else:
+                return None
+        except:
+            return None
 
     def _request_solr(self, q):
         tokenized, exact_q = self.purify_q(q)

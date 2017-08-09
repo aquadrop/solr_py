@@ -14,19 +14,37 @@ from query_util import QueryUtils
 import cn_util
 
 class QAKernel:
-    null_anwer = ['不知道哦,请去服务台问询..']
+    null_anwer = ['啊呀！这可难倒宝宝了！这是十万零一个问题，你要问一下我们对面客服台的客服哥哥姐姐哦！']
     # null_answer = ['null']
 
     def __init__(self):
         print('attaching qa kernel...')
         ## http://localhost:11403/solr/sc_qa/select?fq=entity:%E5%8E%95%E6%89%80&indent=on&q=*:*&wt=json
         self.qa_url = 'http://localhost:11403/solr/sc_qa/select?q.op=OR&wt=json&q=%s'
+        self.qa_exact_match_url = 'http://localhost:11403/solr/sc_qa/select?q.op=OR&wt=json&q=question:%s'
         self.qu = QueryUtils()
 
     def kernel(self, q):
+        exact = self.exact_match(q)
+        if exact:
+            return exact
         r = self._request_solr(q)
         answer = self._extract_answer(r)
         return answer
+
+    def exact_match(self, q, random_range=1):
+        url = self.qa_exact_match_url % q
+        r = requests.get(url)
+        try:
+            num = self._num_answer(r)
+            if num > 0:
+                x = random.randint(0, min(random_range - 1, num - 1))
+                response = self._get_response(r, x)
+                return response
+            else:
+                return None
+        except:
+            return None
 
     def _extract_answer(self, r, random_range=1):
         try:
@@ -40,13 +58,13 @@ class QAKernel:
         except:
             return np.random.choice(self.null_anwer, 1)[0]
 
-    def _request_solr(self, q):
+    def _request_solr(self, q, url):
         ## cut q into tokens
         tokens = ['entity:' + s for s in self.qu.jieba_cut(q, True)]
         q = ' OR '.join(tokens)
         url = self.qa_url % q
         # print('qa_debug:', url)
-        cn_util.print_cn(url)
+        # cn_util.print_cn(url)
         r = requests.get(url)
         return r
 
