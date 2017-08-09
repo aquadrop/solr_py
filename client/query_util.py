@@ -19,7 +19,10 @@ class QueryUtils:
         self.tokenizer_url = "http://localhost:11415/pos?q="
 
     def jieba_cut(self, query, smart=True):
-        seg_list = jieba.cut(query, cut_all=not smart)
+        if smart:
+            seg_list = jieba.cut(query)
+        else:
+            seg_list = jieba.cut_for_search(query)
         tokens = []
         for t in seg_list:
             if t:
