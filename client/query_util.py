@@ -18,11 +18,12 @@ class QueryUtils:
         self.remove_tags = ["PN", "VA", "AD"]
         self.tokenizer_url = "http://localhost:11415/pos?q="
 
-    def jieba_cut(self, query):
-        seg_list = jieba.cut(query)
+    def jieba_cut(self, query, smart=True):
+        seg_list = jieba.cut(query, cut_all=not smart)
         tokens = []
         for t in seg_list:
-            tokens.append(t)
+            if t:
+                tokens.append(t)
         return tokens
 
     def corenlp_cut(self, query, remove_tags=[]):

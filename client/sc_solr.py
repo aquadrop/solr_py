@@ -13,6 +13,7 @@ from lru import LRU
 from sc_entry_kernel import EntryKernel
 from sc_belief_graph import BeliefGraph
 from sc_belief_clf import Multilabel_Clf
+from sc_scene_clf import SceneClassifier
 
 import sys
 reload(sys)
