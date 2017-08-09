@@ -225,7 +225,7 @@ class SceneClassifier(object):
 
 def train():
     clf = SceneClassifier()
-    files = ['../../data/sc/scene/base', '../../data/sc/scene/greetings',
+    files = ['../../data/sc/scene/base', '../../data/sc/scene/greeting',
              '../../data/sc/scene/qa', '../../data/sc/scene/repeat_guest',
              '../../data/sc/scene/repeat_machine','../../data/sc/scene/sale']
     clf.train('../../model/sc/scene_clf.pkl', files)
@@ -248,7 +248,7 @@ def online_validation():
 def offline_validation():
     clf = SceneClassifier.get_instance('../../model/sc/scene_clf.pkl')
     print('loaded model file...')
-    files = ['../../data/sc/scene/base', '../../data/sc/scene/greetings',
+    files = ['../../data/sc/scene/base', '../../data/sc/scene/greeting',
              '../../data/sc/scene/qa', '../../data/sc/scene/repeat_guest',
              '../../data/sc/scene/repeat_machine', '../../data/sc/scene/sale']
     clf.validate(files)

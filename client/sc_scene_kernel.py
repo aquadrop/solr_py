@@ -80,7 +80,7 @@ class SceneKernel:
 
     def select_label(self, labels):
         """
-        sale > qa > repeat > greetings = base
+        sale > qa > repeat > greeting = base
         :param labels:
         :return:
         """

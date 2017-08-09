@@ -36,13 +36,14 @@ sys.setdefaultencoding("utf-8")
 class Multilabel_Clf:
     def __init__(self, data_path):
         self.data_path = data_path
-        self.build()
+        self.clf = None
+        self._build()
 
     def _build_feature_extraction(self, mode, data_path):
         print('Build feature extraction...')
         corpus = list()
         with open(data_path, 'r') as f:
-            reader = csv.reader(f, delimiter='\t')
+            reader = csv.reader(f, delimiter='#')
             for line in reader:
                 b = line[1].encode('utf-8')
                 tokens = self.cut(b)
@@ -66,14 +67,14 @@ class Multilabel_Clf:
         tokens = _uniout.unescape(str(seg), 'utf8')
         return tokens
 
-    def build(self):
+    def _build(self):
         self._build_feature_extraction('tfidf', self.data_path)
         mlb = MultiLabelBinarizer()
         embeddings = list()
         labels = list()
 
         with open(self.data_path, 'r') as f:
-            reader = csv.reader(f, delimiter='\t')
+            reader = csv.reader(f, delimiter='#')
             for line in reader:
                 key = line[0].encode('utf-8')
                 input_ = line[1].encode('utf-8')
@@ -83,17 +84,20 @@ class Multilabel_Clf:
                 embeddings.append(tokens)
                 labels.append(intention_list)
 
-        self.embeddings = self.feature_extractor.transform(embeddings).toarray()
+        embeddings = self.feature_extractor.transform(embeddings).toarray()
         self.mlb = mlb.fit(labels)
-        self.labels = self.mlb.transform(labels)
+        labels_ = self.mlb.transform(labels)
+        return embeddings, labels_
 
     def train(self):
+        print('prepare data...')
+        embeddings, labels_ = self._build()
         print("Training classifier")
 
         begin = time.clock()
 
-        self.clf = OneVsRestClassifier(GradientBoostingClassifier(max_depth=5, n_estimators=200))
-        self.clf.fit(self.embeddings, self.labels)
+        self.clf = OneVsRestClassifier(GradientBoostingClassifier(max_depth=8, n_estimators=1000))
+        self.clf.fit(embeddings, labels_)
 
         end = time.clock()
 
@@ -118,7 +122,7 @@ class Multilabel_Clf:
         total = 0.0
 
         with open(test_path, 'r') as f:
-            reader = csv.reader(f, delimiter='\t')
+            reader = csv.reader(f, delimiter='#')
             for line in reader:
                 # print_cn(line)
                 key = line[0].encode('utf-8')
@@ -155,8 +159,8 @@ def test(test_data_path, model_path):
 
 def main():
     model_path = '../model/sc/belief_clf.pkl'
-    train_data_path = '../data/sc/train/pruned_sale.txt'
-    test_data_path = '../data/sc/train/pruned_sale.txt'
+    train_data_path = '../data/sc/train/sale_v2.txt'
+    test_data_path = '../data/sc/train/sale_v2.txt'
     parser = argparse.ArgumentParser()
     parser.add_argument('-m', choices={'train', 'test'},
                         default='train', help='mode.if not specified,it is in test mode')
@@ -176,7 +180,7 @@ if __name__ == '__main__':
 
     model_path = '../model/sc/belief_clf.pkl'
     clf = Multilabel_Clf.load(model_path=model_path)
-    inputs=["买运动鞋",'实惠','麻辣小龙虾','我想买点实惠的面包','我要吃点实惠的牛排','买实惠的辣的单鞋','我要买衣服和鞋子','吃火锅','我过来买东西','我要买东西','购物']
+    inputs=["电影院在哪里",'实惠','麻辣小龙虾','我想买点实惠的面包','我要吃点实惠的牛排','买实惠的辣的单鞋','我要买衣服和鞋子','吃火锅','我过来买东西','我要买东西','购物']
     for p in inputs:
         labels, probs = clf.predict(input_=p)
         print_cn(labels, probs)

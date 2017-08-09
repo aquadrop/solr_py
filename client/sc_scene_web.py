@@ -9,7 +9,7 @@ import json
 from lru import LRU
 from sc_scene_kernel import SceneKernel
 from sc_scene_clf import SceneClassifier
-from sc_multilabel_clf import Multilabel_Clf
+from sc_belief_clf import Multilabel_Clf
 
 import sys
 reload(sys)
