@@ -115,6 +115,9 @@ class BeliefTracker:
         if expire:
             for remaining_slot, index in self.remaining_slots.iteritems():
                 self.remaining_slots[remaining_slot] = index - 1
+                ## special clear this slot once
+                if remaining_slot == '随便':
+                    self.remaining_slots[remaining_slot] = -1
             self.remaining_slots = {k: v for k, v in self.remaining_slots.iteritems() if v >= 0}
         if slot:
             self.remaining_slots[slot] = len(self.score_stairs) - 1

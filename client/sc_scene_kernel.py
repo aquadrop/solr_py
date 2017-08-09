@@ -44,7 +44,7 @@ class SceneKernel:
 
     base_pattern = re.compile(ur'.*?(天气|下雨吗|晴天吗|阴天吗|几点)')
     sing_pattern = re.compile(ur'.*?(((唱.*?(歌|曲)).*?)|((来|唱).*?(首).*?)|(我想听)).*?')
-    sale_pattern = re.compile(ur'.*?(买|吃).*?')
+    sale_pattern = re.compile(ur'.*?(买|吃|随便|看看).*?')
     qa_pattern = re.compile(ur'.*?((存|寄).*?包|在哪|在那|在几楼|在几层|怎么走|带我去|卫生间|厕所|积分|包装|停车场|电梯|出口|我想去|洗手间|充电|童车).*?')
     qa_clean_pattern = re.compile(ur'在哪里|在哪|在那里|在那|怎么走|带我去下|带我去')
     greeting_pattern = re.compile(ur".*?(在吗|在嘛|名字|几岁|多少岁).*?")
