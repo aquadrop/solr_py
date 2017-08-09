@@ -109,29 +109,32 @@ def build_belief_graph(path, output):
     ## first round
     with open(path, "rb") as f:
         for line in f.readlines():
-            # print(line)
-            parent, typed_children = line.strip('\n').split(" ")
-            category, children = typed_children.split(":")
-            children = children.split(",")
+            try:
+                # print(line)
+                parent, typed_children = line.strip('\n').split("#")
+                category, children = typed_children.split(":")
+                children = children.split(",")
 
 
-            if not all_nodes.has_key(parent):
-                node1 = Node(slot=parent)
-                if parent != 'ROOT':
-                    all_nodes[parent] = node1
-            for child in children:
-                if not all_nodes.has_key(child):
-                    node2 = Node(slot=child)
-                    all_nodes[child] = node2
+                if not all_nodes.has_key(parent):
+                    node1 = Node(slot=parent)
+                    if parent != 'ROOT':
+                        all_nodes[parent] = node1
+                for child in children:
+                    if not all_nodes.has_key(child):
+                        node2 = Node(slot=child)
+                        all_nodes[child] = node2
 
-            for child in children:
-                if parent != 'ROOT':
-                    _node1 = all_nodes[parent]
-                    _node2 = all_nodes[child]
-                    _node1.add_node(_node2, "KEY", [child])
-                else:
-                    _node2 = all_nodes[child]
-                    belief_graph.add_node(_node2, "KEY", [child])
+                for child in children:
+                    if parent != 'ROOT':
+                        _node1 = all_nodes[parent]
+                        _node2 = all_nodes[child]
+                        _node1.add_node(_node2, "KEY", [child])
+                    else:
+                        _node2 = all_nodes[child]
+                        belief_graph.add_node(_node2, "KEY", [child])
+            except:
+                pass
 
     belief_graph.all_nodes = all_nodes
 
