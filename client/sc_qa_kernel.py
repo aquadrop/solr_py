@@ -42,7 +42,7 @@ class QAKernel:
 
     def _request_solr(self, q):
         ## cut q into tokens
-        tokens = ['entity:' + s for s in self.qu.jieba_cut(q, False)]
+        tokens = ['entity:' + s for s in self.qu.jieba_cut(q, True)]
         q = ' OR '.join(tokens)
         url = self.qa_url % q
         # print('qa_debug:', url)
