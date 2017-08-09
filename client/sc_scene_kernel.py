@@ -19,7 +19,7 @@ class SceneKernel:
         if not web:
             try:
                 print('attaching scene kernel...')
-                self.clf = SceneClassifier.get_instance('../model/sc/scene_clf.pkl')
+                self.clf = SceneClassifier.get_instance('../model/sc/scene_clf2.pkl')
             except Exception,e:
                 print('failed to attach scene kernel..all inquires will be redirected to main kernel..', e.message)
         else:
@@ -42,7 +42,8 @@ class SceneKernel:
         except:
             return None, q
 
-    base_pattern = re.compile(ur'.*?(天气|下雨吗|晴天吗|阴天吗|几点|我想听|(唱.*?(歌|曲)).*?)')
+    base_pattern = re.compile(ur'.*?(天气|下雨吗|晴天吗|阴天吗|几点)')
+    sing_pattern = re.compile(ur'.*?(((唱.*?(歌|曲)).*?)|((来|唱).*?(首).*?)|(我想听)).*?')
     sale_pattern = re.compile(ur'.*?(买|吃).*?')
     qa_pattern = re.compile(ur'.*?((存|寄).*?包|在哪|在那|在几楼|在几层|怎么走|带我去|卫生间|厕所|积分|包装|停车场|电梯|出口|我想去|洗手间|充电|童车).*?')
     qa_clean_pattern = re.compile(ur'在哪里|在哪|在那里|在那|怎么走|带我去下|带我去')
@@ -56,6 +57,8 @@ class SceneKernel:
             if re.match(self.qa_pattern, q):
                 q = re.sub(self.qa_clean_pattern, '', q)
                 return 'qa', q
+            if re.match(self.sing_pattern, q):
+                return 'sing', q
             if re.match(self.sale_pattern, q):
                 return 'sale', q
             if re.match(self.greeting_pattern, q):
@@ -100,4 +103,4 @@ if __name__ == '__main__':
     SK = SceneKernel()
     # greeting_pattern = re.compile(ur'在吗|在嘛|名字')
     print(re.match(SceneKernel.qa_pattern, u'我问下卫生间在哪里'))
-    print(SK.regex_plugin(u'洗手间在哪里'))
+    print(SK.regex_plugin(u'唱首歌'))

@@ -28,7 +28,7 @@ parentdir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, parentdir)
 
 
-class SceneClassifier(object):
+class SceneClassifier:
     def __init__(self):
         self.kernel = None
         self.named_labels = ['base','greeting','qa','repeat_user','repeat_machine','sale']

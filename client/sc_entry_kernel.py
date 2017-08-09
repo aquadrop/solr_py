@@ -7,27 +7,31 @@ from sc_greeting_kernel import GreetingKernel
 from sc_base_kernel import BaseKernel
 from sc_scene_kernel import SceneKernel
 from sc_repeat_kernel import RepeatKernel
+from sc_sing_kernel import SimpleSingKernel
 from cn_util import print_cn
 
 from sc_belief_graph import BeliefGraph
 from sc_belief_clf import Multilabel_Clf
+from sc_scene_clf import SceneClassifier
 
 class EntryKernel:
     ## static
-    scene_kernel = None
+    # scene_kernel = None
 
     QA = 'qa'
     SALE = 'sale'
     GREETING = 'greeting'
     BASE = 'base'
+    SING = 'sing'
 
     def __init__(self):
-        self.scene_kernel = SceneKernel(True)
+        self.scene_kernel = SceneKernel(web=True)
         self.main_kernel = BeliefTracker("../model/sc/belief_graph.pkl", '../model/sc/belief_clf.pkl')
         self.qa_kernel = QAKernel()
         self.greeting_kernel = GreetingKernel()
         self.repeat_kernel = RepeatKernel()
         self.base_kernel = BaseKernel()
+        self.sing_kernel = SimpleSingKernel()
 
     def kernel(self, q, direction=None):
         if not direction:
@@ -42,6 +46,8 @@ class EntryKernel:
 
         response = None
         inside_intentions = ''
+        if direction == EntryKernel.SING:
+            response = self.sing_kernel.kernel(q)
         if direction == EntryKernel.BASE:
             response = self.base_kernel.kernel(q)
         if direction == EntryKernel.QA:
