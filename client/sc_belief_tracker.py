@@ -41,18 +41,18 @@ class BeliefTracker:
         self.search_graph = BeliefGraph()
 
     def _load_clf(self, path):
-        # if not BeliefTracker.static_gbdt:
-        try:
-            print('attaching gbdt classifier...100%')
-            with open(path, "rb") as input_file:
-                self.gbdt = pickle.load(input_file)
-                BeliefTracker.static_gbdt = self.gbdt
-                # self.gbdt = Multilabel_Clf.load(path)
-        except Exception, e:
-            print('failed to attach main kernel...detaching...', e.message)
-        # else:
-        #     print('skipping attaching gbdt classifier as already attached...')
-        #     self.gbdt = BeliefTracker.static_gbdt
+        if not BeliefTracker.static_gbdt:
+            try:
+                print('attaching gbdt classifier...100%')
+                with open(path, "rb") as input_file:
+                    self.gbdt = pickle.load(input_file)
+                    BeliefTracker.static_gbdt = self.gbdt
+                    # self.gbdt = Multilabel_Clf.load(path)
+            except Exception, e:
+                print('failed to attach main kernel...detaching...', e.message)
+        else:
+            print('skipping attaching gbdt classifier as already attached...')
+            self.gbdt = BeliefTracker.static_gbdt
 
     def _load_graph(self, path):
         try:
