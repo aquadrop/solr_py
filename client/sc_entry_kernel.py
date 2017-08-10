@@ -16,7 +16,7 @@ from sc_scene_clf import SceneClassifier
 
 class EntryKernel:
     ## static
-    # scene_kernel = None
+    static_scene_kernel = None
 
     QA = 'qa'
     SALE = 'sale'
@@ -25,7 +25,13 @@ class EntryKernel:
     SING = 'sing'
 
     def __init__(self):
-        self.scene_kernel = SceneKernel(web=True)
+        if not EntryKernel.static_scene_kernel:
+            self.scene_kernel = SceneKernel(web=False)
+            EntryKernel.static_scene_kernel = self.scene_kernel
+        else:
+            print('skipping attaching scene classifier as already attached...')
+            self.scene_kernel = EntryKernel.static_scene_kernel
+        # self.scene_kernel = SceneKernel(web=True)
         self.main_kernel = BeliefTracker("../model/sc/belief_graph.pkl", '../model/sc/belief_clf.pkl')
         self.qa_kernel = QAKernel()
         self.greeting_kernel = GreetingKernel()

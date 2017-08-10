@@ -80,8 +80,8 @@ if __name__ == "__main__":
     # print(SK.kernel('你叫什么名字'))
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('--qsize', choices={'1', '8', '20'},
-                        default='8', help='q_size initializes number of the starting instances...')
+    parser.add_argument('--qsize', choices={'1', '8', '50'},
+                        default='50', help='q_size initializes number of the starting instances...')
     args = parser.parse_args()
 
     QSIZE = int(args.qsize)

@@ -12,6 +12,10 @@ import cn_util
 from sc_belief_graph import BeliefGraph
 
 class BeliefTracker:
+
+    ## static
+    static_gbdt = None
+
     def __init__(self, graph_path, clf_path):
         self.gbdt = None
         self.state_cleared = True
@@ -37,13 +41,18 @@ class BeliefTracker:
         self.search_graph = BeliefGraph()
 
     def _load_clf(self, path):
-        try:
-            print('attaching gbdt classifier...100%')
-            with open(path, "rb") as input_file:
-                self.gbdt = pickle.load(input_file)
-                # self.gbdt = Multilabel_Clf.load(path)
-        except Exception, e:
-            print('failed to attach main kernel...detaching...', e.message)
+        if not BeliefTracker.static_gbdt:
+            try:
+                print('attaching gbdt classifier...100%')
+                with open(path, "rb") as input_file:
+                    self.gbdt = pickle.load(input_file)
+                    BeliefTracker.static_gbdt = self.gbdt
+                    # self.gbdt = Multilabel_Clf.load(path)
+            except Exception, e:
+                print('failed to attach main kernel...detaching...', e.message)
+        else:
+            print('skipping attaching gbdt classifier as already attached...')
+            self.gbdt = BeliefTracker.static_gbdt
 
     def _load_graph(self, path):
         try:
