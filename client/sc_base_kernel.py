@@ -12,7 +12,7 @@ class BaseKernel:
         # if not self.user_ids or self.user_ids.size == 0:
         #     self.uid = self.register()
         # else:
-        self.uid = self.user_ids[1]#np.random.choice(self.user_ids, 1)[0]
+        self.uid = np.random.choice(self.user_ids, 1)[0]
 
     def kernel(self, q):
         return self.chat(q)
@@ -31,22 +31,25 @@ class BaseKernel:
             return data.get('value')
 
     def chat(self, q):
-        response = None
-        register_data = {"cmd": "chat", "appid": self.appid, "userid": self.uid, "text": q,
-                         "location": "南京"}
-        url = "http://idc.emotibot.com/api/ApiKey/openapi.php"
-        r = requests.post(url, params=register_data)
-        response = json.dumps(r.json(), ensure_ascii=False)
-        jsondata = json.loads(response)
-        print("Return: %s" % jsondata.get("return"))
-        print("ReturnMessage: %s" % jsondata.get("return_message"))
-        datas = jsondata.get("data")
-        for data in datas:
-            response = data.get('value')
-            break
-        return response
+        try:
+            register_data = {"cmd": "chat", "appid": self.appid, "userid": self.uid, "text": q,
+                             "location": "南京"}
+            url = "http://idc.emotibot.com/api/ApiKey/openapi.php"
+            r = requests.post(url, params=register_data)
+            response = json.dumps(r.json(), ensure_ascii=False)
+            jsondata = json.loads(response)
+            print("Return: %s" % jsondata.get("return"))
+            print("ReturnMessage: %s" % jsondata.get("return_message"))
+            datas = jsondata.get("data")
+            for data in datas:
+                response = data.get('value')
+                if response:
+                    break
+            return response
+        except Exception,e:
+            return '...'
 
 if __name__ == '__main__':
     bk = BaseKernel()
     # bk.register()
-    bk.kernel(u'今天下雨吗')
+    print(bk.kernel(u'今天下雨吗'))
