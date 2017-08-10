@@ -39,10 +39,12 @@ class EntryKernel:
         self.base_kernel = BaseKernel()
         self.sing_kernel = SimpleSingKernel()
 
-    def kernel(self, q, direction=None, debug=False):
+    def kernel(self, q, direction=None, debug=False, recursive=False):
+        fixed_q = q
+        suggested_direction = None
         if not direction:
             ## first determined by SceneKernel about directions
-            direction, fixed_q = self.scene_kernel.kernel(q)
+            direction, suggested_direction, fixed_q = self.scene_kernel.kernel(q)
             if not direction:
                 return 'unable to respond as scene kernel is detached...'
             ## store value in repeat kernel
@@ -56,12 +58,17 @@ class EntryKernel:
             response = self.sing_kernel.kernel(q)
         if direction == EntryKernel.BASE:
             response = self.base_kernel.kernel(q)
-        if direction == EntryKernel.QA:
-            response = self.qa_kernel.kernel(q)
-        if direction == EntryKernel.GREETING:
-            response = self.greeting_kernel.kernel(q)
             if not response:
-                self.kernel(q, direction=EntryKernel.BASE)
+                response = '...'
+        if direction == EntryKernel.QA:
+            sucess, response = self.qa_kernel.kernel(q)
+            if not sucess and suggested_direction:
+                # response = self.kernel(q=q, direction=suggested_direction, debug=False, recursive=True)
+                inside_intentions, response = self.main_kernel.kernel(query=q)
+        if direction == EntryKernel.GREETING:
+            suc, response = self.greeting_kernel.kernel(q)
+            if not sucess and suggested_direction:
+                response = self.base_kernel.kernel(q)
         if direction == RepeatKernel.MACHINE:
             response = self.repeat_kernel.kernel(type_=RepeatKernel.MACHINE)
         if direction == RepeatKernel.USER:
@@ -70,21 +77,29 @@ class EntryKernel:
             inside_intentions, response = self.main_kernel.kernel(query=q)
 
         if not response:
-            self.kernel(q=q, direction=EntryKernel.BASE, debug=debug)
+            suggested_direction = EntryKernel.BASE
+            response = self.base_kernel.kernel(q)
 
         ## store response in repeat kernel:
         self.repeat_kernel.store_machine_q(r=response)
-        print_cn('问题：{0}, 场景：{1}, 分类:{2}, 答案：{3}'.format(q, direction, inside_intentions, response))
+        if not recursive:
+            print_cn('问题：{0}, 场景：{1}, 建议场景:{2}, 分类:{3}, 答案：{4}'.format(q, str(direction), str(suggested_direction), inside_intentions, response))
         if debug:
-            if inside_intentions:
-                return response + '@@scene_clf:' + direction + '@@belief_tracker:' + inside_intentions
+            if suggested_direction:
+                if inside_intentions:
+                    return response + '@@scene_clf:' + str(direction) + '->' + str(suggested_direction) + '@@belief_tracker:' + inside_intentions
+                else:
+                    return response + '@@scene_clf:' + str(direction) + '->' + str(suggested_direction)
             else:
-                return response + '@@scene_clf:' + direction
+                if inside_intentions:
+                    return response + '@@scene_clf:' + str(direction) + '@@belief_tracker:' + inside_intentions
+                else:
+                    return response + '@@scene_clf:' + str(direction)
         else:
             return response
 
 
 if __name__ == '__main__':
     kernel = EntryKernel()
-    response = kernel.kernel(u'今天下雨吗')
+    response = kernel.kernel(u'清淡的')
     print(response)

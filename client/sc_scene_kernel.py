@@ -27,18 +27,24 @@ class SceneKernel:
 
     def kernel(self, q):
         ## first try regex_plugin:
-        scene, q = self.regex_plugin(q)
+        scene, sugg_scene, q = self.regex_plugin(q)
         if scene:
-            return scene, q
+            return scene, sugg_scene, q
         try:
             if not self.web:
                 if not self.clf:
-                    return 'sale'
+                    return 'sale', None, q
                 labels, _ = self.clf.predict(question=q)
-                return self.select_label(labels), q
+                select = self.select_label(labels)
+                ## qa plugin:
+                if select == 'qa':
+                    return select, 'sale', q
+                if select == 'greeting':
+                    return select, 'base', q
+                return select, None, q
             else:
                 text = requests.get('http://localhost:11305/sc/scene?q=' + q)
-                return text.text, q
+                return text.text, None, q
         except:
             return None, q
 
@@ -49,18 +55,21 @@ class SceneKernel:
     qa_clean_pattern = re.compile(ur'在哪里|在哪|在那里|在那|怎么走|带我去下|带我去')
     greeting_pattern = re.compile(ur".*?(在吗|在嘛|名字|几岁|多少岁).*?")
     greeting_clean_pattern = re.compile(ur'啊|呢|呀')
+    """
+    return direction, suggested_direction, fixed q
+    """
     def regex_plugin(self, q):
         # q = QueryUtils.static_corenlp_cut(q, remove_tags=QueryUtils.remove_tags)
         try:
             if re.match(self.base_pattern, q):
-                return 'base', q
+                return 'base', None, q
             if re.match(self.qa_pattern, q):
                 q = re.sub(self.qa_clean_pattern, '', q)
-                return 'qa', q
+                return 'qa', None, q
             if re.match(self.sing_pattern, q):
-                return 'sing', q
+                return 'sing', None, q
             if re.match(self.sale_pattern, q):
-                return 'sale', q
+                return 'sale', None, q
             if re.match(self.greeting_pattern, q):
                 if (len(q)) > 1:
                     q = re.sub(self.greeting_clean_pattern, '', q)
@@ -73,10 +82,10 @@ class SceneKernel:
                     pass
                 if isinstance(q, str):
                     q = q.decode('unicode-escape').encode('utf-8')
-                return 'greeting', q
-            return None, q
+                return 'greeting', 'base', q
+            return None, None, q
         except:
-            return None, q
+            return None, None, q
 
     def select_label(self, labels):
         """

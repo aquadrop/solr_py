@@ -38,7 +38,7 @@ def info():
 def chat():
     try:
         args = request.args
-        debug = False
+        debug = True
         try:
             debug = bool(args['debug'])
         except:
