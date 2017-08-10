@@ -27,6 +27,13 @@ multi_sc_kernels = LRU(200)
 QSIZE = 1
 kernel_backups = Queue.Queue(200)
 
+@app.route('/sc/info', methods=['GET', 'POST'])
+def info():
+    current_q_size = kernel_backups.qsize()
+    current_u_size = len(multi_sc_kernels.keys())
+    result = {"current_q_size": current_q_size, "current_u_size": current_u_size}
+    return json.dumps(result, ensure_ascii=False)
+
 @app.route('/sc/chat', methods=['GET', 'POST'])
 def chat():
     try:
@@ -73,8 +80,8 @@ if __name__ == "__main__":
     # print(SK.kernel('你叫什么名字'))
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('--qsize', choices={'1', '5', '20'},
-                        default='5', help='q_size initializes number of the starting instances...')
+    parser.add_argument('--qsize', choices={'1', '8', '20'},
+                        default='8', help='q_size initializes number of the starting instances...')
     args = parser.parse_args()
 
     QSIZE = int(args.qsize)
