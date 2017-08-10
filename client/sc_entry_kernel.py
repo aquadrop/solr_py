@@ -33,7 +33,7 @@ class EntryKernel:
         self.base_kernel = BaseKernel()
         self.sing_kernel = SimpleSingKernel()
 
-    def kernel(self, q, direction=None):
+    def kernel(self, q, direction=None, debug=False):
         if not direction:
             ## first determined by SceneKernel about directions
             direction, fixed_q = self.scene_kernel.kernel(q)
@@ -64,15 +64,18 @@ class EntryKernel:
             inside_intentions, response = self.main_kernel.kernel(query=q)
 
         if not response:
-            self.kernel(q=q, direction=EntryKernel.BASE)
+            self.kernel(q=q, direction=EntryKernel.BASE, debug=debug)
 
         ## store response in repeat kernel:
         self.repeat_kernel.store_machine_q(r=response)
         print_cn('问题：{0}, 场景：{1}, 分类:{2}, 答案：{3}'.format(q, direction, inside_intentions, response))
-        if inside_intentions:
-            return response + '@@scene_clf:' + direction + '@@belief_tracker:' + inside_intentions
+        if debug:
+            if inside_intentions:
+                return response + '@@scene_clf:' + direction + '@@belief_tracker:' + inside_intentions
+            else:
+                return response + '@@scene_clf:' + direction
         else:
-            return response + '@@scene_clf:' + direction
+            return response
 
 
 if __name__ == '__main__':

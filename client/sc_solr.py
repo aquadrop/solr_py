@@ -31,6 +31,11 @@ kernel_backups = Queue.Queue(200)
 def chat():
     try:
         args = request.args
+        debug = False
+        try:
+            debug = bool(args['debug'])
+        except:
+            pass
         q = args['q']
         q = unquote(q)
         if isinstance(q, str):
@@ -51,12 +56,12 @@ def chat():
                         # print('========================')
                     return json.dumps(result, ensure_ascii=False)
             u_i_kernel = multi_sc_kernels[u]
-            r = u_i_kernel.kernel(q)
+            r = u_i_kernel.kernel(q=q, debug=debug)
             result = {"question": q, "result": {"answer": r}, "user": u}
             return json.dumps(result, ensure_ascii=False)
 
         except:
-            r = kernel.kernel(q)
+            r = kernel.kernel(q=q, debug=debug)
             result = {"question": q, "result": {"answer": r}, "user": "solr"}
             return json.dumps(result, ensure_ascii=False)
     except Exception, e:
