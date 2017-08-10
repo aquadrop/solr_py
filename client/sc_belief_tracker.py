@@ -81,6 +81,34 @@ class BeliefTracker:
         self.update_remaining_slots(expire=True)
         self.update_belief_graph(search_parent_node=self.search_graph, slots_list=filtered_slots_list)
 
+    ## fill slots when incomplete
+    ## silly fix
+    def inter_fix(self, slots_list):
+        ## check broken
+        try:
+            broken = True
+            for slot in slots_list:
+                if self.belief_graph.has_child(key=slot, value_type=Node.KEY)
+                    broken = False
+                    break
+            if not broken:
+                return slots_list
+
+            max_go_up = 10
+            filled_slots_list = list(set(slots_list))
+            for slot in slots_list:
+                for i in xrange(max_go_up):
+                    node = self.belief_graph.get_global_node(slot)
+                    parent_slot = node.parent_node
+                    if not parent_slot.is_root():
+                        filled_slots_list.append(parent_slot.slot)
+                    else:
+                        break
+
+            return list(set(slots_list))
+        except:
+            return slots_list
+
     def update_belief_graph(self, search_parent_node, slots_list, slots_marker=None):
         if not slots_marker:
             slots_marker = [0] * len(slots_list)
