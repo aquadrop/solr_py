@@ -19,7 +19,7 @@ class SceneKernel:
         if not web:
             try:
                 print('attaching scene kernel...')
-                self.clf = SceneClassifier.get_instance('../model/sc/scene_clf2.pkl')
+                self.clf = SceneClassifier.get_instance('../model/sc/scene_clf.pkl')
             except Exception,e:
                 print('failed to attach scene kernel..all inquires will be redirected to main kernel..', e.message)
         else:
