@@ -65,7 +65,7 @@ def chat():
             result = {"question": q, "result": {"answer": r}, "user": "solr"}
             return json.dumps(result, ensure_ascii=False)
     except Exception, e:
-        result = {"question": q, "result": {"answer": "mainframe currently unavailable to respond..."}, "user": "solr"}
+        result = {"question": q, "result": {"answer": "..."}, "user": "solr"}
         return json.dumps(result, ensure_ascii=False)
 
 if __name__ == "__main__":

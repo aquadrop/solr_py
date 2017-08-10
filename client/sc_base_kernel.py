@@ -12,7 +12,7 @@ class BaseKernel:
         # if not self.user_ids or self.user_ids.size == 0:
         #     self.uid = self.register()
         # else:
-        self.uid = np.random.choice(self.user_ids, 1)[0]
+        self.uid = self.user_ids[1]#np.random.choice(self.user_ids, 1)[0]
 
     def kernel(self, q):
         return self.chat(q)
@@ -52,4 +52,4 @@ class BaseKernel:
 if __name__ == '__main__':
     bk = BaseKernel()
     # bk.register()
-    print(bk.kernel(u'今天下雨吗'))
+    print(bk.kernel(u'烦人'))
