@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import time
+from datetime import datetime
 
 from sc_belief_tracker import BeliefTracker
 from sc_qa_kernel import QAKernel
@@ -90,30 +91,31 @@ class EntryKernel:
         self.repeat_kernel.store_machine_q(r=response)
         current_date = time.strftime("%Y.%m.%d")
         log_file = '../logs/materials_' + current_date + '.log'
+        current_time = datetime.now().strftime('%Y-%m-%dT%H:%M:%S')
         with open(log_file, 'a') as f:
             if not recursive:
                 if suggested_direction and redirected:
                     if inside_intentions:
-                        log = 'date:{0}##用户:{1}##问题:{2}##场景:{3}##修正场景:{4}##分类:{5}##答案:{6}'.format(current_date,\
-                                                                                                     user,\
+                        log = '用户:{0}##timestamp:{1}##问题:{2}##场景:{3}##修正场景:{4}##分类:{5}##答案:{6}'.format(user,\
+                                                                                                     current_time,\
                                                                                            q, str(direction),\
                                                                                            str(suggested_direction),\
                                                                                            inside_intentions, response)
                     else:
-                        log = 'date:{0}##用户:{1}##问题:{2}##场景:{3}##修正场景:{4}##答案:{5}'.format(current_date,\
-                                                                                            user, \
+                        log = '用户:{0}##timestamp:{1}##问题:{2}##场景:{3}##修正场景:{4}##答案:{5}'.format(user,\
+                                                                                                     current_time, \
                                                                                            q, str(direction), \
                                                                                            str(suggested_direction), \
                                                                                            response)
                 else:
                     if inside_intentions:
-                        log = 'date:{0}##用户:{1}##问题:{2}##场景:{3}##分类:{4}##答案:{5}'.format(current_date,\
-                                                                                           user,\
+                        log = '用户:{0}##timestamp:{1}##问题:{2}##场景:{3}##分类:{4}##答案:{5}'.format(user,\
+                                                                                                     current_time,\
                                                                                            q, str(direction),\
                                                                                            inside_intentions, response)
                     else:
-                        log = 'date:{0}##用户:{1}##问题:{2}##场景:{3}##答案:{4}'.format(current_date,\
-                                                                                    user, \
+                        log = '用户:{0}##timestamp:{1}##问题:{2}##场景:{3}##答案:{4}'.format(user,\
+                                                                                                     current_time, \
                                                                                            q, str(direction), \
                                                                                            response)
                 print_out(log, f)
