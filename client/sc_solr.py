@@ -63,7 +63,7 @@ def chat():
                         # print('========================')
                     return json.dumps(result, ensure_ascii=False)
             u_i_kernel = multi_sc_kernels[u]
-            r = u_i_kernel.kernel(q=q, debug=debug)
+            r = u_i_kernel.kernel(q=q, debug=debug, user=u)
             result = {"question": q, "result": {"answer": r}, "user": u}
             return json.dumps(result, ensure_ascii=False)
 

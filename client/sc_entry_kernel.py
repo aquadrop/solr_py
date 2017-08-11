@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import time
+
 from sc_belief_tracker import BeliefTracker
 from sc_qa_kernel import QAKernel
 from sc_greeting_kernel import GreetingKernel
@@ -39,7 +41,7 @@ class EntryKernel:
         self.base_kernel = BaseKernel()
         self.sing_kernel = SimpleSingKernel()
 
-    def kernel(self, q, direction=None, debug=False, recursive=False):
+    def kernel(self, q, direction=None, user='solr', debug=False, recursive=False):
         fixed_q = q
         suggested_direction = None
         if not direction:
@@ -54,6 +56,7 @@ class EntryKernel:
 
         response = None
         inside_intentions = ''
+        redirected = False
         if direction == EntryKernel.SING:
             response = self.sing_kernel.kernel(q)
         if direction == EntryKernel.BASE:
@@ -64,10 +67,12 @@ class EntryKernel:
             sucess, response = self.qa_kernel.kernel(q)
             if not sucess and suggested_direction:
                 # response = self.kernel(q=q, direction=suggested_direction, debug=False, recursive=True)
+                redirected = True
                 inside_intentions, response = self.main_kernel.kernel(query=q)
         if direction == EntryKernel.GREETING:
             suc, response = self.greeting_kernel.kernel(q)
-            if not sucess and suggested_direction:
+            if not suc and suggested_direction:
+                redirected = True
                 response = self.base_kernel.kernel(q)
         if direction == RepeatKernel.MACHINE:
             response = self.repeat_kernel.kernel(type_=RepeatKernel.MACHINE)
@@ -82,14 +87,38 @@ class EntryKernel:
 
         ## store response in repeat kernel:
         self.repeat_kernel.store_machine_q(r=response)
+        current_date = time.strftime("%Y.%m.%d")
         if not recursive:
-            print_cn('问题：{0}, 场景：{1}, 建议场景:{2}, 分类:{3}, 答案：{4}'.format(q, str(direction), str(suggested_direction), inside_intentions, response))
-        if debug:
-            if suggested_direction:
+            if suggested_direction and redirected:
                 if inside_intentions:
-                    return response + '@@scene_clf:' + str(direction) + '->' + str(suggested_direction) + '@@belief_tracker:' + inside_intentions
+                    print_cn('date:{0}##用户:{1}##问题:{2}##场景:{3}##修正场景:{4}##分类:{5}##答案:{6}'.format(current_date,\
+                                                                                                 user,\
+                                                                                       q, str(direction),\
+                                                                                       str(suggested_direction),\
+                                                                                       inside_intentions, response))
                 else:
-                    return response + '@@scene_clf:' + str(direction) + '->' + str(suggested_direction)
+                    print_cn('date:{0}##用户:{1}##问题:{2}##场景:{3}##修正场景:{4}##答案:{5}'.format(current_date,\
+                                                                                        user, \
+                                                                                       q, str(direction), \
+                                                                                       str(suggested_direction), \
+                                                                                       response))
+            else:
+                if inside_intentions:
+                    print_cn('date:{0}##用户:{1}##问题:{2}##场景:{3}##分类:{4}##答案:{5}'.format(current_date,\
+                                                                                       user,\
+                                                                                       q, str(direction),\
+                                                                                       inside_intentions, response))
+                else:
+                    print_cn('date:{0}##用户:{1}##问题:{2}##场景:{3}##答案:{4}'.format(current_date,\
+                                                                                user, \
+                                                                                       q, str(direction), \
+                                                                                       response))
+        if debug:
+            if suggested_direction and redirected:
+                if inside_intentions:
+                    return response + '@@scene_clf:' + str(direction) + '-->' + str(suggested_direction) + '@@belief_tracker:' + inside_intentions
+                else:
+                    return response + '@@scene_clf:' + str(direction) + '-->' + str(suggested_direction)
             else:
                 if inside_intentions:
                     return response + '@@scene_clf:' + str(direction) + '@@belief_tracker:' + inside_intentions
