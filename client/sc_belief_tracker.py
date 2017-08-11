@@ -87,7 +87,8 @@ class BeliefTracker:
         slots_list = list(slots_list)
         if len(slots_list) == 1:
             slot = slots_list[0]
-            if self.belief_graph.has_child(slot, Node.KEY):
+            if self.belief_graph.has_child(slot, Node.KEY) \
+                    and self.belief_graph.slot_identities[slot] == 'intention':
                 self.remaining_slots.clear()
                 self.search_graph = BeliefGraph()
     ## fill slots when incomplete
