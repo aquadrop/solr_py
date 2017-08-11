@@ -11,6 +11,7 @@ from sc_scene_kernel import SceneKernel
 from sc_repeat_kernel import RepeatKernel
 from sc_sing_kernel import SimpleSingKernel
 from cn_util import print_cn
+from cn_util import print_out
 
 from sc_belief_graph import BeliefGraph
 from sc_belief_clf import Multilabel_Clf
@@ -88,31 +89,34 @@ class EntryKernel:
         ## store response in repeat kernel:
         self.repeat_kernel.store_machine_q(r=response)
         current_date = time.strftime("%Y.%m.%d")
-        if not recursive:
-            if suggested_direction and redirected:
-                if inside_intentions:
-                    print_cn('date:{0}##用户:{1}##问题:{2}##场景:{3}##修正场景:{4}##分类:{5}##答案:{6}'.format(current_date,\
-                                                                                                 user,\
-                                                                                       q, str(direction),\
-                                                                                       str(suggested_direction),\
-                                                                                       inside_intentions, response))
+        log_file = '../logs/materials_' + current_date + '.log'
+        with open(log_file, 'a') as f:
+            if not recursive:
+                if suggested_direction and redirected:
+                    if inside_intentions:
+                        log = 'date:{0}##用户:{1}##问题:{2}##场景:{3}##修正场景:{4}##分类:{5}##答案:{6}'.format(current_date,\
+                                                                                                     user,\
+                                                                                           q, str(direction),\
+                                                                                           str(suggested_direction),\
+                                                                                           inside_intentions, response)
+                    else:
+                        log = 'date:{0}##用户:{1}##问题:{2}##场景:{3}##修正场景:{4}##答案:{5}'.format(current_date,\
+                                                                                            user, \
+                                                                                           q, str(direction), \
+                                                                                           str(suggested_direction), \
+                                                                                           response)
                 else:
-                    print_cn('date:{0}##用户:{1}##问题:{2}##场景:{3}##修正场景:{4}##答案:{5}'.format(current_date,\
-                                                                                        user, \
-                                                                                       q, str(direction), \
-                                                                                       str(suggested_direction), \
-                                                                                       response))
-            else:
-                if inside_intentions:
-                    print_cn('date:{0}##用户:{1}##问题:{2}##场景:{3}##分类:{4}##答案:{5}'.format(current_date,\
-                                                                                       user,\
-                                                                                       q, str(direction),\
-                                                                                       inside_intentions, response))
-                else:
-                    print_cn('date:{0}##用户:{1}##问题:{2}##场景:{3}##答案:{4}'.format(current_date,\
-                                                                                user, \
-                                                                                       q, str(direction), \
-                                                                                       response))
+                    if inside_intentions:
+                        log = 'date:{0}##用户:{1}##问题:{2}##场景:{3}##分类:{4}##答案:{5}'.format(current_date,\
+                                                                                           user,\
+                                                                                           q, str(direction),\
+                                                                                           inside_intentions, response)
+                    else:
+                        log = 'date:{0}##用户:{1}##问题:{2}##场景:{3}##答案:{4}'.format(current_date,\
+                                                                                    user, \
+                                                                                           q, str(direction), \
+                                                                                           response)
+                print_out(log, f)
         if debug:
             if suggested_direction and redirected:
                 if inside_intentions:
