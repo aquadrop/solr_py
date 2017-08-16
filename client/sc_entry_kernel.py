@@ -136,5 +136,5 @@ class EntryKernel:
 
 if __name__ == '__main__':
     kernel = EntryKernel()
-    response = kernel.kernel(u'清淡的')
+    response = kernel.kernel(u'我不买实惠的衣服')
     print(response)
