@@ -10,9 +10,10 @@ from sc_belief_clf import Multilabel_Clf
 from solr_utils import SolrUtils
 import cn_util
 from sc_belief_graph import BeliefGraph
+from sc_negative_clf import Negative_Clf
+
 
 class BeliefTracker:
-
     ## static
     static_gbdt = None
 
@@ -24,8 +25,10 @@ class BeliefTracker:
         self.search_graph = BeliefGraph()
         ## keep track of remaining slots, the old slots has lower score index, if index = -1, remove that slot
         self.remaining_slots = {}
-        self.score_stairs = [1,5,10,20,40]
+        self.negative_slots = {}
+        self.score_stairs = [1, 5, 10, 20, 40]
         self.qu = QueryUtils()
+        self.negative_clf=Negative_Clf()
 
     last_slots = None
 
@@ -67,6 +70,8 @@ class BeliefTracker:
         filtered_slots_list = []
         if self.gbdt:
             slots_list, probs = self.gbdt.predict(input_=query)
+            self.negative = self.negative_clf.predict(input_=query)
+            # print self.negative
             for i, prob in enumerate(probs):
                 if prob >= 0.7:
                     filtered_slots_list.append(slots_list[i])
@@ -90,7 +95,9 @@ class BeliefTracker:
             if self.belief_graph.has_child(slot, Node.KEY) \
                     and self.belief_graph.slot_identities[slot] == 'intention':
                 self.remaining_slots.clear()
+                self.negative_slots.clear()
                 self.search_graph = BeliefGraph()
+
     ## fill slots when incomplete
     ## silly fix
     def inter_fix(self, slots_list):
@@ -132,6 +139,7 @@ class BeliefTracker:
                 continue
             # check if child node
             if defined_parent_node.has_child(slot, Node.KEY):
+                # set 0 if negative
                 slots_marker[i] == 1
                 # check search_node type
                 if search_parent_node.has_child(slot, value_type=Node.KEY):
@@ -151,6 +159,7 @@ class BeliefTracker:
 
                     for key in remove_keys:
                         del self.remaining_slots[key]
+                        del self.negative_slots[key]
                         search_parent_node.remove_node(key=key, value_type=Node.KEY)
                     ## new slot added
                     new_node = Node(slot=slot)
@@ -169,6 +178,10 @@ class BeliefTracker:
                     self.remaining_slots[remaining_slot] = -1
             self.remaining_slots = {k: v for k, v in self.remaining_slots.iteritems() if v >= 0}
         if slot:
+            if self.negative:
+                self.negative_slots[slot] = True
+            else:
+                self.negative_slots[slot] = False
             self.remaining_slots[slot] = len(self.score_stairs) - 1
 
     def r_walk_with_pointer_with_clf(self, query):
@@ -186,9 +199,20 @@ class BeliefTracker:
 
     def compose(self):
         intentions = []
+        size = len(self.remaining_slots)
         for slot, i in self.remaining_slots.iteritems():
+            node = self.belief_graph.get_global_node(slot)
             score = self.score_stairs[i]
             importance = self.belief_graph.slot_importances[slot]
+            if size > 2:
+                if self.negative_slots[slot] and node.is_leaf(Node.KEY):
+                    slot = '-' + slot
+            elif size==2:
+                if self.negative_slots[slot] and self.belief_graph.slot_identities[slot] != 'intention':
+                    slot = '-' + slot
+            elif size == 1:
+                if self.negative_slots[slot]:
+                    slot = '-' + slot
             intention = slot + '^' + str(float(score) * float(importance))
             intentions.append(intention)
         return intentions, ' OR '.join(intentions)
@@ -229,7 +253,7 @@ class BeliefTracker:
 
 if __name__ == "__main__":
     bt = BeliefTracker("../model/sc/belief_graph.pkl", '../model/sc/belief_clf.pkl')
-    ipts = ['吃饭','购物',"实惠的日本料理"]
+    ipts = ['我要吃火锅','我不吃饭','不买拖鞋','不吃冰淇淋','吃不起贵的西餐']
     for ipt in ipts:
         # ipt = raw_input()
         # chinese comma
