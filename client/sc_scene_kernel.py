@@ -48,7 +48,7 @@ class SceneKernel:
         except:
             return None, q
 
-    base_pattern = re.compile(ur'.*?(天气|下雨吗|晴天吗|阴天吗|几点|呵呵|烦人|笨|蠢|滚粗)')
+    base_pattern = re.compile(ur'.*?(天气|下雨吗|晴天吗|阴天吗|几点|呵呵|烦人|笨|蠢|滚粗|傻).*?')
     sing_pattern = re.compile(ur'.*?(((唱.*?(歌|曲)).*?)|((来|唱).*?(首).*?)|(我想听)|七里香|轨迹|星晴).*?')
     sale_pattern = re.compile(ur'.*?(买|吃|随便|看看).*?')
     qa_pattern = re.compile(ur'.*?((存|寄).*?包|在哪|在那|在几楼|在几层|怎么走|带我去|卫生间|厕所|积分|地铁|我要去|包装|停车场|电梯|出口|我想去|洗手间|充电|童车).*?')
@@ -64,7 +64,7 @@ class SceneKernel:
             if re.match(self.base_pattern, q):
                 return 'base', None, q
             if re.match(self.qa_pattern, q):
-                q = re.sub(self.qa_clean_pattern, '', q)
+                # q = re.sub(self.qa_clean_pattern, '', q)
                 return 'qa', None, q
             if re.match(self.sing_pattern, q):
                 return 'sing', None, q
@@ -111,5 +111,5 @@ class SceneKernel:
 if __name__ == '__main__':
     SK = SceneKernel()
     # greeting_pattern = re.compile(ur'在吗|在嘛|名字')
-    print(re.match(SceneKernel.qa_pattern, u'我问下卫生间在哪里'))
+    print(re.match(SceneKernel.qa_pattern, u'欧米茄在哪里'))
     print(SK.kernel(u'七里香'))

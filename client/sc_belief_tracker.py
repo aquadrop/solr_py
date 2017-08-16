@@ -15,6 +15,7 @@ class BeliefTracker:
 
     ## static
     static_gbdt = None
+    static_belief_graph = None
 
     def __init__(self, graph_path, clf_path):
         self.gbdt = None
@@ -30,12 +31,13 @@ class BeliefTracker:
     last_slots = None
 
     guide_url = "http://localhost:11403/solr/sc_sale_adv/select?defType=edismax&indent=on&wt=json"
-
+    graph_url = 'http://localhost:11403/solr/graph/select?q.op=OR&wt=json&q=%s'
     # tokenizer_url = "http://localhost:5000/pos?q="
 
     def kernel(self, query):
         query = self.qu.remove_cn_punct(query)
         return self.r_walk_with_pointer_with_clf(query=query)
+
 
     def clear_state(self):
         self.search_graph = BeliefGraph()
@@ -55,13 +57,17 @@ class BeliefTracker:
             self.gbdt = BeliefTracker.static_gbdt
 
     def _load_graph(self, path):
-        try:
-            print('attaching logic graph...100%')
-            with open(path, "rb") as input_file:
-                self.belief_graph = pickle.load(input_file)
-                # print(self.graph.go('购物', Node.REGEX))
-        except:
-            print('failed to attach logic graph...detaching...')
+        if not BeliefTracker.static_belief_graph:
+            try:
+                print('attaching logic graph...100%')
+                with open(path, "rb") as input_file:
+                    self.belief_graph = pickle.load(input_file)
+                    # print(self.graph.go('购物', Node.REGEX))
+            except:
+                print('failed to attach logic graph...detaching...')
+        else:
+            print('skipping attaching logic graph...')
+            self.static_belief_graph = BeliefTracker.static_belief_graph
 
     def travel_with_clf(self, query):
         filtered_slots_list = []

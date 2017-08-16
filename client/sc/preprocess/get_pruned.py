@@ -13,8 +13,8 @@ sys.path.insert(0, parentdir)
 
 from client.cn_util import print_cn
 
-data_path = '../../../data/sc/111greeting'
-output = '../../../data/sc/scene/greeting'
+data_path = '../../../data/sc/111qa'
+output = '../../../data/sc/qa_kb_tmp.txt'
 
 
 def get_pruned(data_path, output):
@@ -31,11 +31,12 @@ def get_pruned(data_path, output):
                     # if len(intention) == 1:
                     #     intention = ['ROOT'] + intention
                     #     print_cn(intention)
-                    question = line['question']
-                    for q in question:
+                    entity = line['entity']
+                    entity = '|'.join(entity)
+                    answer = ','.join(line['answer'])
                         # res = ','.join(intention) + '\t' + q
                         # out.write(res + '\n')
-                        out.write(q + '\n')
+                    out.write(entity + '#' + answer + '\n')
                 except Exception,e:
                     print(e.message)
 

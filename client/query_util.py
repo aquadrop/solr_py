@@ -29,6 +29,19 @@ class QueryUtils:
                 tokens.append(t)
         return tokens
 
+    @staticmethod
+    def static_jieba_cut(query, smart=True):
+        if smart:
+            seg_list = jieba.cut(query)
+        else:
+            seg_list = jieba.cut_for_search(query)
+        tokens = []
+        for t in seg_list:
+            t = t.replace(' ', '').replace('\t','')
+            if t:
+                tokens.append(t)
+        return tokens
+
     def corenlp_cut(self, query, remove_tags=[]):
         try:
             q = query
@@ -130,13 +143,24 @@ class QueryUtils:
             return q
 
     @staticmethod
-    def static_remove_cn_punct(q):
-
+    def static_remove_pu(q):
+        # q = re.sub(ur"[\s+\.\!\/_,$%^*(+\"\']+|[+——！，。？、~@#￥%……&*（）：；《）《》“”()»〔〕-]+", "", q)
+        pu = re.compile(r'(啊|呢|哦|哈|呀|捏|撒|哟|呐)')
         try:
-            return ''.join(QueryUtils.static_corenlp_cut(q, remove_tags=['PU']))
+            return re.sub(pu, '', q)
         except:
             return q
 
+    @staticmethod
+    def static_remove_cn_punct(q):
+        try:
+            return ''.join(QueryUtils.static_corenlp_cut(q, remove_tags=['PU']))
+        except:
+            return re.sub(ur"[\s+\.\!\/_,$%^*(+\"\']+|[+——！，。？、~@#￥%……&*（）：；《）《》“”()»〔〕-]+", "", q.decode("utf8"))
+
+    @staticmethod
+    def static_simple_remove_punct(q):
+        return re.sub(ur"[\s+\.\!\/_,$%^*(+\"\']+|[+——！，。？、~@#￥%……&*（）：；《）《》“”()»〔〕-]+", "", q.decode("utf8"))
 
     tokenizer_url = "http://localhost:11415/pos?q="
     transfer_ = {1: '零钱', 200: ' 二百 ', 20000: ' 二万 ',
@@ -324,8 +348,9 @@ class QueryUtils:
                         out.write(mm + '\n')
 
 if __name__ == '__main__':
-    qu = QueryUtils()
-    qu.process_data('../data/business/intention_pair_q', '../data/business/business_train_v7')
-    # print(QueryUtils.static_remove_cn_punct(u'我在电视上见过你，听说你很聪明啊?'))
-    cn_util.print_cn(qu.quant_bucket_fix('一点钱'))
+    # qu = QueryUtils()
+    # qu.process_data('../data/business/intention_pair_q', '../data/business/business_train_v7')
+    # # print(QueryUtils.static_remove_cn_punct(u'我在电视上见过你，听说你很聪明啊?'))
+    # cn_util.print_cn(qu.quant_bucket_fix('一点钱'))
     # cn_util.print_cn(qu.quant_bucket_fix('我要取1千零1百'))
+    cn_util.print_cn(QueryUtils.static_jieba_cut('LOUIS VUITTon', False))

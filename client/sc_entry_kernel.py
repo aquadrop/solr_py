@@ -17,6 +17,7 @@ from cn_util import print_out
 from sc_belief_graph import BeliefGraph
 from sc_belief_clf import Multilabel_Clf
 from sc_scene_clf import SceneClassifier
+from sc_qa_clf import SimpleSeqClassifier
 
 class EntryKernel:
     ## static
@@ -42,6 +43,7 @@ class EntryKernel:
         self.repeat_kernel = RepeatKernel()
         self.base_kernel = BaseKernel()
         self.sing_kernel = SimpleSingKernel()
+        self.last_response = None
 
     def kernel(self, q, direction=None, user='solr', debug=False, recursive=False):
         fixed_q = q
@@ -66,7 +68,7 @@ class EntryKernel:
             if not response:
                 response = '...'
         if direction == EntryKernel.QA:
-            sucess, response = self.qa_kernel.kernel(q)
+            sucess, response = self.qa_kernel.kernel(q, self.last_response)
             if not sucess and suggested_direction:
                 # response = self.kernel(q=q, direction=suggested_direction, debug=False, recursive=True)
                 redirected = True
@@ -119,6 +121,7 @@ class EntryKernel:
                                                                                            q, str(direction), \
                                                                                            response)
                 print_out(log, f)
+        self.last_response = response
         if debug:
             if suggested_direction and redirected:
                 if inside_intentions:
@@ -136,5 +139,8 @@ class EntryKernel:
 
 if __name__ == '__main__':
     kernel = EntryKernel()
-    response = kernel.kernel(u'清淡的')
-    print(response)
+    while True:
+        input_ = raw_input()
+        input_ = input_.decode('utf-8')
+        response = kernel.kernel(input_)
+        print(response)

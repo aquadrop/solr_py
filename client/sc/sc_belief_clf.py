@@ -23,26 +23,27 @@ import cPickle as pickle
 import argparse
 import time
 
-from cn_util import print_cn
+from client.cn_util import print_cn
 
 parentdir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, parentdir)
-from query_util import QueryUtils
+from client.query_util import QueryUtils
 
 reload(sys)
 sys.setdefaultencoding("utf-8")
 
 
-class Multilabel_Clf:
+class Belief_MultiLabel_Clf:
     def __init__(self, data_path):
         self.data_path = data_path
-        self.build()
+        self.clf = None
+        self._build()
 
     def _build_feature_extraction(self, mode, data_path):
         print('Build feature extraction...')
         corpus = list()
         with open(data_path, 'r') as f:
-            reader = csv.reader(f, delimiter='\t')
+            reader = csv.reader(f, delimiter='#')
             for line in reader:
                 b = line[1].encode('utf-8')
                 tokens = self.cut(b)
@@ -62,18 +63,19 @@ class Multilabel_Clf:
 
     def cut(self, input_):
         input_ = QueryUtils.static_remove_cn_punct(input_)
-        seg = " ".join(jieba.cut(input_, cut_all=False))
+        tokens = jieba.cut(input_, cut_all=True)
+        seg = " ".join(tokens)
         tokens = _uniout.unescape(str(seg), 'utf8')
         return tokens
 
-    def build(self):
+    def _build(self):
         self._build_feature_extraction('tfidf', self.data_path)
         mlb = MultiLabelBinarizer()
         embeddings = list()
         labels = list()
 
         with open(self.data_path, 'r') as f:
-            reader = csv.reader(f, delimiter='\t')
+            reader = csv.reader(f, delimiter='#')
             for line in reader:
                 key = line[0].encode('utf-8')
                 input_ = line[1].encode('utf-8')
@@ -83,17 +85,20 @@ class Multilabel_Clf:
                 embeddings.append(tokens)
                 labels.append(intention_list)
 
-        self.embeddings = self.feature_extractor.transform(embeddings).toarray()
+        embeddings = self.feature_extractor.transform(embeddings).toarray()
         self.mlb = mlb.fit(labels)
-        self.labels = self.mlb.transform(labels)
+        labels_ = self.mlb.transform(labels)
+        return embeddings, labels_
 
     def train(self):
+        print('prepare data...')
+        embeddings, labels_ = self._build()
         print("Training classifier")
 
         begin = time.clock()
 
-        self.clf = OneVsRestClassifier(GradientBoostingClassifier(max_depth=5, n_estimators=200))
-        self.clf.fit(self.embeddings, self.labels)
+        self.clf = OneVsRestClassifier(GradientBoostingClassifier(max_depth=8, n_estimators=1000))
+        self.clf.fit(embeddings, labels_)
 
         end = time.clock()
 
@@ -118,7 +123,7 @@ class Multilabel_Clf:
         total = 0.0
 
         with open(test_path, 'r') as f:
-            reader = csv.reader(f, delimiter='\t')
+            reader = csv.reader(f, delimiter='#')
             for line in reader:
                 # print_cn(line)
                 key = line[0].encode('utf-8')
@@ -134,14 +139,14 @@ class Multilabel_Clf:
         print('Accuracy:{0}'.format(correct / total))
 
     @staticmethod
-    def load(model_path):
+    def get_instance(model_path):
         with open(model_path, "rb") as input_file:
             clf = pickle.load(input_file)
             return clf
 
 
 def train(train_data_path, model_path):
-    clf = Multilabel_Clf(train_data_path)
+    clf = Belief_MultiLabel_Clf(train_data_path)
     clf.train()
     with open(model_path, 'wb') as pickle_file:
         pickle.dump(clf, pickle_file, pickle.HIGHEST_PROTOCOL)
@@ -154,9 +159,9 @@ def test(test_data_path, model_path):
 
 
 def main():
-    model_path = '../../model/sc/multilabel_clf2.pkl'
-    train_data_path = '../../data/sc/scene/pruned_sale.txt'
-    test_data_path = '../../data/sc/scene/pruned_sale.txt'
+    model_path = '../../model/sc/belief_clf.pkl'
+    train_data_path = '../../data/sc/train/sale_v2.txt'
+    test_data_path = '../../data/sc/train/sale_v2.txt'
     parser = argparse.ArgumentParser()
     parser.add_argument('-m', choices={'train', 'test'},
                         default='train', help='mode.if not specified,it is in test mode')
@@ -174,9 +179,9 @@ def main():
 if __name__ == '__main__':
     # main()
 
-    model_path = '../../model/sc/multilabel_clf2.pkl'
-    clf = Multilabel_Clf.load(model_path=model_path)
-    inputs=['我想吃便宜的麻辣小龙虾','我想买点实惠的面包','我要吃点实惠的牛排','买实惠的辣的单鞋','我要买衣服和鞋子']
+    model_path = '../model/sc/belief_clf.pkl'
+    clf = Belief_MultiLabel_Clf.load(model_path=model_path)
+    inputs=["买点零食",'零食','麻辣小龙虾','我想买点实惠的面包','我要吃点实惠的牛排','买实惠的辣的单鞋','我要买衣服和鞋子','吃火锅','我过来买东西','我要买东西','购物']
     for p in inputs:
         labels, probs = clf.predict(input_=p)
         print_cn(labels, probs)

@@ -177,11 +177,11 @@ def main():
 
 
 if __name__ == '__main__':
-    # main()
+    main()
 
     model_path = '../model/sc/belief_clf.pkl'
     clf = Multilabel_Clf.load(model_path=model_path)
-    inputs=["买点零食",'零食','麻辣小龙虾','我想买点实惠的面包','我要吃点实惠的牛排','买实惠的辣的单鞋','我要买衣服和鞋子','吃火锅','我过来买东西','我要买东西','购物']
+    inputs=["便宜吗",'零食','麻辣小龙虾','我想买点实惠的面包','我要吃点实惠的牛排','买实惠的辣的单鞋','我要买衣服和鞋子','吃火锅','我过来买东西','我要买东西','购物']
     for p in inputs:
         labels, probs = clf.predict(input_=p)
         print_cn(labels, probs)

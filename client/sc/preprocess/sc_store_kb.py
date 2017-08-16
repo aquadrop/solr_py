@@ -22,11 +22,16 @@ def get_pruned(data_path, output):
         with open(data_path, 'r') as inp:
             for i, l in enumerate(inp):
                 try:
-                    name, labels,location = l.strip().split('#')
+                    name, type_, labels,location,definition,time,application,listing = l.strip().split('#')
                     d = dict()
                     d['name'] = name.split('|')
+                    d['type'] = type_
                     d['label'] = labels.split(',')
                     d['location'] = location.split('|')
+                    d['definition'] = definition
+                    d['time'] = time
+                    d['application'] = application
+                    d['listing'] = listing
                     out.write(json.dumps(d, ensure_ascii=False) + '\n')
                 except Exception,e:
                     print(e.message)
