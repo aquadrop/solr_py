@@ -17,3 +17,8 @@ awk -F '"' '{print $2}' your_input_file
  [ 73   1  24  42]
  [ 73   1  24  42]]
 '''
+
+## notes
+sing module ask YOU or ME
+solr with discount and price
+qa with ask_price, ask_discount
