@@ -10,11 +10,10 @@ import cn2arab
 import cn_util
 import re
 
-
+jieba.load_userdict("../data/char_table/ext1.dic")
 class QueryUtils:
     static_tokenizer_url = "http://localhost:11415/pos?q="
     remove_tags = ["PN", "VA", "AD", "PU", "SP", "DT"]
-    jieba.load_userdict("../data/char_table/ext_dict1.txt")
     def __init__(self):
         self.remove_tags = ["PN", "VA", "AD"]
         self.tokenizer_url = "http://localhost:11415/pos?q="

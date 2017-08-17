@@ -21,9 +21,9 @@ import cn_util
 
 class QAKernel:
     null_anwer = ['啊呀！这可难倒宝宝了！这是十万零一个问题，你要问一下我们对面客服台的客服哥哥姐姐哦！']
-    price_response = {"奢侈":"奢侈的东西,有钱人最爱","略贵":"略贵","中档":"还好,性价比高","便宜":"很便宜的"}
-    price_response = {"有折扣": "有折扣的,快去店家看看吧", "没有":"可以看看别的商家"}
-    queue_response = {"要排队": "现在人有点多哦", "不要排队": "人不多,赶紧去吧"}
+    price_response = {u"奢侈":"奢侈的东西,有钱人最爱",u"略贵":"略贵",u"中档":"还好,性价比高",u"便宜":"很便宜的"}
+    discount_response = {u"有折扣": "有折扣的,快去店家看看吧", u"没有":"可以看看别的商家"}
+    queue_response = {u"排队": "现在人有点多哦", u"不要排队": "人不多,赶紧去吧"}
     static_clf = None
     # null_answer = ['null']
     def __init__(self):
@@ -60,28 +60,40 @@ class QAKernel:
 
             if cls == 'where':
                 direction, answer = self.where(q=q, last_r=last_r)
+                return direction, answer
             if cls == 'exist':
                 direction, answer = self.exist(q=q, last_r=last_r)
+                return direction, answer
             if cls == 'ask_price':
                 direction, answer = self.ask_price(q=q, last_r=last_r)
+                return direction, answer
             if cls == 'ask_discount':
                 direction, answer = self.ask_discount(q=q, last_r=last_r)
+                return direction, answer
             if cls == 'ask_queue':
                 direction, answer = self.ask_queue(q=q, last_r=last_r)
+                return direction, answer
             if cls == 'permit':
                 direction, answer = self.permit(q=q, last_r=last_r)
+                return direction, answer
             if cls == 'whether':
                 direction, answer = self.whether(q=q, last_r=last_r)
+                return direction, answer
             if cls == 'when':
                 direction, answer = self.when(q)
+                return direction, answer
             if cls == 'how':
                 direction, answer = self.how(q)
+                return direction, answer
             if cls == 'which':
                 direction, answer = self.which(q)
+                return direction, answer
             if cls == 'what':
                 direction, answer = self.what(q)
+                return direction, answer
             if cls == 'list':
                 direction, answer = self.list(q)
+                return direction, answer
             return self.simple.kernel(q)
         except Exception,e:
             return self.simple.kernel(q)
@@ -167,7 +179,7 @@ class QAKernel:
         if current_entity:
             response = self.retrieve_common_info(solr_r)
             if response:
-                return None, response
+                return None, current_entity + "," + response
             else:
                 return None, '没有找到相关信息'
 
@@ -208,7 +220,7 @@ class QAKernel:
         use_type = None
         if current_entity:
             use_entity = current_entity
-            use_entity = current_type
+            use_type = current_type
             use_r = solr_r
         else:
             if last_entity:
@@ -219,7 +231,7 @@ class QAKernel:
         price = SolrUtils.get_dynamic_response(use_r, key='price', random_field=True)
         if price and use_entity and use_type == 'store':
             ## retrive labels
-            return None, self.price_response[price]
+            return None, self.price_response[price.decode('utf-8')]
 
         return None, '不太清楚,请联系客服台或者商家咨询...'
 
@@ -245,7 +257,7 @@ class QAKernel:
         discount = SolrUtils.get_dynamic_response(use_r, key='discount', random_field=True)
         if discount and use_entity and use_type == 'store':
             ## retrive labels
-            return None, self.price_response[discount]
+            return None, self.discount_response[discount.decode('utf-8')]
 
         return None, '不太清楚,请联系客服台或者商家咨询...'
 
@@ -271,7 +283,7 @@ class QAKernel:
         queue = SolrUtils.get_dynamic_response(use_r, key='queue', random_field=True)
         if queue and use_entity and use_type == 'store':
             ## retrive labels
-            return None, self.price_response[queue]
+            return None, self.price_response[queue.decode('utf-8')]
 
         return None, '不太清楚,去商家看看呢...应该不用吧'
 
@@ -379,4 +391,4 @@ class QAKernel:
 
 if __name__ == '__main__':
     qa = QAKernel()
-    cn_util.print_cn(qa.what(u'南京德基哪里好吃', None))
+    cn_util.print_cn(qa.kernel(u'黄粱一孟贵吗', None))

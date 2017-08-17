@@ -5,6 +5,7 @@ import sys
 import jieba
 import json
 import os
+import re
 
 import _uniout
 from client.cn_util import print_cn
@@ -20,7 +21,7 @@ import cPickle as pickle
 import argparse
 
 # from sc_scene_clf import SceneClassifier
-from client.query_util import QueryUtils
+from query_util import QueryUtils
 
 reload(sys)
 sys.setdefaultencoding('utf-8')
@@ -160,7 +161,17 @@ class SimpleSeqClassifier:
         probs = self.kernel.predict_proba(embedding)
         # print probs
         # print prob
-        return self.named_labels[label], probs
+        corrected = self.correct_label(question.decode('utf-8'), self.named_labels[label])
+        return corrected, probs
+
+    ask_price = re.compile(ur'.*?(贵吗|贵不贵|便宜吗|便宜不便宜).*?')
+    ask_discount = re.compile(ur'.*?(优惠吗|折扣吗|有没有优惠|有没有折扣).*?')
+    def correct_label(self, question, label):
+        if re.match(self.ask_price, question):
+            return 'ask_price'
+        if re.match(self.ask_discount, question):
+            return 'ask_discount'
+        return label
 
     def interface(self, q):
         label, probs = self.predict(q)

@@ -74,9 +74,9 @@ class SceneKernel:
         if type_ == 'store':
             neg = self.neg.predict(q)
             if neg:
-                return 'qa', None, q
-            else:
                 return 'base', None, q
+            else:
+                return 'qa', None, q
 
         if type_ == 'item':
             return 'sale', 'qa', q
