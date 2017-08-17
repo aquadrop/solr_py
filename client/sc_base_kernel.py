@@ -23,11 +23,8 @@ class BaseKernel:
         r = requests.post(url, params=register_data)
         response = json.dumps(r.json(), ensure_ascii=False)
         jsondata = json.loads(response)
-        print("Return: %s" % jsondata.get('return'))
-        print("ReturnMessage: %s" % jsondata.get('return_message'))
         datas = jsondata.get('data')
         for data in datas:
-            print(data.get('value'))
             return data.get('value')
 
     def chat(self, q):
@@ -38,8 +35,6 @@ class BaseKernel:
             r = requests.post(url, params=register_data)
             response = json.dumps(r.json(), ensure_ascii=False)
             jsondata = json.loads(response)
-            print("Return: %s" % jsondata.get("return"))
-            print("ReturnMessage: %s" % jsondata.get("return_message"))
             datas = jsondata.get("data")
             for data in datas:
                 response = data.get('value')

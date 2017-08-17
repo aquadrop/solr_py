@@ -30,7 +30,7 @@ class BeliefTracker:
         self.remaining_slots = {}
         self.negative_slots = {}
         self.score_stairs = [1, 5, 10, 20, 40]
-        self.qu = QueryUtils()
+        self.negative = False
         self.negative_clf=Negative_Clf()
         self.simple = SimpleQAKernel()
 
@@ -40,12 +40,15 @@ class BeliefTracker:
     # tokenizer_url = "http://localhost:5000/pos?q="
 
     def kernel(self, query):
-        query = self.qu.remove_cn_punct(query)
+        query = QueryUtils.static_simple_remove_punct(query)
         return self.r_walk_with_pointer_with_clf(query=query)
 
 
     def clear_state(self):
         self.search_graph = BeliefGraph()
+        self.remaining_slots = {}
+        self.negative_slots = {}
+        self.negative = False
 
     def _load_clf(self, path):
         if not BeliefTracker.static_gbdt:
@@ -77,8 +80,8 @@ class BeliefTracker:
     def travel_with_clf(self, query):
         filtered_slots_list = []
         if self.gbdt:
-            slots_list, probs = self.gbdt.predict(input_=query)
-            self.negative = self.negative_clf.predict(input_=query)
+            flipped, self.negative = self.negative_clf.predict(input_=query)
+            slots_list, probs = self.gbdt.predict(input_=flipped)
             # print self.negative
             for i, prob in enumerate(probs):
                 if prob >= 0.7:
@@ -236,20 +239,33 @@ class BeliefTracker:
             intentions.append(intention)
         return intentions, ' OR '.join(intentions)
 
+    def contain_negative(self, intentions):
+        for intention in intentions:
+            if "-" in intention:
+                return True
+
+        return False
+
     def search(self):
         try:
+            intentions, fq = self.compose()
+            if len(self.remaining_slots) == 0 or (len(intentions) == 1 and '-' in intentions[0]):
+                return 'unclear', np.random.choice(['请大声说出你的需求', '您想做什么呢', '您想干嘛'], 1)[0]
             if 'facility' in self.remaining_slots or 'entertainment' in self.remaining_slots:
                 qa_intentions = ' '.join(self.remaining_slots)
                 self.remove_slots('facility')
                 self.remove_slots('entertainment')
                 return self.simple.kernel(qa_intentions)
-            intentions, fq = self.compose()
             url = self.guide_url + "&q=intention:(%s)" % fq
             # print("gbdt_result_url", url)
             r = requests.get(url)
             if SolrUtils.num_answer(r) > 0:
-                response = SolrUtils.get_response(r)
-                labels = self._get_response(r, 'intention', random=True, keep_array=True)
+                response = self._get_response(r, 'answer', random_hit=self.contain_negative(intentions), random_field=True, keep_array=False)
+                labels = self._get_response(r, 'intention', random_field=True, keep_array=True)
+                remove_labels = [u"购物", u"吃饭",u"随便"]
+                for rl in remove_labels:
+                    if rl in labels:
+                        labels.remove(rl)
                 response = self.generate_response(response, labels)
                 return ','.join(intentions), response
         except:
@@ -263,8 +279,8 @@ class BeliefTracker:
             url = graph_url + condition
             r = requests.get(url)
             if SolrUtils.num_answer(r) > 0:
-                name = self._get_response(r=r, key='name', random=True)
-                location = self._get_response(r=r, key='location', random=True)
+                name = self._get_response(r=r, key='name', random_hit=True, random_field=True)
+                location = self._get_response(r=r, key='location', random_hit=True, random_field=True)
                 new_response = response.replace('<s>', name).replace('<l>', location)
                 return new_response
             else:
@@ -272,32 +288,24 @@ class BeliefTracker:
         else:
             return response
 
-    def _get_response(self, r, key, random=True, keep_array=False):
+    def _get_response(self, r, key, random_hit=False, random_field=True, keep_array=False):
         try:
-            a = r.json()["response"]["docs"][0][key]
+            num = np.minimum(SolrUtils.num_answer(r), 10)
+            if random_hit:
+                hit = np.random.randint(0, num)
+            else:
+                hit = 0
+            a = r.json()["response"]["docs"][hit][key]
             if keep_array:
                 return a
             else:
-                if random:
+                if random_field:
                     rr = np.random.choice(a, 1)[0]
                 else:
                     rr = ','.join(a)
             return rr.encode('utf8')
         except:
             return None
-
-    def trick(self, query):
-        # ## do trick
-        self.clear_state()
-        # url = self.concat_solr_request(query=query, guide_url=self.trick_url)
-        # r = requests.get(url)
-        # if self.num_answer(r) > 0:
-        #     x = random.randint(0, min(9, self.num_answer(r) - 1))
-        #     response = self.get_response(r, x)
-        #     return response
-        # else:
-        #     return "我没听懂！"
-        return "out of domain knowledge"
 
     def should_clear_state(self, multi_slots):
         try:
@@ -311,10 +319,10 @@ class BeliefTracker:
 
 if __name__ == "__main__":
     bt = BeliefTracker("../model/sc/belief_graph.pkl", '../model/sc/belief_clf.pkl')
-    ipts = ['我要吃火锅','我不吃饭','不买拖鞋','不吃冰淇淋','吃不起贵的西餐']
+    ipts = ["买鲜花"]
     for ipt in ipts:
         # ipt = raw_input()
         # chinese comma
         # bt.travel_with_clf(ipt)
-        # cn_util.print_cn(bt.compose()[0])
         cn_util.print_cn(bt.kernel(ipt))
+        cn_util.print_cn(bt.compose()[0])

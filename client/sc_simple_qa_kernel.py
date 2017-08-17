@@ -28,12 +28,12 @@ class SimpleQAKernel:
         try:
             exact = self.exact_match(q)
             if exact:
-                return True, exact
+                return None, exact
             r = self._request_solr(q)
-            success, answer = self._extract_answer(r)
-            return success, answer
+            direction, answer = self._extract_answer(r)
+            return direction, answer
         except Exception,e:
-            return False, 'mainframe unable to reply since qa/greeting kernel damaged...'
+            return None, 'mainframe unable to reply since qa kernel damaged...'
 
     def exact_match(self, q, random_range=1):
         url = self.qa_exact_match_url % q
@@ -55,11 +55,11 @@ class SimpleQAKernel:
             if num > 0:
                 x = random.randint(0, min(random_range - 1, num - 1))
                 response = self._get_response(r, x)
-                return True, response
+                return None, response
             else:
-                return False, np.random.choice(self.null_anwer, 1)[0]
+                return None, np.random.choice(self.null_anwer, 1)[0]
         except:
-            return False, np.random.choice(self.null_anwer, 1)[0]
+            return None, np.random.choice(self.null_anwer, 1)[0]
 
     def _request_solr(self, q):
         ## cut q into tokens

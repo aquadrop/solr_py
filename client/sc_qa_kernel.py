@@ -16,10 +16,14 @@ import cPickle as pickle
 from sc_qa_clf import SimpleSeqClassifier
 from query_util import QueryUtils
 from sc_simple_qa_kernel import SimpleQAKernel
+from solr_utils import SolrUtils
 import cn_util
 
 class QAKernel:
     null_anwer = ['啊呀！这可难倒宝宝了！这是十万零一个问题，你要问一下我们对面客服台的客服哥哥姐姐哦！']
+    price_response = {"奢侈":"奢侈的东西,有钱人最爱","略贵":"略贵","中档":"还好,性价比高","便宜":"很便宜的"}
+    price_response = {"有折扣": "有折扣的,快去店家看看吧", "没有":"可以看看别的商家"}
+    queue_response = {"要排队": "现在人有点多哦", "不要排队": "人不多,赶紧去吧"}
     static_clf = None
     # null_answer = ['null']
     def __init__(self):
@@ -51,28 +55,34 @@ class QAKernel:
         try:
             exact = self.exact_match(QueryUtils.static_remove_pu(q))
             if exact:
-                return True, exact
+                return None, exact
             cls, probs = self.clf.predict(q)
 
             if cls == 'where':
-                success, answer = self.where(q=q, last_r=last_r)
+                direction, answer = self.where(q=q, last_r=last_r)
             if cls == 'exist':
-                success, answer = self.exist(q=q, last_r=last_r)
+                direction, answer = self.exist(q=q, last_r=last_r)
+            if cls == 'ask_price':
+                direction, answer = self.ask_price(q=q, last_r=last_r)
+            if cls == 'ask_discount':
+                direction, answer = self.ask_discount(q=q, last_r=last_r)
+            if cls == 'ask_queue':
+                direction, answer = self.ask_queue(q=q, last_r=last_r)
             if cls == 'permit':
-                success, answer = self.permit(q=q, last_r=last_r)
+                direction, answer = self.permit(q=q, last_r=last_r)
             if cls == 'whether':
-                success, answer = self.whether(q=q, last_r=last_r)
+                direction, answer = self.whether(q=q, last_r=last_r)
             if cls == 'when':
-                success, answer = self.when(q)
+                direction, answer = self.when(q)
             if cls == 'how':
-                success, answer = self.how(q)
+                direction, answer = self.how(q)
             if cls == 'which':
-                success, answer = self.which(q)
+                direction, answer = self.which(q)
             if cls == 'what':
-                success, answer = self.what(q)
+                direction, answer = self.what(q)
             if cls == 'list':
-                success, answer = self.list(q)
-            return success, answer
+                direction, answer = self.list(q)
+            return self.simple.kernel(q)
         except Exception,e:
             return self.simple.kernel(q)
 
@@ -80,9 +90,9 @@ class QAKernel:
         r = self._request_solr(q, 'name')
 
         try:
-            num = self._num_answer(r)
+            num = SolrUtils.num_answer(r)
             if num > 0:
-                response = self._get_response(r=r, key=key, random=True)
+                response = SolrUtils.get_dynamic_response(r=r, key=key, random_field=True)
                 if response:
                     return response
                 else:
@@ -94,105 +104,182 @@ class QAKernel:
 
     ## where: entity exists, return search. else strict use last_entity
     def where(self, q, last_r):
-        current_entity = self.retrieve_entity(q)
+        current_entity, current_type, current_solr_r = self.retrieve_entity(q)
         if last_r:
-            last_entity = self.retrieve_entity(last_r)
+            last_entity, last_type, last_solr_r = self.retrieve_entity(last_r)
         else:
             last_entity = None
 
         if current_entity:
-            location = self.common(current_entity, 'location')
+            location = SolrUtils.get_dynamic_response(current_solr_r, 'location', random_field=True)
             if not location:
                 location = '没有这个地方哦'
-            return True, location
+            return None, current_entity + "," + location
         if not last_entity:
             location = '您在问什么?'
-            return True, location
+            return None, location
 
         q = QueryUtils.static_remove_pu(q).decode('utf-8')
         strict = re.compile(ur'在哪|在什么地方|带我去|在哪里')
         if re.match(strict, q):
-            location = self.common(last_entity, 'location')
+            location = SolrUtils.get_dynamic_response(last_solr_r, 'location', random_field=True)
             if not location:
                 location = '没有这个地方哦'
-            return True, location
-        return True, "没有这个地方哦"
+            return None, location
+        return 'base', "没有这个地方哦"
 
     def how(self, q, last_r):
         response = self.common(q, 'application')
         if response:
-            return True, response
-        return True, np.random.choice(self.null_anwer, 1)[0]
+            return None, response
+        return self.where(q, None)
 
     def when(self, q, last_r):
         response = self.common(q, 'time')
         if response:
-            return True, response
-        return False, np.random.choice(self.null_anwer, 1)[0]
+            return None, response
+        return self.simple.kernel(q)
 
     def what(self, q, last_r):
-        response = self.common(q, 'definition')
+        r = self._request_solr(q, 'name')
+        response = SolrUtils.get_dynamic_response(r, 'definition')
         if response:
-            return True, response
-        return True, np.random.choice(self.null_anwer, 1)[0]
+            return None, response
+        return self.where(q, None)
 
     def list(self, q, last_r):
         response = self.common(q, 'listing')
         if response:
-            return True, response
-        return True, "商家没有给出信息,请前往商家咨询"
+            return None, response
+        return self.simple.kernel(q)
 
     ## no logic reasoning
     def which(self, q, last_r):
         response = self.where(q)
         if response:
-            return True, response
-        return False, np.random.choice(self.null_anwer, 1)[0]
+            return None, response
+        return self.simple.kernel(q)
 
     ## --> exist: entity exists, return search. else return none
     def exist(self, q, last_r):
-        current_entity = self.retrieve_entity(q)
+        current_entity, current_type, solr_r = self.retrieve_entity(q)
 
         if current_entity:
-            r = self._request_solr(current_entity, 'name')
-            response = self.retrieve_common_info(r)
+            response = self.retrieve_common_info(solr_r)
             if response:
-                return True, response
+                return None, response
             else:
-                return True, '没有找到相关信息'
+                return None, '没有找到相关信息'
 
         current_label = self.retrieve_label(q)
         ## hand over to main kernel
         if current_label:
-            return False, None
+            return 'sale', None
 
-        return True, '貌似没有哦, 您可以去对面服务台咨询看看呢...'
+        return None, '貌似没有哦, 您可以去对面服务台咨询看看呢...'
 
     ## --> exist: entity exists, return search. else return none
     def permit(self, q, last_r):
-        current_entity = self.retrieve_entity(q)
+        current_entity, current_type, solr_r = self.retrieve_entity(q)
 
         if current_entity:
             r = self._request_solr(current_entity, 'name')
             response = self.retrieve_common_info(r)
             if response:
-                return True, response
+                return None, response
             else:
-                return True, '没有找到相关信息'
+                return None, '没有找到相关信息'
 
         current_label = self.retrieve_label(q)
         ## hand over to main kernel
         if current_label:
-            return False, None
+            return self.simple(q)
 
-        return True, '貌似不可以哦, 您可以去对面服务台咨询看看呢...'
+        return None, '貌似不可以哦, 您可以去对面服务台咨询看看呢...'
 
+    def ask_price(self, q, last_r):
+        current_entity, current_type, solr_r = self.retrieve_entity(q)
+        if not current_entity and last_r:
+            last_entity, last_type, last_solr_r = self.retrieve_entity(last_r)
+        else:
+            last_entity = None
+
+        use_entity = None
+        use_type = None
+        if current_entity:
+            use_entity = current_entity
+            use_entity = current_type
+            use_r = solr_r
+        else:
+            if last_entity:
+                use_entity = last_entity
+                use_type = last_type
+                use_r = last_solr_r
+
+        price = SolrUtils.get_dynamic_response(use_r, key='price', random_field=True)
+        if price and use_entity and use_type == 'store':
+            ## retrive labels
+            return None, self.price_response[price]
+
+        return None, '不太清楚,请联系客服台或者商家咨询...'
+
+    def ask_discount(self, q, last_r):
+        current_entity, current_type, solr_r = self.retrieve_entity(q)
+        if not current_entity and last_r:
+            last_entity, last_type, last_solr_r = self.retrieve_entity(last_r)
+        else:
+            last_entity = None
+
+        use_entity = None
+        use_type = None
+        if current_entity:
+            use_entity = current_entity
+            use_entity = current_type
+            use_r = solr_r
+        else:
+            if last_entity:
+                use_entity = last_entity
+                use_type = last_type
+                use_r = last_solr_r
+
+        discount = SolrUtils.get_dynamic_response(use_r, key='discount', random_field=True)
+        if discount and use_entity and use_type == 'store':
+            ## retrive labels
+            return None, self.price_response[discount]
+
+        return None, '不太清楚,请联系客服台或者商家咨询...'
+
+    def ask_queue(self, q, last_r):
+        current_entity, current_type, solr_r = self.retrieve_entity(q)
+        if not current_entity and last_r:
+            last_entity, last_type, last_solr_r = self.retrieve_entity(last_r)
+        else:
+            last_entity = None
+
+        use_entity = None
+        use_type = None
+        if current_entity:
+            use_entity = current_entity
+            use_entity = current_type
+            use_r = solr_r
+        else:
+            if last_entity:
+                use_entity = last_entity
+                use_type = last_type
+                use_r = last_solr_r
+
+        queue = SolrUtils.get_dynamic_response(use_r, key='queue', random_field=True)
+        if queue and use_entity and use_type == 'store':
+            ## retrive labels
+            return None, self.price_response[queue]
+
+        return None, '不太清楚,去商家看看呢...应该不用吧'
 
     ## --> exist: only the strict will be processed
     def whether(self, q, last_r):
-        current_entity = self.retrieve_entity(q)
+        current_entity, current_type, current_solr_r = self.retrieve_entity(q)
         if last_r:
-            last_entity = self.retrieve_entity(last_r)
+            last_entity, last_type, last_solr_r = self.retrieve_entity(last_r)
         else:
             last_entity = None
 
@@ -204,43 +291,18 @@ class QAKernel:
                 use_entity = last_entity
 
         if use_entity:
-            ## retrive labels
-            price_high = re.compile(ur'.*?(贵).*?')
-            price_low = re.compile(ur'.*?(实惠|便宜).*?')
-            discount = re.compile(ur'.*?(优惠|折扣|打折).*?')
-            if re.match(price_high, q):
-                q = '高'
-                valid = self.whether_label_validate(use_entity, q)
-                if valid:
-                    return True, '有点小贵哦'
-                else:
-                    return True, '不贵很实惠'
-            if re.match(price_low, q):
-                q = '低'
-                valid = self.whether_label_validate(use_entity, q)
-                if valid:
-                    return True, '不贵'
-                else:
-                    return True, '有点小贵哦'
-            if re.match(discount, q):
-                q = '有'
-                valid = self.whether_label_validate(use_entity, q)
-                if valid:
-                    return True, '有优惠的,具体请去店家看看吧'
-                else:
-                    return True, '没有优惠哦,具体请去店家看看吧'
             valid = self.whether_label_validate(use_entity, q)
             if valid:
-                return True, '恩'
-            return True, '好像没有'
+                return None, '恩'
+            return None, '好像没有'
 
-        return True, '我不知道,您可以去服务台问问哦'
+        return None, '我不知道,您可以去服务台问问哦'
 
     def whether_label_validate(self, entity, label_query):
         valid_url = 'http://localhost:11403/solr/graph/select?&q=*:*&wt=json&fq=name:%s&fq=label:%s' % (entity, label_query)
         try:
             r = requests.get(valid_url)
-            if self._num_answer(r) > 0:
+            if SolrUtils.num_answer(r) > 0:
                 return True
             else:
                 return False
@@ -248,39 +310,42 @@ class QAKernel:
             return False
 
     def retrieve_common_info(self, r):
-        location = self._get_response(r=r, key='location', random=True)
+        location = SolrUtils.get_dynamic_response(r=r, key='location', random_field=True)
         if location:
             return location
-        definition = self._get_response(r=r, key='definition', random=True)
+        definition = SolrUtils.get_dynamic_response(r=r, key='definition', random_field=True)
         if definition:
             return definition
-        application = self._get_response(r=r, key='application', random=True)
+        application = SolrUtils.get_dynamic_response(r=r, key='application', random_field=True)
         if definition:
             return application
         return None
 
     def retrieve_entity(self, q):
-        name = self.common(q, key='name')
+        r = self._request_solr(q, 'name')
+        name = SolrUtils.get_dynamic_response(r=r, key='name', random_field=True)
+        type_ = SolrUtils.get_dynamic_response(r=r, key='type', random_field=True)
         if name:
-            return name.split(',')[0]
+            return name, type_, r
         else:
-            return None
+            return None, None, r
 
     def retrieve_label(self, q):
-        name = self.common(q, key='label')
+        r = self._request_solr(q, 'name')
+        name = SolrUtils.get_dynamic_response(r=r, key='label', random_field=True)
         if name:
-            return name.split(',')[0]
+            return name, 'item', r
         else:
-            return None
+            return None, None, None
 
     def exact_match(self, q, random_range=1):
         url = self.qa_exact_match_url % q
         r = requests.get(url)
         try:
-            num = self._num_answer(r)
+            num = SolrUtils.num_answer(r)
             if num > 0:
                 x = random.randint(0, min(random_range - 1, num - 1))
-                response = self._get_response(r, x)
+                response = SolrUtils.get_dynamic_response(r, x)
                 return response
             else:
                 return None
@@ -289,10 +354,10 @@ class QAKernel:
 
     def _extract_answer(self, r, random_range=1):
         try:
-            num = self._num_answer(r)
+            num = SolrUtils.num_answer(r)
             if num > 0:
                 x = random.randint(0, min(random_range - 1, num - 1))
-                response = self._get_response(r, x)
+                response = SolrUtils.get_dynamic_response(r, x)
                 return True, response
             else:
                 return False, np.random.choice(self.null_anwer, 1)[0]
@@ -306,27 +371,12 @@ class QAKernel:
         q = ' OR '.join(tokens)
         url = self.graph_url % q
         # print('qa_debug:', url)
-        cn_util.print_cn(url)
         r = requests.get(url)
         return r
 
     def _num_answer(self, r):
         return int(r.json()["response"]["numFound"])
 
-    def _get_response(self, r, key, random=True, keep_array=False):
-        try:
-            a = r.json()["response"]["docs"][0][key]
-            if keep_array:
-                return a
-            else:
-                if random:
-                    rr = np.random.choice(a, 1)[0]
-                else:
-                    rr = ','.join(a)
-            return rr.encode('utf8')
-        except:
-            return None
-
 if __name__ == '__main__':
     qa = QAKernel()
-    cn_util.print_cn(qa.kernel(u'打折吗',u'NIKE运动鞋、篮球鞋、休闲鞋任您选，快去一期五楼看看吧，just do it'))
+    cn_util.print_cn(qa.what(u'南京德基哪里好吃', None))

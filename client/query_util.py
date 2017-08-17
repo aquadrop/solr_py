@@ -14,6 +14,7 @@ import re
 class QueryUtils:
     static_tokenizer_url = "http://localhost:11415/pos?q="
     remove_tags = ["PN", "VA", "AD", "PU", "SP", "DT"]
+    jieba.load_userdict("../data/char_table/ext_dict1.txt")
     def __init__(self):
         self.remove_tags = ["PN", "VA", "AD"]
         self.tokenizer_url = "http://localhost:11415/pos?q="
@@ -30,7 +31,7 @@ class QueryUtils:
         return tokens
 
     @staticmethod
-    def static_jieba_cut(query, smart=True):
+    def static_jieba_cut(query, smart=True, remove_single=False):
         if smart:
             seg_list = jieba.cut(query)
         else:
@@ -39,6 +40,9 @@ class QueryUtils:
         for t in seg_list:
             t = t.replace(' ', '').replace('\t','')
             if t:
+                if remove_single:
+                    if len(t) == 1:
+                        continue
                 tokens.append(t)
         return tokens
 
@@ -353,4 +357,4 @@ if __name__ == '__main__':
     # # print(QueryUtils.static_remove_cn_punct(u'我在电视上见过你，听说你很聪明啊?'))
     # cn_util.print_cn(qu.quant_bucket_fix('一点钱'))
     # cn_util.print_cn(qu.quant_bucket_fix('我要取1千零1百'))
-    cn_util.print_cn(QueryUtils.static_jieba_cut('LOUIS VUITTon', False))
+    cn_util.print_cn(QueryUtils.static_jieba_cut('紫桂焖大排', smart=True, remove_single=True))
