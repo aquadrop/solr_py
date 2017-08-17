@@ -20,7 +20,7 @@ import cPickle as pickle
 import argparse
 
 # from sc_scene_clf import SceneClassifier
-from client.query_util import QueryUtils
+from query_util import QueryUtils
 
 reload(sys)
 sys.setdefaultencoding('utf-8')
@@ -32,7 +32,7 @@ sys.path.insert(0, parentdir)
 class SimpleSeqClassifier:
     def __init__(self):
         self.kernel = GradientBoostingClassifier(max_depth=5, n_estimators=200)
-        self.named_labels = ["where","exist","whether","permit","which","what","how","list","when"]
+        self.named_labels = ["where","exist","whether","ask_price","ask_discount","ask_queue","permit","which","what","how","list","when"]
         # self.qu = QueryUtils()
 
     def _build_feature_extractor(self, mode, files):

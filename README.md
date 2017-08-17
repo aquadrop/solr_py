@@ -24,3 +24,9 @@ name#type#label#location#definition#time#application#listing
 鲜花
 珠宝
 甜品
+
+
+## notes
+sing module ask YOU or ME
+solr with discount and price
+qa with ask_price, ask_discount

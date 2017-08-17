@@ -10,10 +10,10 @@ import random
 import numpy as np
 
 from query_util import QueryUtils
-from sc_qa_kernel import QAKernel
+from sc_simple_qa_kernel import SimpleQAKernel
 import cn_util
 
-class GreetingKernel(QAKernel):
+class GreetingKernel(SimpleQAKernel):
     # simple_context_i_url = 'http://localhost:11403/solr/interactive/select?wt=json&q=g:(%s)^10 OR exact_g:(%s)^20 OR last_g:(%s)^2 OR exact_last_g:(%s)^8'
 
     # null_anwer = ['我没听懂您的意思', '我好像不明白...[晕][晕][晕]', '[晕][晕][晕]您能再说一遍吗?我刚刚没听清']
@@ -25,6 +25,29 @@ class GreetingKernel(QAKernel):
         self.qu = QueryUtils()
         self.greeting_url = 'http://localhost:11403/solr/sc_greeting/select?q.op=OR&wt=json&q=question:(%s)'
         self.exact_greeting_url = 'http://localhost:11403/solr/sc_greeting/select?wt=json&q=exact_question:(%s)'
+
+    def kernel(self, q):
+        try:
+            exact = self.exact_match(q)
+            if exact:
+                return None, exact
+            r = self._request_solr(q)
+            direction, answer = self._extract_answer(r)
+            return direction, answer
+        except Exception,e:
+            return None, 'mainframe unable to reply since qa kernel damaged...'
+
+    def _extract_answer(self, r, random_range=1):
+        try:
+            num = self._num_answer(r)
+            if num > 0:
+                x = random.randint(0, min(random_range - 1, num - 1))
+                response = self._get_response(r, x)
+                return None, response
+            else:
+                return 'base', np.random.choice(self.null_anwer, 1)[0]
+        except:
+            return 'base', np.random.choice(self.null_anwer, 1)[0]
 
     def exact_match(self, q, random_range=1):
         url = self.exact_greeting_url % q
