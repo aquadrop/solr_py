@@ -289,26 +289,29 @@ class QAKernel:
 
     ## --> exist: only the strict will be processed
     def whether(self, q, last_r):
-        current_entity, current_type, current_solr_r = self.retrieve_entity(q)
-        if last_r:
-            last_entity, last_type, last_solr_r = self.retrieve_entity(last_r)
-        else:
-            last_entity = None
-
-        use_entity = None
-        if current_entity:
-            use_entity = current_entity
-        else:
-            if last_entity:
-                use_entity = last_entity
-
-        if use_entity:
-            valid = self.whether_label_validate(use_entity, q)
-            if valid:
-                return None, '恩'
-            return None, '好像没有'
-
-        return None, '我不知道,您可以去服务台问问哦'
+        # current_entity, current_type, current_solr_r = self.retrieve_entity(q)
+        # if last_r:
+        #     last_entity, last_type, last_solr_r = self.retrieve_entity(last_r)
+        # else:
+        #     last_entity = None
+        #
+        # use_entity = None
+        # if current_entity:
+        #     if current_entity.decode('utf-8') == u'二期':
+        #         return None, '是的'
+        #     use_entity = current_entity
+        # else:
+        #     if last_entity:
+        #         use_entity = last_entity
+        #
+        # if use_entity:
+        #     valid = self.whether_label_validate(use_entity, q)
+        #     if valid:
+        #         return None, '恩'
+        #     return None, '好像不是'
+        #
+        # return None, '我不知道,您可以去服务台问问哦'
+        return self.simple.kernel(q)
 
     def whether_label_validate(self, entity, label_query):
         valid_url = 'http://localhost:11403/solr/graph/select?&q=*:*&wt=json&fq=name:%s&fq=label:%s' % (entity, label_query)
@@ -391,4 +394,4 @@ class QAKernel:
 
 if __name__ == '__main__':
     qa = QAKernel()
-    cn_util.print_cn(qa.kernel(u'黄粱一孟贵吗', None))
+    cn_util.print_cn(qa.kernel(u'这里是二期吗', None))
