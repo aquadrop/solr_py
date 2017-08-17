@@ -15,6 +15,7 @@ import cPickle as pickle
 
 from sc_qa_clf import SimpleSeqClassifier
 from query_util import QueryUtils
+from sc_simple_qa_kernel import SimpleQAKernel
 import cn_util
 
 class QAKernel:
@@ -26,6 +27,7 @@ class QAKernel:
         ## http://localhost:11403/solr/sc_qa/select?fq=entity:%E5%8E%95%E6%89%80&indent=on&q=*:*&wt=json
         self.graph_url = 'http://localhost:11403/solr/graph/select?q.op=OR&wt=json&q=%s'
         self.qa_exact_match_url = 'http://localhost:11403/solr/sc_qa/select?wt=json&q=question:%s'
+        self.simple = SimpleQAKernel()
         if QAKernel.static_clf:
             print('skipping attaching clf kernel...')
             self.clf = QAKernel.static_clf
@@ -72,7 +74,7 @@ class QAKernel:
                 success, answer = self.list(q)
             return success, answer
         except Exception,e:
-            return False, 'mainframe unable to reply since qa/greeting kernel damaged...'
+            return self.simple.kernel(q)
 
     def common(self, q, key):
         r = self._request_solr(q, 'name')
@@ -120,7 +122,7 @@ class QAKernel:
         response = self.common(q, 'application')
         if response:
             return True, response
-        return False, np.random.choice(self.null_anwer, 1)[0]
+        return True, np.random.choice(self.null_anwer, 1)[0]
 
     def when(self, q, last_r):
         response = self.common(q, 'time')
@@ -132,13 +134,13 @@ class QAKernel:
         response = self.common(q, 'definition')
         if response:
             return True, response
-        return False, np.random.choice(self.null_anwer, 1)[0]
+        return True, np.random.choice(self.null_anwer, 1)[0]
 
     def list(self, q, last_r):
         response = self.common(q, 'listing')
         if response:
             return True, response
-        return False, np.random.choice(self.null_anwer, 1)[0]
+        return True, "商家没有给出信息,请前往商家咨询"
 
     ## no logic reasoning
     def which(self, q, last_r):
@@ -314,11 +316,11 @@ class QAKernel:
     def _get_response(self, r, key, random=True, keep_array=False):
         try:
             a = r.json()["response"]["docs"][0][key]
-            if random:
-                rr = np.random.choice(a, 1)[0]
+            if keep_array:
+                return a
             else:
-                if keep_array:
-                    return a
+                if random:
+                    rr = np.random.choice(a, 1)[0]
                 else:
                     rr = ','.join(a)
             return rr.encode('utf8')

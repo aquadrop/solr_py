@@ -84,6 +84,7 @@ class EntryKernel:
             response = self.repeat_kernel.kernel(type_=RepeatKernel.USER)
         if direction == EntryKernel.SALE:
             inside_intentions, response = self.main_kernel.kernel(query=q)
+            self.last_response = response
 
         if not response:
             suggested_direction = EntryKernel.BASE
@@ -121,7 +122,6 @@ class EntryKernel:
                                                                                            q, str(direction), \
                                                                                            response)
                 print_out(log, f)
-        self.last_response = response
         if debug:
             if suggested_direction and redirected:
                 if inside_intentions:
@@ -139,8 +139,12 @@ class EntryKernel:
 
 if __name__ == '__main__':
     kernel = EntryKernel()
+    #
     while True:
         input_ = raw_input()
         input_ = input_.decode('utf-8')
         response = kernel.kernel(input_)
         print(response)
+
+    response = kernel.kernel(u'我不买实惠的衣服')
+    print(response)

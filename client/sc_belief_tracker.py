@@ -4,15 +4,18 @@
 import requests
 import cPickle as pickle
 
+import numpy as np
+
 from node import Node
 from query_util import QueryUtils
 from sc_belief_clf import Multilabel_Clf
 from solr_utils import SolrUtils
 import cn_util
 from sc_belief_graph import BeliefGraph
+from sc_negative_clf import Negative_Clf
+from sc_simple_qa_kernel import SimpleQAKernel
 
 class BeliefTracker:
-
     ## static
     static_gbdt = None
     static_belief_graph = None
@@ -25,13 +28,15 @@ class BeliefTracker:
         self.search_graph = BeliefGraph()
         ## keep track of remaining slots, the old slots has lower score index, if index = -1, remove that slot
         self.remaining_slots = {}
-        self.score_stairs = [1,5,10,20,40]
+        self.negative_slots = {}
+        self.score_stairs = [1, 5, 10, 20, 40]
         self.qu = QueryUtils()
+        self.negative_clf=Negative_Clf()
+        self.simple = SimpleQAKernel()
 
     last_slots = None
 
-    guide_url = "http://localhost:11403/solr/sc_sale_adv/select?defType=edismax&indent=on&wt=json"
-    graph_url = 'http://localhost:11403/solr/graph/select?q.op=OR&wt=json&q=%s'
+    guide_url = "http://localhost:11403/solr/sc_sale_gen/select?defType=edismax&indent=on&wt=json"
     # tokenizer_url = "http://localhost:5000/pos?q="
 
     def kernel(self, query):
@@ -73,6 +78,8 @@ class BeliefTracker:
         filtered_slots_list = []
         if self.gbdt:
             slots_list, probs = self.gbdt.predict(input_=query)
+            self.negative = self.negative_clf.predict(input_=query)
+            # print self.negative
             for i, prob in enumerate(probs):
                 if prob >= 0.7:
                     filtered_slots_list.append(slots_list[i])
@@ -96,7 +103,9 @@ class BeliefTracker:
             if self.belief_graph.has_child(slot, Node.KEY) \
                     and self.belief_graph.slot_identities[slot] == 'intention':
                 self.remaining_slots.clear()
+                self.negative_slots.clear()
                 self.search_graph = BeliefGraph()
+
     ## fill slots when incomplete
     ## silly fix
     def inter_fix(self, slots_list):
@@ -138,6 +147,7 @@ class BeliefTracker:
                 continue
             # check if child node
             if defined_parent_node.has_child(slot, Node.KEY):
+                # set 0 if negative
                 slots_marker[i] == 1
                 # check search_node type
                 if search_parent_node.has_child(slot, value_type=Node.KEY):
@@ -157,6 +167,7 @@ class BeliefTracker:
 
                     for key in remove_keys:
                         del self.remaining_slots[key]
+                        del self.negative_slots[key]
                         search_parent_node.remove_node(key=key, value_type=Node.KEY)
                     ## new slot added
                     new_node = Node(slot=slot)
@@ -171,10 +182,14 @@ class BeliefTracker:
             for remaining_slot, index in self.remaining_slots.iteritems():
                 self.remaining_slots[remaining_slot] = index - 1
                 ## special clear this slot once
-                if remaining_slot == '随便':
+                if remaining_slot in ['随便']:
                     self.remaining_slots[remaining_slot] = -1
             self.remaining_slots = {k: v for k, v in self.remaining_slots.iteritems() if v >= 0}
         if slot:
+            if self.negative:
+                self.negative_slots[slot] = True
+            else:
+                self.negative_slots[slot] = False
             self.remaining_slots[slot] = len(self.score_stairs) - 1
 
     def r_walk_with_pointer_with_clf(self, query):
@@ -184,6 +199,17 @@ class BeliefTracker:
     def single_last_slot(self, split=' OR '):
         return self.single_slot(self.last_slots, split=split)
 
+    def remove_slots(self, key):
+        new_remaining_slots = []
+        for slot in self.remaining_slots:
+            if slot == key:
+                continue
+            node = self.belief_graph.get_global_node(slot)
+            if node.has_ancester(key):
+                continue
+            new_remaining_slots.append(slot)
+        self.remaining_slots = new_remaining_slots
+
     def single_slot(self, slots, split=' OR '):
         return split.join(slots)
 
@@ -192,23 +218,73 @@ class BeliefTracker:
 
     def compose(self):
         intentions = []
+        size = len(self.remaining_slots)
         for slot, i in self.remaining_slots.iteritems():
+            node = self.belief_graph.get_global_node(slot)
             score = self.score_stairs[i]
             importance = self.belief_graph.slot_importances[slot]
+            if size > 2:
+                if self.negative_slots[slot] and node.is_leaf(Node.KEY):
+                    slot = '-' + slot
+            elif size==2:
+                if self.negative_slots[slot] and self.belief_graph.slot_identities[slot] != 'intention':
+                    slot = '-' + slot
+            elif size == 1:
+                if self.negative_slots[slot]:
+                    slot = '-' + slot
             intention = slot + '^' + str(float(score) * float(importance))
             intentions.append(intention)
         return intentions, ' OR '.join(intentions)
 
     def search(self):
         try:
+            if 'facility' in self.remaining_slots or 'entertainment' in self.remaining_slots:
+                qa_intentions = ' '.join(self.remaining_slots)
+                self.remove_slots('facility')
+                self.remove_slots('entertainment')
+                return self.simple.kernel(qa_intentions)
             intentions, fq = self.compose()
             url = self.guide_url + "&q=intention:(%s)" % fq
             # print("gbdt_result_url", url)
             r = requests.get(url)
             if SolrUtils.num_answer(r) > 0:
-                return ','.join(intentions), SolrUtils.get_response(r)
+                response = SolrUtils.get_response(r)
+                labels = self._get_response(r, 'intention', random=True, keep_array=True)
+                response = self.generate_response(response, labels)
+                return ','.join(intentions), response
         except:
             return 'unclear', '我好像不知道哦, 问问咨询台呢'
+
+    def generate_response(self, response, labels):
+        graph_url = 'http://localhost:11403/solr/graph/select?q.op=AND&wt=json&q=*:*&'
+        if '<s>' in response:
+            condition = ['fq=label:%s' % label for label in labels]
+            condition = '&'.join(condition)
+            url = graph_url + condition
+            r = requests.get(url)
+            if SolrUtils.num_answer(r) > 0:
+                name = self._get_response(r=r, key='name', random=True)
+                location = self._get_response(r=r, key='location', random=True)
+                new_response = response.replace('<s>', name).replace('<l>', location)
+                return new_response
+            else:
+                return '没有找到相关商家哦...您的需求有点特别哦...'
+        else:
+            return response
+
+    def _get_response(self, r, key, random=True, keep_array=False):
+        try:
+            a = r.json()["response"]["docs"][0][key]
+            if keep_array:
+                return a
+            else:
+                if random:
+                    rr = np.random.choice(a, 1)[0]
+                else:
+                    rr = ','.join(a)
+            return rr.encode('utf8')
+        except:
+            return None
 
     def trick(self, query):
         # ## do trick
@@ -235,9 +311,10 @@ class BeliefTracker:
 
 if __name__ == "__main__":
     bt = BeliefTracker("../model/sc/belief_graph.pkl", '../model/sc/belief_clf.pkl')
-    ipts = ['吃饭','购物',"实惠的日本料理"]
+    ipts = ['我要吃火锅','我不吃饭','不买拖鞋','不吃冰淇淋','吃不起贵的西餐']
     for ipt in ipts:
         # ipt = raw_input()
         # chinese comma
-        bt.travel_with_clf(ipt)
-        cn_util.print_cn(bt.compose()[0])
+        # bt.travel_with_clf(ipt)
+        # cn_util.print_cn(bt.compose()[0])
+        cn_util.print_cn(bt.kernel(ipt))
