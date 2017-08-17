@@ -60,31 +60,41 @@ class QAKernel:
 
             if cls == 'where':
                 direction, answer = self.where(q=q, last_r=last_r)
+                return direction, answer
             if cls == 'exist':
                 direction, answer = self.exist(q=q, last_r=last_r)
+                return direction, answer
             if cls == 'ask_price':
                 direction, answer = self.ask_price(q=q, last_r=last_r)
+                return direction, answer
             if cls == 'ask_discount':
                 direction, answer = self.ask_discount(q=q, last_r=last_r)
+                return direction, answer
             if cls == 'ask_queue':
                 direction, answer = self.ask_queue(q=q, last_r=last_r)
+                return direction, answer
             if cls == 'permit':
                 direction, answer = self.permit(q=q, last_r=last_r)
+                return direction, answer
             if cls == 'whether':
                 direction, answer = self.whether(q=q, last_r=last_r)
+                return direction, answer
             if cls == 'when':
                 direction, answer = self.when(q)
+                return direction, answer
             if cls == 'how':
                 direction, answer = self.how(q)
+                return direction, answer
             if cls == 'which':
                 direction, answer = self.which(q)
+                return direction, answer
             if cls == 'what':
                 direction, answer = self.what(q)
+                return direction, answer
             if cls == 'list':
                 direction, answer = self.list(q)
-            else:
-                return self.simple.kernel(q)
-            return direction, answer
+                return direction, answer
+            return self.simple.kernel(q)
         except Exception,e:
             return self.simple.kernel(q)
 
