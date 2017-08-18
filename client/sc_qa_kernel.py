@@ -340,7 +340,7 @@ class QAKernel:
         if not type_:
             base_url = self.graph_url
         else:
-            base_url = 'http://localhost:11403/solr/graph/select?q.op=OR&wt=json&q=%s&type:' +  type_
+            base_url = 'http://localhost:11403/solr/graph/select?q.op=OR&wt=json&q=%s AND type:' +  type_
         r = self._request_solr(q, 'name', base_url=base_url)
         name = SolrUtils.get_dynamic_response(r=r, key='name', random_field=True)
         type_ = SolrUtils.get_dynamic_response(r=r, key='type', random_field=True)
@@ -386,8 +386,8 @@ class QAKernel:
     def _request_solr(self, q, key, base_url):
         ## cut q into tokens
         key = '%s:' % key
-        tokens = [key + s for s in QueryUtils.static_jieba_cut(q, smart=False, remove_single=True)]
-        q = ' OR '.join(tokens)
+        tokens = [s for s in QueryUtils.static_jieba_cut(q, smart=False, remove_single=True)]
+        q = key + "(" + '%20'.join(tokens) + ")"
         url = base_url % q
         # print('qa_debug:', url)
         r = requests.get(url)
@@ -398,4 +398,4 @@ class QAKernel:
 
 if __name__ == '__main__':
     qa = QAKernel()
-    cn_util.print_cn(qa.kernel(u'他家贵吗', u"Omega,一起三楼"))
+    cn_util.print_cn(qa.kernel(u'他家贵吗', u"Omega,一期三楼"))
