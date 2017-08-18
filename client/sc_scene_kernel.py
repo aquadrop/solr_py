@@ -72,7 +72,7 @@ class SceneKernel:
             return 'base', None, q
         type_ = self.entity_recog(q)
         if type_ == 'store':
-            neg = self.neg.predict(q)
+            _, neg = self.neg.predict(q)
             if neg:
                 return 'base', None, q
             else:

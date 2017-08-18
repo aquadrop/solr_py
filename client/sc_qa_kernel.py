@@ -394,4 +394,4 @@ class QAKernel:
 
 if __name__ == '__main__':
     qa = QAKernel()
-    cn_util.print_cn(qa.kernel(u'这里是二期吗', None))
+    cn_util.print_cn(qa.kernel(u'星巴克有什么优惠吗', None))

@@ -53,7 +53,7 @@ class EntryKernel:
         suggested_direction = None
         if not direction:
             ## first determined by SceneKernel about directions
-            direction, suggested_direction, fixed_q = self.scene_kernel.kernel(q)
+            direction, suggested_direction, fixed_q = self.scene_kernel.kernel(q.decode('utf-8'))
             if not direction:
                 return 'unable to respond as scene kernel is detached...'
             ## store value in repeat kernel
