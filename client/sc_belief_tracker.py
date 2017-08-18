@@ -291,7 +291,7 @@ class BeliefTracker:
                 new_response = response.replace('<s>', name).replace('<l>', location)
                 return new_response
             else:
-                return '没有找到相关商家哦...您的需求有点特别哦...'
+                return '没有找到相关商家哦.您的需求有点特别哦...'
         else:
             return response
 
@@ -326,7 +326,7 @@ class BeliefTracker:
 
 if __name__ == "__main__":
     bt = BeliefTracker("../model/sc/belief_graph.pkl", '../model/sc/belief_clf.pkl')
-    ipts = ["情侣表"]
+    ipts = ["买护手霜"]
     for ipt in ipts:
         # ipt = raw_input()
         # chinese comma
