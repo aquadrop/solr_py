@@ -47,4 +47,4 @@ class BaseKernel:
 if __name__ == '__main__':
     bk = BaseKernel()
     # bk.register()
-    print(bk.kernel(u'烦人'))
+    print(bk.kernel(u'吴中万达有6楼吗'))

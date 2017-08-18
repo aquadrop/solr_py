@@ -29,7 +29,7 @@ class BeliefTracker:
         ## keep track of remaining slots, the old slots has lower score index, if index = -1, remove that slot
         self.remaining_slots = {}
         self.negative_slots = {}
-        self.score_stairs = [1, 5, 10, 20, 40]
+        self.score_stairs = [1, 4, 16, 64, 256]
         self.negative = False
         self.negative_clf=Negative_Clf()
         self.simple = SimpleQAKernel()
@@ -283,7 +283,7 @@ class BeliefTracker:
                 condition.append(string)
             condition = '%20OR%20'.join(condition)
             url = graph_url % condition
-            # print(url)
+            cn_util.print_cn(url)
             r = requests.get(url)
             if SolrUtils.num_answer(r) > 0:
                 name = self._get_response(r=r, key='name', random_hit=True, random_field=True)
@@ -326,10 +326,10 @@ class BeliefTracker:
 
 if __name__ == "__main__":
     bt = BeliefTracker("../model/sc/belief_graph.pkl", '../model/sc/belief_clf.pkl')
-    ipts = ["我要吃披萨"]
+    ipts = ["情侣表"]
     for ipt in ipts:
         # ipt = raw_input()
         # chinese comma
         # bt.travel_with_clf(ipt)
         cn_util.print_cn(bt.kernel(ipt))
-        cn_util.print_cn(bt.compose()[0])
+        # cn_util.print_cn(bt.compose()[0])

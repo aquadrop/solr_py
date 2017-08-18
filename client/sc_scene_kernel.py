@@ -51,7 +51,7 @@ class SceneKernel:
         except:
             return None, q
 
-    base_pattern = re.compile(ur'.*?(天气|下雨吗|晴天吗|阴天吗|几点|呵呵|烦人|笨|蠢|滚粗|傻).*?')
+    base_pattern = re.compile(ur'.*?(天气|下雨吗|晴天吗|阴天吗|几点|呵呵|烦人|笨|蠢|滚粗|傻|小德).*?')
     sing_pattern = re.compile(ur'.*?(((唱.*?(歌|曲)).*?)|((来|唱).*?(首).*?)|(我想听)|七里香|轨迹|星晴).*?')
     sing_diff_pattern = re.compile(ur'.*?(我们.*?唱|我.*?唱).*?')
     sale_pattern = re.compile(ur'.*?(买|吃|随便|看看|饿).*?')
@@ -122,7 +122,7 @@ class SceneKernel:
             return None
 
     def retrieve_label(self, q):
-        r = self.request_solr(q, 'name')
+        r = self.request_solr(q, 'label')
         name = SolrUtils.get_dynamic_response(r=r, key='label', random_field=True)
         if name:
             return 'item'
@@ -130,12 +130,15 @@ class SceneKernel:
             return None
 
     def retrieve_entity(self, q):
-        r = self.request_solr(q, 'name')
-        name = SolrUtils.get_dynamic_response(r=r, key='name', random_field=True)
-        type_ = SolrUtils.get_dynamic_response(r=r, key='type', random_field=True)
-        if name:
-            return type_
-        else:
+        try:
+            r = self.request_solr(q, 'name')
+            name = SolrUtils.get_dynamic_response(r=r, key='name', random_field=True)
+            type_ = SolrUtils.get_dynamic_response(r=r, key='type', random_field=True)
+            if name:
+                return type_
+            else:
+                return None
+        except:
             return None
 
     def request_solr(self, q, key):
@@ -173,4 +176,4 @@ if __name__ == '__main__':
     SK = SceneKernel()
     # greeting_pattern = re.compile(ur'在吗|在嘛|名字')
     # print(re.match(SceneKernel.qa_pattern, u'欧米茄在哪里'))
-    print(SK.kernel(u'星巴克有什么优惠吗'))
+    print(SK.kernel(u'有烤肉吗'))

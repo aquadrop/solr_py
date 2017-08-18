@@ -382,7 +382,7 @@ class QAKernel:
     def _request_solr(self, q, key):
         ## cut q into tokens
         key = '%s:' % key
-        tokens = [key + s for s in QueryUtils.static_jieba_cut(q, False)]
+        tokens = [key + s for s in QueryUtils.static_jieba_cut(q, smart=False, remove_single=True)]
         q = ' OR '.join(tokens)
         url = self.graph_url % q
         # print('qa_debug:', url)
@@ -394,4 +394,4 @@ class QAKernel:
 
 if __name__ == '__main__':
     qa = QAKernel()
-    cn_util.print_cn(qa.kernel(u'星巴克有什么优惠吗', None))
+    cn_util.print_cn(qa.kernel(u'吴中万达有6楼吗', None))
