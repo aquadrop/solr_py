@@ -250,12 +250,12 @@ class BeliefTracker:
         try:
             intentions, fq = self.compose()
             if len(self.remaining_slots) == 0 or (len(intentions) == 1 and '-' in intentions[0]):
-                return 'unclear', np.random.choice(['请大声说出你的需求', '您想做什么呢', '您想干嘛'], 1)[0]
+                return ','.join(intentions), np.random.choice(['请大声说出你的需求', '您想做什么呢', '您想干嘛'], 1)[0]
             if 'facility' in self.remaining_slots or 'entertainment' in self.remaining_slots:
                 qa_intentions = ' '.join(self.remaining_slots)
                 self.remove_slots('facility')
                 self.remove_slots('entertainment')
-                return self.simple.kernel(qa_intentions)
+                return ','.join(intentions), self.simple.kernel(qa_intentions)
             url = self.guide_url + "&q=intention:(%s)" % fq
             # print("gbdt_result_url", url)
             r = requests.get(url)
@@ -272,11 +272,18 @@ class BeliefTracker:
             return 'unclear', '我好像不知道哦, 问问咨询台呢'
 
     def generate_response(self, response, labels):
-        graph_url = 'http://localhost:11403/solr/graph/select?q.op=AND&wt=json&q=*:*&'
+        graph_url = 'http://localhost:11403/solr/graph/select?wt=json&q=%s'
         if '<s>' in response:
-            condition = ['fq=label:%s' % label for label in labels]
-            condition = '&'.join(condition)
-            url = graph_url + condition
+            condition = []
+            for label in labels:
+                try:
+                    string = 'label:%s' % (label + '^' + str(self.belief_graph.slot_importances[label.encode('utf-8')]))
+                except:
+                    string = 'label:%s' % label
+                condition.append(string)
+            condition = '%20OR%20'.join(condition)
+            url = graph_url % condition
+            # print(url)
             r = requests.get(url)
             if SolrUtils.num_answer(r) > 0:
                 name = self._get_response(r=r, key='name', random_hit=True, random_field=True)
@@ -290,7 +297,7 @@ class BeliefTracker:
 
     def _get_response(self, r, key, random_hit=False, random_field=True, keep_array=False):
         try:
-            num = np.minimum(SolrUtils.num_answer(r), 10)
+            num = np.minimum(SolrUtils.num_answer(r), 3)
             if random_hit:
                 hit = np.random.randint(0, num)
             else:
@@ -319,7 +326,7 @@ class BeliefTracker:
 
 if __name__ == "__main__":
     bt = BeliefTracker("../model/sc/belief_graph.pkl", '../model/sc/belief_clf.pkl')
-    ipts = ["买鲜花"]
+    ipts = ["我要吃披萨"]
     for ipt in ipts:
         # ipt = raw_input()
         # chinese comma

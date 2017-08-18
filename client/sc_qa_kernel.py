@@ -21,9 +21,9 @@ import cn_util
 
 class QAKernel:
     null_anwer = ['啊呀！这可难倒宝宝了！这是十万零一个问题，你要问一下我们对面客服台的客服哥哥姐姐哦！']
-    price_response = {"奢侈":"奢侈的东西,有钱人最爱","略贵":"略贵","中档":"还好,性价比高","便宜":"很便宜的"}
-    price_response = {"有折扣": "有折扣的,快去店家看看吧", "没有":"可以看看别的商家"}
-    queue_response = {"要排队": "现在人有点多哦", "不要排队": "人不多,赶紧去吧"}
+    price_response = {u"奢侈":"奢侈的东西,有钱人最爱",u"略贵":"略贵",u"中档":"还好,性价比高",u"便宜":"很便宜的"}
+    discount_response = {u"有折扣": "有折扣的,快去店家看看吧", u"没有":"可以看看别的商家"}
+    queue_response = {u"排队": "现在人有点多哦", u"不要排队": "人不多,赶紧去吧"}
     static_clf = None
     # null_answer = ['null']
     def __init__(self):
@@ -220,7 +220,7 @@ class QAKernel:
         use_type = None
         if current_entity:
             use_entity = current_entity
-            use_entity = current_type
+            use_type = current_type
             use_r = solr_r
         else:
             if last_entity:
@@ -231,7 +231,7 @@ class QAKernel:
         price = SolrUtils.get_dynamic_response(use_r, key='price', random_field=True)
         if price and use_entity and use_type == 'store':
             ## retrive labels
-            return None, self.price_response[price]
+            return None, self.price_response[price.decode('utf-8')]
 
         return None, '不太清楚,请联系客服台或者商家咨询...'
 
@@ -257,7 +257,7 @@ class QAKernel:
         discount = SolrUtils.get_dynamic_response(use_r, key='discount', random_field=True)
         if discount and use_entity and use_type == 'store':
             ## retrive labels
-            return None, self.price_response[discount]
+            return None, self.discount_response[discount.decode('utf-8')]
 
         return None, '不太清楚,请联系客服台或者商家咨询...'
 
@@ -283,32 +283,35 @@ class QAKernel:
         queue = SolrUtils.get_dynamic_response(use_r, key='queue', random_field=True)
         if queue and use_entity and use_type == 'store':
             ## retrive labels
-            return None, self.price_response[queue]
+            return None, self.price_response[queue.decode('utf-8')]
 
         return None, '不太清楚,去商家看看呢...应该不用吧'
 
     ## --> exist: only the strict will be processed
     def whether(self, q, last_r):
-        current_entity, current_type, current_solr_r = self.retrieve_entity(q)
-        if last_r:
-            last_entity, last_type, last_solr_r = self.retrieve_entity(last_r)
-        else:
-            last_entity = None
-
-        use_entity = None
-        if current_entity:
-            use_entity = current_entity
-        else:
-            if last_entity:
-                use_entity = last_entity
-
-        if use_entity:
-            valid = self.whether_label_validate(use_entity, q)
-            if valid:
-                return None, '恩'
-            return None, '好像没有'
-
-        return None, '我不知道,您可以去服务台问问哦'
+        # current_entity, current_type, current_solr_r = self.retrieve_entity(q)
+        # if last_r:
+        #     last_entity, last_type, last_solr_r = self.retrieve_entity(last_r)
+        # else:
+        #     last_entity = None
+        #
+        # use_entity = None
+        # if current_entity:
+        #     if current_entity.decode('utf-8') == u'二期':
+        #         return None, '是的'
+        #     use_entity = current_entity
+        # else:
+        #     if last_entity:
+        #         use_entity = last_entity
+        #
+        # if use_entity:
+        #     valid = self.whether_label_validate(use_entity, q)
+        #     if valid:
+        #         return None, '恩'
+        #     return None, '好像不是'
+        #
+        # return None, '我不知道,您可以去服务台问问哦'
+        return self.simple.kernel(q)
 
     def whether_label_validate(self, entity, label_query):
         valid_url = 'http://localhost:11403/solr/graph/select?&q=*:*&wt=json&fq=name:%s&fq=label:%s' % (entity, label_query)
@@ -391,4 +394,4 @@ class QAKernel:
 
 if __name__ == '__main__':
     qa = QAKernel()
-    cn_util.print_cn(qa.exist(u'南京有什么好吃的', None))
+    cn_util.print_cn(qa.kernel(u'这里是二期吗', None))

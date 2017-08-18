@@ -80,8 +80,8 @@ class EntryKernel:
                 if redirection == 'base':
                     response = self.base_kernel.kernel(query=q)
         if direction == EntryKernel.GREETING:
-            direction, response = self.greeting_kernel.kernel(q)
-            if not response and direction:
+            redirection, response = self.greeting_kernel.kernel(q)
+            if not response and redirection:
                 redirected = True
                 response = self.base_kernel.kernel(q)
         if direction == RepeatKernel.MACHINE:
