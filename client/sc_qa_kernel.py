@@ -99,7 +99,7 @@ class QAKernel:
             return self.simple.kernel(q)
 
     def common(self, q, key):
-        r = self._request_solr(q, 'name')
+        r = self._request_solr(q, 'name', base_url=self.graph_url)
 
         try:
             num = SolrUtils.num_answer(r)
@@ -153,7 +153,7 @@ class QAKernel:
         return self.simple.kernel(q)
 
     def what(self, q, last_r):
-        r = self._request_solr(q, 'name')
+        r = self._request_solr(q, 'name', base_url=self.graph_url)
         response = SolrUtils.get_dynamic_response(r, 'definition')
         if response:
             return None, response
@@ -195,7 +195,7 @@ class QAKernel:
         current_entity, current_type, solr_r = self.retrieve_entity(q)
 
         if current_entity:
-            r = self._request_solr(current_entity, 'name')
+            r = self._request_solr(current_entity, 'name', base_url=self.graph_url)
             response = self.retrieve_common_info(r)
             if response:
                 return None, response
@@ -210,9 +210,9 @@ class QAKernel:
         return None, '貌似不可以哦, 您可以去对面服务台咨询看看呢...'
 
     def ask_price(self, q, last_r):
-        current_entity, current_type, solr_r = self.retrieve_entity(q)
+        current_entity, current_type, solr_r = self.retrieve_entity(q, type_='store')
         if not current_entity and last_r:
-            last_entity, last_type, last_solr_r = self.retrieve_entity(last_r)
+            last_entity, last_type, last_solr_r = self.retrieve_entity(last_r, type_='store')
         else:
             last_entity = None
 
@@ -236,9 +236,9 @@ class QAKernel:
         return None, '不太清楚,请联系客服台或者商家咨询...'
 
     def ask_discount(self, q, last_r):
-        current_entity, current_type, solr_r = self.retrieve_entity(q)
+        current_entity, current_type, solr_r = self.retrieve_entity(q, type_='store')
         if not current_entity and last_r:
-            last_entity, last_type, last_solr_r = self.retrieve_entity(last_r)
+            last_entity, last_type, last_solr_r = self.retrieve_entity(last_r, type_='store')
         else:
             last_entity = None
 
@@ -261,10 +261,10 @@ class QAKernel:
 
         return None, '不太清楚,请联系客服台或者商家咨询...'
 
-    def ask_queue(self, q, last_r):
-        current_entity, current_type, solr_r = self.retrieve_entity(q)
+    def ask_queue(self, q, last_r, type_='store'):
+        current_entity, current_type, solr_r = self.retrieve_entity(q, type_='store')
         if not current_entity and last_r:
-            last_entity, last_type, last_solr_r = self.retrieve_entity(last_r)
+            last_entity, last_type, last_solr_r = self.retrieve_entity(last_r, type_='store')
         else:
             last_entity = None
 
@@ -336,8 +336,12 @@ class QAKernel:
             return application
         return None
 
-    def retrieve_entity(self, q):
-        r = self._request_solr(q, 'name')
+    def retrieve_entity(self, q, type_ = None):
+        if not type_:
+            base_url = self.graph_url
+        else:
+            base_url = 'http://localhost:11403/solr/graph/select?q.op=OR&wt=json&q=%s&type:' +  type_
+        r = self._request_solr(q, 'name', base_url=base_url)
         name = SolrUtils.get_dynamic_response(r=r, key='name', random_field=True)
         type_ = SolrUtils.get_dynamic_response(r=r, key='type', random_field=True)
         if name:
@@ -346,7 +350,7 @@ class QAKernel:
             return None, None, r
 
     def retrieve_label(self, q):
-        r = self._request_solr(q, 'name')
+        r = self._request_solr(q, 'name', base_url=self.graph_url)
         name = SolrUtils.get_dynamic_response(r=r, key='label', random_field=True)
         if name:
             return name, 'item', r
@@ -379,12 +383,12 @@ class QAKernel:
         except:
             return False, np.random.choice(self.null_anwer, 1)[0]
 
-    def _request_solr(self, q, key):
+    def _request_solr(self, q, key, base_url):
         ## cut q into tokens
         key = '%s:' % key
         tokens = [key + s for s in QueryUtils.static_jieba_cut(q, smart=False, remove_single=True)]
         q = ' OR '.join(tokens)
-        url = self.graph_url % q
+        url = base_url % q
         # print('qa_debug:', url)
         r = requests.get(url)
         return r
@@ -394,4 +398,4 @@ class QAKernel:
 
 if __name__ == '__main__':
     qa = QAKernel()
-    cn_util.print_cn(qa.kernel(u'他家贵吗', u"路易威登,国际大牌路易威登就在一期一层哦"))
+    cn_util.print_cn(qa.kernel(u'他家贵吗', u"Omega,一起三楼"))
