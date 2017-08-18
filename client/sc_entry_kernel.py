@@ -79,6 +79,7 @@ class EntryKernel:
                     inside_intentions, response = self.main_kernel.kernel(query=q)
                 if redirection == 'base':
                     response = self.base_kernel.kernel(query=q)
+            self.last_response = response
         if direction == EntryKernel.GREETING:
             redirection, response = self.greeting_kernel.kernel(q)
             if not response and redirection:
