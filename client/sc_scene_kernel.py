@@ -59,7 +59,7 @@ class SceneKernel:
     qa_clean_pattern = re.compile(ur'在哪里|在哪|在那里|在那|怎么走|带我去下|带我去')
     greeting_pattern = re.compile(ur".*?(在吗|在嘛|名字|几岁|多少岁).*?")
     greeting_clean_pattern = re.compile(ur'啊|呢|呀')
-    request_more_pattern = re.compile(ur".*?(换一个|还有什么|还有其他|还有别的).*?")
+    request_more_pattern = re.compile(ur".*?(换一|还有什么|还有其他|还有别的).*?")
     """
     return direction, suggested_direction, fixed q
     """
@@ -173,4 +173,4 @@ if __name__ == '__main__':
     SK = SceneKernel()
     # greeting_pattern = re.compile(ur'在吗|在嘛|名字')
     # print(re.match(SceneKernel.qa_pattern, u'欧米茄在哪里'))
-    print(SK.kernel(u'唱歌'))
+    print(SK.kernel(u'星巴克有什么优惠吗'))
