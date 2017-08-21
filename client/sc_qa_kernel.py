@@ -166,7 +166,7 @@ class QAKernel:
             if definition:
                 return None, definition
             else:
-                return None, '超出知识图谱范畴'
+                return None, '商家没有给出信息或者超出知识库范畴'
 
         current_entity, current_type, solr_r = self.retrieve_entity(q, type_='item')
         if current_entity:

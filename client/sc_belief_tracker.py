@@ -169,8 +169,10 @@ class BeliefTracker:
                             remove_keys.extend(sub_children_names)
 
                     for key in remove_keys:
-                        del self.remaining_slots[key]
-                        del self.negative_slots[key]
+                        if key in self.remaining_slots:
+                            del self.remaining_slots[key]
+                        if key in self.negative_slots:
+                            del self.negative_slots[key]
                         search_parent_node.remove_node(key=key, value_type=Node.KEY)
                     ## new slot added
                     new_node = Node(slot=slot)
