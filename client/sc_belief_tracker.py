@@ -203,14 +203,14 @@ class BeliefTracker:
         return self.single_slot(self.last_slots, split=split)
 
     def remove_slots(self, key):
-        new_remaining_slots = []
-        for slot in self.remaining_slots:
-            if slot == key:
+        new_remaining_slots = {}
+        for remaining_slot, index in self.remaining_slots.iteritems():
+            if remaining_slot == key:
                 continue
-            node = self.belief_graph.get_global_node(slot)
+            node = self.belief_graph.get_global_node(remaining_slot)
             if node.has_ancester(key):
                 continue
-            new_remaining_slots.append(slot)
+            new_remaining_slots[remaining_slot] = self.remaining_slots[remaining_slot]
         self.remaining_slots = new_remaining_slots
 
     def single_slot(self, slots, split=' OR '):

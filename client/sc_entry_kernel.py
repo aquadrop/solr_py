@@ -78,7 +78,7 @@ class EntryKernel:
                 if redirection == 'sale':
                     inside_intentions, response = self.main_kernel.kernel(query=q)
                 if redirection == 'base':
-                    response = self.base_kernel.kernel(query=q)
+                    response = self.base_kernel.kernel(q)
             self.last_response = response
         if direction == EntryKernel.GREETING:
             redirection, response = self.greeting_kernel.kernel(q)
