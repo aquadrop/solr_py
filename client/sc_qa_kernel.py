@@ -404,7 +404,7 @@ class QAKernel:
         tokens = [s for s in QueryUtils.static_jieba_cut(q, smart=False, remove_single=True)]
         q = key + "(" + '%20'.join(tokens) + ")"
         url = base_url % q
-        # print('qa_debug:', url)
+        cn_util.print_cn(url)
         r = requests.get(url)
         return r
 
@@ -413,4 +413,4 @@ class QAKernel:
 
 if __name__ == '__main__':
     qa = QAKernel()
-    cn_util.print_cn(qa.kernel(u'介绍下LV', u"Omega,一期三楼"))
+    cn_util.print_cn(qa.kernel(u'有什么卖鞋的', u"Omega,一期三楼"))

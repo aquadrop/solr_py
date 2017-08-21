@@ -165,6 +165,7 @@ class SimpleSeqClassifier:
         return corrected, probs
 
     ask_price = re.compile(ur'.*?(贵吗|贵不贵|便宜吗|便宜不便宜).*?')
+    list = re.compile(ur'.*?(有什么|有哪些).*?')
     ask_discount = re.compile(ur'.*?(优惠吗|折扣吗|有没有优惠|有没有折扣).*?')
     where = re.compile(ur'.*?(几楼|什么地方|在哪|在那|带我去|我想去|怎么去|怎么走).*?')
     def correct_label(self, question, label):
@@ -174,6 +175,8 @@ class SimpleSeqClassifier:
             return 'ask_discount'
         if re.match(self.ask_discount, question):
             return 'where'
+        if re.match(self.list, question):
+            return 'list'
         return label
 
     def interface(self, q):
