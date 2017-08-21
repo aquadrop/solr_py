@@ -178,4 +178,4 @@ if __name__ == '__main__':
     SK = SceneKernel()
     # greeting_pattern = re.compile(ur'在吗|在嘛|名字')
     # print(re.match(SceneKernel.qa_pattern, u'欧米茄在哪里'))
-    print(SK.kernel(u'耐克有什么鞋子'))
+    print(SK.kernel(u'母婴'))
