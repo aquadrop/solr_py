@@ -291,7 +291,7 @@ class BeliefTracker:
                 new_response = response.replace('<s>', name).replace('<l>', location)
                 return new_response
             else:
-                return '没有找到相关商家哦.您的需求有点特别哦...'
+                return '没有找到相关商家哦.您的需求有点特别哦.或者不在知识图谱范围内...'
         else:
             return response
 

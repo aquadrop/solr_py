@@ -80,19 +80,19 @@ class QAKernel:
                 direction, answer = self.whether(q=q, last_r=last_r)
                 return direction, answer
             if cls == 'when':
-                direction, answer = self.when(q)
+                direction, answer = self.when(q=q, last_r=last_r)
                 return direction, answer
             if cls == 'how':
-                direction, answer = self.how(q)
+                direction, answer = self.how(q=q, last_r=last_r)
                 return direction, answer
             if cls == 'which':
-                direction, answer = self.which(q)
+                direction, answer = self.which(q=q, last_r=last_r)
                 return direction, answer
             if cls == 'what':
-                direction, answer = self.what(q)
+                direction, answer = self.what(q=q, last_r=last_r)
                 return direction, answer
             if cls == 'list':
-                direction, answer = self.list(q)
+                direction, answer = self.list(q=q, last_r=last_r)
                 return direction, answer
             return self.simple.kernel(q)
         except Exception,e:
@@ -160,6 +160,21 @@ class QAKernel:
         return self.where(q, None)
 
     def list(self, q, last_r):
+        current_entity, current_type, solr_r = self.retrieve_entity(q, type_='store')
+        if current_entity:
+            definition = SolrUtils.get_dynamic_response(r=solr_r, key='definition', random_field=True)
+            if definition:
+                return None, definition
+            else:
+                return None, '超出知识图谱范畴'
+
+        current_entity, current_type, solr_r = self.retrieve_entity(q, type_='item')
+        if current_entity:
+            ## do listing
+            rs = self._request_solr(current_entity, 'label', self.graph_url)
+            response = SolrUtils.get_dynamic_response(r=rs, key='name',facet=True, random_field=True)
+            if response and len(response) > 0:
+                return None, ','.join(response)
         response = self.common(q, 'listing')
         if response:
             return None, response
@@ -188,7 +203,7 @@ class QAKernel:
         if current_label:
             return 'sale', None
 
-        return None, '貌似没有哦...'
+        return 'base', None
 
     ## --> exist: entity exists, return search. else return none
     def permit(self, q, last_r):
@@ -398,4 +413,4 @@ class QAKernel:
 
 if __name__ == '__main__':
     qa = QAKernel()
-    cn_util.print_cn(qa.kernel(u'你有妹妹吗', u"Omega,一期三楼"))
+    cn_util.print_cn(qa.kernel(u'介绍下LV', u"Omega,一期三楼"))
