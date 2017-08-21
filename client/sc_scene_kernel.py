@@ -10,6 +10,7 @@ from sc_scene_clf import SceneClassifier
 from query_util import QueryUtils
 from solr_utils import SolrUtils
 from sc_negative_clf import Negative_Clf
+import cn_util
 
 import sys
 reload(sys)
@@ -111,43 +112,44 @@ class SceneKernel:
     graph_url = 'http://localhost:11403/solr/graph/select?q.op=OR&wt=json&q=%s'
     def entity_recog(self, q):
         try:
-            type_ = self.retrieve_entity(q)
+            _, type_,_ = self.retrieve_entity(q, type_='store')
             if type_:
                 return type_
-            type_ = self.retrieve_label(q)
+            _, type_, _ = self.retrieve_entity(q, type_='item')
             if type_:
                 return type_
             return None
         except:
             return None
+
+    def retrieve_entity(self, q, type_ = None):
+        if not type_:
+            base_url = self.graph_url
+        else:
+            base_url = 'http://localhost:11403/solr/graph/select?q.op=OR&wt=json&q=%s AND type:' +  type_
+        r = self._request_solr(q, 'name', base_url=base_url)
+        name = SolrUtils.get_dynamic_response(r=r, key='name', random_field=True)
+        type_ = SolrUtils.get_dynamic_response(r=r, key='type', random_field=True)
+        if name:
+            return name, type_, r
+        else:
+            return None, None, r
 
     def retrieve_label(self, q):
-        r = self.request_solr(q, 'label')
+        r = self._request_solr(q, 'name', base_url=self.graph_url)
         name = SolrUtils.get_dynamic_response(r=r, key='label', random_field=True)
         if name:
-            return 'item'
+            return name, 'item', r
         else:
-            return None
+            return None, None, None
 
-    def retrieve_entity(self, q):
-        try:
-            r = self.request_solr(q, 'name')
-            name = SolrUtils.get_dynamic_response(r=r, key='name', random_field=True)
-            type_ = SolrUtils.get_dynamic_response(r=r, key='type', random_field=True)
-            if name:
-                return type_
-            else:
-                return None
-        except:
-            return None
-
-    def request_solr(self, q, key):
+    def _request_solr(self, q, key, base_url):
         ## cut q into tokens
         key = '%s:' % key
-        tokens = [key + s for s in QueryUtils.static_jieba_cut(q, smart=True, remove_single=True)]
-        q = ' OR '.join(tokens)
-        url = self.graph_url % q
-        # print('qa_debug:', url)
+        tokens = [s for s in QueryUtils.static_jieba_cut(q, smart=False, remove_single=True)]
+        q = key + "(" + '%20'.join(tokens) + ")"
+        url = base_url % q
+        cn_util.print_cn(url)
         r = requests.get(url)
         return r
 
@@ -176,4 +178,4 @@ if __name__ == '__main__':
     SK = SceneKernel()
     # greeting_pattern = re.compile(ur'在吗|在嘛|名字')
     # print(re.match(SceneKernel.qa_pattern, u'欧米茄在哪里'))
-    print(SK.kernel(u'有烤肉吗'))
+    print(SK.kernel(u'耐克有什么鞋子'))
