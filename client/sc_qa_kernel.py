@@ -183,12 +183,12 @@ class QAKernel:
             else:
                 return None, '没有找到相关信息'
 
-        current_label = self.retrieve_label(q)
+        current_label, current_type, label_r = self.retrieve_label(q)
         ## hand over to main kernel
         if current_label:
             return 'sale', None
 
-        return None, '貌似没有哦, 您可以去对面服务台咨询看看呢...'
+        return None, '貌似没有哦...'
 
     ## --> exist: entity exists, return search. else return none
     def permit(self, q, last_r):
@@ -202,7 +202,7 @@ class QAKernel:
             else:
                 return None, '没有找到相关信息'
 
-        current_label = self.retrieve_label(q)
+        current_label, current_type, label_r = self.retrieve_label(q)
         ## hand over to main kernel
         if current_label:
             return self.simple(q)
@@ -398,4 +398,4 @@ class QAKernel:
 
 if __name__ == '__main__':
     qa = QAKernel()
-    cn_util.print_cn(qa.kernel(u'超市在什么地方', u"Omega,一期三楼"))
+    cn_util.print_cn(qa.kernel(u'你有妹妹吗', u"Omega,一期三楼"))
