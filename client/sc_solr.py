@@ -3,6 +3,7 @@
 
 import Queue
 import argparse
+import traceback
 
 from urllib import unquote
 from flask import Flask
@@ -23,10 +24,10 @@ sys.setdefaultencoding("utf-8")
 app = Flask(__name__)
 
 kernel = EntryKernel()
-multi_sc_kernels = LRU(200)
+multi_sc_kernels = LRU(1000)
 
 QSIZE = 1
-kernel_backups = Queue.Queue(200)
+kernel_backups = Queue.Queue(1000)
 
 @app.route('/sc/info', methods=['GET', 'POST'])
 def info():
@@ -59,7 +60,7 @@ def chat():
                         k = EntryKernel()
                         kernel_backups.put_nowait(k)
                         result = {"question": q, "result": \
-                            {"answer": "maximum online number reached, assigning instance for you..please wait..."},
+                            {"answer": "主机负载到达初始上限,正在为您分配实例..."},
                                   "user": u}
                         # print('========================')
                     return json.dumps(result, ensure_ascii=False)
@@ -69,11 +70,13 @@ def chat():
             return json.dumps(result, ensure_ascii=False)
 
         except:
+            traceback.print_exc()
             r = kernel.kernel(q=q, debug=debug)
             result = {"question": q, "result": {"answer": r}, "user": "solr"}
             return json.dumps(result, ensure_ascii=False)
     except Exception, e:
-        result = {"question": q, "result": {"answer": "..."}, "user": "solr"}
+        traceback.print_exc()
+        result = {"question": q, "result": {"answer": "主机负载到达上限或者主机核心出现异常"}, "user": "solr"}
         return json.dumps(result, ensure_ascii=False)
 
 if __name__ == "__main__":
@@ -81,8 +84,8 @@ if __name__ == "__main__":
     # print(SK.kernel('你叫什么名字'))
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('--qsize', choices={'1', '8', '50'},
-                        default='50', help='q_size initializes number of the starting instances...')
+    parser.add_argument('--qsize', choices={'1', '8', '200'},
+                        default='200', help='q_size initializes number of the starting instances...')
     args = parser.parse_args()
 
     QSIZE = int(args.qsize)
