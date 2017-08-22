@@ -47,7 +47,7 @@ class EntryKernel:
         self.sing_kernel = SimpleSingKernel()
         self.reqmore_kernel = RequestMoreKernel()
         self.last_response = None
-        self.base_keep = 2
+        self.base_keep = 0
 
     def kernel(self, q, direction=None, user='solr', debug=False, recursive=False):
         fixed_q = q
@@ -65,12 +65,21 @@ class EntryKernel:
         response = None
         inside_intentions = ''
         redirected = False
-        if direction == EntryKernel.SING:
-            response = self.sing_kernel.kernel(q)
+
+        if direction == EntryKernel.BASE:
+            self.base_keep = 2
+        else:
+            self.base_keep -= 1
+
+        if self.base_keep > 0:
+            direction = EntryKernel.BASE
+
         if direction == EntryKernel.BASE:
             response = self.base_kernel.kernel(q)
             if not response:
-                response = '...'
+                response = '基础核心损坏,请稍后再试'
+        if direction == EntryKernel.SING:
+            response = self.sing_kernel.kernel(q)
         if direction == EntryKernel.QA:
             redirection, response = self.qa_kernel.kernel(q, self.last_response)
             if redirection:
