@@ -148,9 +148,9 @@ class QueryUtils:
     @staticmethod
     def static_remove_pu(q):
         # q = re.sub(ur"[\s+\.\!\/_,$%^*(+\"\']+|[+——！，。？、~@#￥%……&*（）：；《）《》“”()»〔〕-]+", "", q)
-        pu = re.compile(r'(啊|呢|哦|哈|呀|捏|撒|哟|呐)')
+        pu = re.compile(ur'[啊|呢|哦|哈|呀|捏|撒|哟|呐|吧]')
         try:
-            return re.sub(pu, '', q)
+            return re.sub(pu, '', q.decode('utf-8'))
         except:
             return q
 
@@ -356,4 +356,5 @@ if __name__ == '__main__':
     # # print(QueryUtils.static_remove_cn_punct(u'我在电视上见过你，听说你很聪明啊?'))
     # cn_util.print_cn(qu.quant_bucket_fix('一点钱'))
     # cn_util.print_cn(qu.quant_bucket_fix('我要取1千零1百'))
-    cn_util.print_cn(QueryUtils.static_jieba_cut('紫桂焖大排', smart=True, remove_single=True))
+    # cn_util.print_cn(QueryUtils.static_jieba_cut('紫桂焖大排', smart=True, remove_single=True))
+    cn_util.print_cn(QueryUtils.static_remove_pu('高兴哈'))

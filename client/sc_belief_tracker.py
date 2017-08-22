@@ -40,7 +40,7 @@ class BeliefTracker:
 
     last_slots = None
 
-    guide_url = "http://localhost:11403/solr/sc_sale_gen/select?defType=edismax&indent=on&wt=json"
+    guide_url = "http://localhost:11403/solr/sc_sale_adv/select?defType=edismax&indent=on&wt=json"
     # tokenizer_url = "http://localhost:5000/pos?q="
 
     def kernel(self, query):
@@ -353,7 +353,7 @@ class BeliefTracker:
 
 if __name__ == "__main__":
     bt = BeliefTracker("../model/sc/belief_graph.pkl", '../model/sc/belief_clf.pkl')
-    ipts = ["我不买鞋"]
+    ipts = ["我买男鞋"]
     for ipt in ipts:
         # ipt = raw_input()
         # chinese comma

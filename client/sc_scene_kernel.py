@@ -38,6 +38,7 @@ class SceneKernel:
             if not self.web:
                 if not self.clf:
                     return 'sale', None, q
+                q = QueryUtils.static_remove_pu(q)
                 labels, _ = self.clf.predict(question=q)
                 select = self.select_label(labels)
                 ## qa plugin:

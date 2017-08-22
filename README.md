@@ -6,7 +6,7 @@ curl 'http://localhost:8983/solr/techproducts/update?commit=true' --data-binary 
 <p>
 curl 'http://10.89.100.12:11403/solr/sc_greeting/update?commit=true' --data-binary @greetings.json -H 'Content-type:application/json'
 cat common_qa.txt | awk -F "\t" '{print $2}' > common_qa_q.txt
-
+csv.separator=%09
 awk -F '"' '{print $2}' your_input_file
 </p>
 <p>
