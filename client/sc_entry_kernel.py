@@ -175,7 +175,7 @@ if __name__ == '__main__':
         input_ = raw_input()
         input_ = input_.decode('utf-8')
         response = kernel.kernel(input_)
-        print(response)
+        print_cn(response)
     #
     # response = kernel.kernel(u'我不买实惠的衣服')
     # print(response)

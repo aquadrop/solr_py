@@ -254,7 +254,7 @@ class BeliefTracker:
             if len(self.remaining_slots) == 0 or (len(intentions) == 1 and '-' in intentions[0]):
                 return ','.join(intentions), np.random.choice(['请大声说出你的需求', '您想做什么呢', '您想干嘛'], 1)[0]
             if 'facility' in self.remaining_slots or 'entertainment' in self.remaining_slots:
-                qa_intentions = ' '.join(self.remaining_slots)
+                qa_intentions = ','.join(self.remaining_slots)
                 self.remove_slots('facility')
                 self.remove_slots('entertainment')
                 return ','.join(intentions), self.simple.kernel(qa_intentions)

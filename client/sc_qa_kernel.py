@@ -125,7 +125,7 @@ class QAKernel:
         if current_entity:
             location = SolrUtils.get_dynamic_response(current_solr_r, 'location', random_field=True)
             if not location:
-                location = '没有这个地方哦'
+                location = '数据库中不存在'
             return None, current_entity + "," + location
         if not last_entity:
             location = '您在问什么?'
@@ -136,9 +136,9 @@ class QAKernel:
         if re.match(strict, q):
             location = SolrUtils.get_dynamic_response(last_solr_r, 'location', random_field=True)
             if not location:
-                location = '没有这个地方哦'
+                location = '数据库中不存在'
             return None, location
-        return 'base', "没有这个地方哦"
+        return 'base', "数据库中不存在"
 
     def how(self, q, last_r):
         response = self.common(q, 'application')
@@ -413,4 +413,4 @@ class QAKernel:
 
 if __name__ == '__main__':
     qa = QAKernel()
-    cn_util.print_cn(qa.kernel(u'耐克卖什么鞋子', u"Omega,一期三楼"))
+    cn_util.print_cn(qa.kernel(u'南京', u"Omega,一期三楼"))
