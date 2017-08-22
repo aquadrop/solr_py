@@ -139,7 +139,7 @@ class EntryKernel:
                     return response + '@@scene_clf:' + str(direction) + '-->' + str(suggested_direction)
             else:
                 if inside_intentions:
-                    return response + '@@scene_clf:' + str(direction) + '@@belief_tracker:' + inside_intentions
+                    return response + '@@scene_clf:' + str(direction) + '@@belief_tracker:' + str(inside_intentions)
                 else:
                     return response + '@@scene_clf:' + str(direction)
         else:

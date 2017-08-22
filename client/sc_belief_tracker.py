@@ -257,7 +257,8 @@ class BeliefTracker:
                 qa_intentions = ','.join(self.remaining_slots)
                 self.remove_slots('facility')
                 self.remove_slots('entertainment')
-                return ','.join(intentions), self.simple.kernel(qa_intentions)
+                _, response = self.simple.kernel(qa_intentions)
+                return ','.join(intentions), response
             url = self.guide_url + "&q=intention:(%s)" % fq
             # print("gbdt_result_url", url)
             r = requests.get(url)
