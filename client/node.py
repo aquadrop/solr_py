@@ -82,6 +82,13 @@ class Node:
                 break
         return False
 
+    def sibling_names(self, value_type):
+        if not self.parent_node:
+            return {}
+        parent_children = self.parent_node.all_children(value_type=value_type)
+        if self.slot in parent_children:
+            del parent_children[self.slot]
+        return parent_children.keys()
 
     def get_child(self, key, value_type):
         if value_type in self.classified_out_neighbors:

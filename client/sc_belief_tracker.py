@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import requests
+import traceback
 import cPickle as pickle
 
 import numpy as np
@@ -14,11 +15,13 @@ import cn_util
 from sc_belief_graph import BeliefGraph
 from sc_negative_clf import Negative_Clf
 from sc_simple_qa_kernel import SimpleQAKernel
+from sc_qa_kernel import QAKernel
 
 class BeliefTracker:
     ## static
     static_gbdt = None
     static_belief_graph = None
+    static_qa_clf = None
 
     def __init__(self, graph_path, clf_path):
         self.gbdt = None
@@ -33,6 +36,7 @@ class BeliefTracker:
         self.negative = False
         self.negative_clf=Negative_Clf()
         self.simple = SimpleQAKernel()
+        self.machine_state = None
 
     last_slots = None
 
@@ -41,8 +45,8 @@ class BeliefTracker:
 
     def kernel(self, query):
         query = QueryUtils.static_simple_remove_punct(query)
-        return self.r_walk_with_pointer_with_clf(query=query)
-
+        next_scene, inside_intentions, response = self.r_walk_with_pointer_with_clf(query=query)
+        return next_scene, inside_intentions, response
 
     def clear_state(self):
         self.search_graph = BeliefGraph()
@@ -70,12 +74,13 @@ class BeliefTracker:
                 print('attaching logic graph...100%')
                 with open(path, "rb") as input_file:
                     self.belief_graph = pickle.load(input_file)
+                    BeliefTracker.static_belief_graph = self.belief_graph
                     # print(self.graph.go('购物', Node.REGEX))
             except:
                 print('failed to attach logic graph...detaching...')
         else:
             print('skipping attaching logic graph...')
-            self.static_belief_graph = BeliefTracker.static_belief_graph
+            self.belief_graph = BeliefTracker.static_belief_graph
 
     def travel_with_clf(self, query):
         filtered_slots_list = []
@@ -233,10 +238,10 @@ class BeliefTracker:
                     slot = '-' + slot
             elif size==2:
                 if self.negative_slots[slot] and self.belief_graph.slot_identities[slot] != 'intention':
-                    slot = '-' + slot
+                    slot = self.sibling(slot=slot, maximum_num=1)[0]
             elif size == 1:
                 if self.negative_slots[slot]:
-                    slot = '-' + slot
+                    slot = self.sibling(slot=slot, maximum_num=1)[0]
             intention = slot + '^' + str(float(score) * float(importance))
             intentions.append(intention)
         return intentions, ' OR '.join(intentions)
@@ -248,17 +253,35 @@ class BeliefTracker:
 
         return False
 
+    def sibling(self, slot, maximum_num):
+        black_list = ['facility', 'entertainment']
+        node = self.belief_graph.get_global_node(slot)
+        sibling = node.sibling_names(value_type=Node.KEY)
+        ## must be of same identities
+        identity = self.belief_graph.slot_identities[slot.encode('utf-8')]
+        cls_sibling = []
+        for s in sibling:
+            try:
+                if s in black_list:
+                    continue
+                if self.belief_graph.slot_identities[s.encode('utf-8')] == identity:
+                    cls_sibling.append(s)
+            except:
+                pass
+        maximum_num = np.minimum(maximum_num, len(cls_sibling))
+        return np.random.choice(a=cls_sibling, replace=False, size=maximum_num)
+
     def search(self):
         try:
             intentions, fq = self.compose()
-            if len(self.remaining_slots) == 0 or (len(intentions) == 1 and '-' in intentions[0]):
-                return ','.join(intentions), np.random.choice(['请大声说出你的需求', '您想做什么呢', '您想干嘛'], 1)[0]
+            if len(self.remaining_slots) == 0:
+                return 'base', 'unclear', None
             if 'facility' in self.remaining_slots or 'entertainment' in self.remaining_slots:
                 qa_intentions = ','.join(self.remaining_slots)
                 self.remove_slots('facility')
                 self.remove_slots('entertainment')
                 _, response = self.simple.kernel(qa_intentions)
-                return ','.join(intentions), response
+                return None, ','.join(intentions), response
             url = self.guide_url + "&q=intention:(%s)" % fq
             # print("gbdt_result_url", url)
             r = requests.get(url)
@@ -270,9 +293,10 @@ class BeliefTracker:
                     if rl in labels:
                         labels.remove(rl)
                 response = self.generate_response(response, labels)
-                return ','.join(intentions), response
+                return None, ','.join(intentions), response
         except:
-            return 'unclear', '我好像不知道哦, 问问咨询台呢'
+            traceback.print_exc()
+            return 'base', 'unclear', '我好像不知道哦, 问问咨询台呢'
 
     def generate_response(self, response, labels):
         graph_url = 'http://localhost:11403/solr/graph/select?wt=json&q=%s'
@@ -294,7 +318,7 @@ class BeliefTracker:
                 new_response = response.replace('<s>', name).replace('<l>', location)
                 return new_response
             else:
-                return '没有找到相关商家哦.您的需求有点特别哦.或者不在知识图谱范围内...'
+                return '没有找到相关商家哦.您的需求有点特别哦.或者不在知识库范围内...'
         else:
             return response
 
@@ -329,7 +353,7 @@ class BeliefTracker:
 
 if __name__ == "__main__":
     bt = BeliefTracker("../model/sc/belief_graph.pkl", '../model/sc/belief_clf.pkl')
-    ipts = ["买护手霜"]
+    ipts = ["我不买鞋"]
     for ipt in ipts:
         # ipt = raw_input()
         # chinese comma

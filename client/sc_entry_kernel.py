@@ -47,6 +47,7 @@ class EntryKernel:
         self.sing_kernel = SimpleSingKernel()
         self.reqmore_kernel = RequestMoreKernel()
         self.last_response = None
+        self.base_keep = 2
 
     def kernel(self, q, direction=None, user='solr', debug=False, recursive=False):
         fixed_q = q
@@ -90,8 +91,10 @@ class EntryKernel:
         if direction == RepeatKernel.USER:
             response = self.repeat_kernel.kernel(type_=RepeatKernel.USER)
         if direction == EntryKernel.SALE:
-            inside_intentions, response = self.main_kernel.kernel(query=q)
+            redirection, inside_intentions, response = self.main_kernel.kernel(query=q)
             self.last_response = response
+            if redirection == 'base':
+                response = self.base_kernel.kernel(q)
         if direction == EntryKernel.REQMORE:
             response = self.reqmore_kernel.kernel(q)
 
