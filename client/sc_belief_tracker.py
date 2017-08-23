@@ -283,7 +283,7 @@ class BeliefTracker:
                 _, response = self.simple.kernel(qa_intentions)
                 return None, ','.join(intentions), response
             url = self.guide_url + "&q=intention:(%s)" % fq
-            # print("gbdt_result_url", url)
+            cn_util.print_cn("gbdt_result_url", url)
             r = requests.get(url)
             if SolrUtils.num_answer(r) > 0:
                 response = self._get_response(r, 'answer', random_hit=self.contain_negative(intentions), random_field=True, keep_array=False)
@@ -353,7 +353,7 @@ class BeliefTracker:
 
 if __name__ == "__main__":
     bt = BeliefTracker("../model/sc/belief_graph.pkl", '../model/sc/belief_clf.pkl')
-    ipts = ["我买男鞋"]
+    ipts = ["买春装"]
     for ipt in ipts:
         # ipt = raw_input()
         # chinese comma
