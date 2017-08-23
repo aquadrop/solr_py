@@ -40,7 +40,7 @@ class BeliefTracker:
 
     last_slots = None
 
-    guide_url = "http://localhost:11403/solr/sc_sale_adv/select?defType=edismax&indent=on&wt=json"
+    guide_url = "http://localhost:11403/solr/sc_sale_gen/select?defType=edismax&indent=on&wt=json"
     # tokenizer_url = "http://localhost:5000/pos?q="
 
     def kernel(self, query):
