@@ -91,6 +91,8 @@ class BeliefTracker:
             for i, prob in enumerate(probs):
                 if prob >= 0.7:
                     filtered_slots_list.append(slots_list[i])
+                else:
+                    cn_util.print_cn("droping slot:", slots_list[i], prob)
 
             filtered_slots_list = set(filtered_slots_list)
             if len(filtered_slots_list) == 0:
@@ -353,10 +355,10 @@ class BeliefTracker:
 
 if __name__ == "__main__":
     bt = BeliefTracker("../model/sc/belief_graph.pkl", '../model/sc/belief_clf.pkl')
-    ipts = ["买春装"]
+    ipts = ["买鲜花"]
     for ipt in ipts:
         # ipt = raw_input()
         # chinese comma
         # bt.travel_with_clf(ipt)
-        cn_util.print_cn(bt.kernel(ipt))
+        cn_util.print_cn(",".join(bt.kernel(ipt)))
         # cn_util.print_cn(bt.compose()[0])

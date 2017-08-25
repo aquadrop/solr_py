@@ -11,8 +11,8 @@ reload(sys)
 sys.setdefaultencoding("utf-8")
 
 
-def print_cn(q, others=''):
-    print(_uniout.unescape(str(q), 'utf8'), others)
+def print_cn(*q):
+    print(_uniout.unescape(','.join(q), 'utf8'))
 
 
 def cn(q):
@@ -35,6 +35,7 @@ def print_out(s, f=None, new_line=True):
     sys.stdout.flush()
 
 if __name__ == '__main__':
-    with open('../logs/a.log', 'a') as f:
-        print_out('你好', f)
-        print_out('你好b', f)
+    # with open('../logs/a.log', 'a') as f:
+    #     print_out('你好', f)
+    #     print_out('你好b', f)
+    print_cn('我',u'他','python')

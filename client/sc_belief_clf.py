@@ -23,7 +23,7 @@ import cPickle as pickle
 import argparse
 import time
 
-from cn_util import print_cn
+import cn_util
 
 parentdir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, parentdir)
@@ -181,7 +181,7 @@ if __name__ == '__main__':
 
     model_path = '../model/sc/belief_clf.pkl'
     clf = Multilabel_Clf.load(model_path=model_path)
-    inputs=["我要来选一台洗衣机"]
+    inputs=["买鲜花"]
     for p in inputs:
         labels, probs = clf.predict(input_=p)
-        print_cn(labels, probs)
+        cn_util.print_cn(','.join(labels))

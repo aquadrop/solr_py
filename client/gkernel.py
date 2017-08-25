@@ -71,11 +71,10 @@ class GKernel:
                 next_node = self.graph.get_global_node(slot=slot)
                 num_found = next_node is not None and proba > 0.95
                 if num_found:
-                    print('found type by gbdt_range:', cn_util.cn(slot), proba)
+                    cn_util.print_cn('found type by gbdt_range:%s,%s' % (cn_util.cn(slot), proba))
                     self.last_slot = node.slot
                 else:
-                    print('NOT found type by gbdt_range:',
-                          cn_util.cn(slot), proba)
+                    cn_util.print_cn('NOT found type by gbdt_range:%s,%s' % (cn_util.cn(slot), proba))
             except Exception, e:
                 print(e.message)
                 num_found = False
@@ -90,7 +89,7 @@ class GKernel:
                             next_node = node.go(q=float(t), value_type="RANGE")
                             num_found = next_node is not None
                             if num_found:
-                                print('found type by RANGE:', next_node.slot)
+                                cn_util.print_cn('found type by RANGE: %s' % next_node.slot)
                                 self.last_slot = node.slot
                                 key = t
                                 break
@@ -108,10 +107,10 @@ class GKernel:
                 next_node = self.graph.get_global_node(slot=slot)
                 key_found = next_node is not None and proba > 0.95
                 if key_found:
-                    print('found type by gbdt:', cn_util.cn(slot), proba)
+                    cn_util.print_cn('found type by gbdt_key:%s,%s' % (cn_util.cn(slot), proba))
                     self.last_slot = node.slot
                 else:
-                    print('NOT found type by gbdt:', cn_util.cn(slot), proba)
+                    cn_util.print_cn('NOT found type by gbdt:%s,%s' % (cn_util.cn(slot), proba))
             except Exception, e:
                 print(e.message)
                 key_found = False
@@ -126,14 +125,13 @@ class GKernel:
                             next_node = node.go(q=t, value_type="KEY")
                             key_found = next_node is not None
                             if key_found:
-                                print(
-                                    'found type by match,and try overriding', next_node.slot)
+                                cn_util.print_cn(
+                                    'found type by match,and try overriding%s' % next_node.slot)
                                 if not gbdt_recursion:
                                     slot, proba = self.gbdt.predict(
                                         parent_slot=node.slot, input_=query)
                                     if proba > 0.95:
-                                        print('overriding match result',
-                                              next_node.slot, slot)
+                                        cn_util.print_cn('overriding match result%s,%s' % (next_node.slot, slot))
                                         next_node = self.graph.get_global_node(
                                             slot=slot)
                                 self.last_slot = node.slot
@@ -178,7 +176,7 @@ class GKernel:
                     query + "%20AND%20exact_intention:" + given_slot
             else:
                 url = self.base_url + "&q=exact_question:" + query
-            print('extact_try_url', url)
+            cn_util.print_cn('extact_try_url %s' % url)
             r = requests.get(url)
 
             if self.num_answer(r) > 0:
@@ -186,7 +184,7 @@ class GKernel:
                 return_slot = self.last_slot = self.get_intention(r)
                 self.should_clear_state(self.last_slot)
                 return_response = self.get_response(r)
-                print('clear exact_', return_slot, self.get_response(r))
+                cn_util.print_cn('clear exact_%s, %s' % (return_slot, self.get_response(r)))
                 return return_slot, return_response
             else:
                 tokenized = self.qu.corenlp_cut(query, self.qu.remove_tags)
@@ -195,7 +193,7 @@ class GKernel:
                     self.clear_state()
                     return None, self.trick(query)
                 if given_slot:
-                    print 'given:', given_slot
+                    cn_util.print_cn('given:%s' % given_slot)
                     given = self.graph.get_global_node(given_slot)
                 else:
                     given = self.graph
@@ -208,12 +206,12 @@ class GKernel:
                     else:
                         url = self.base_url + "&q=exact_last_intention:" + \
                             self.last_slot + "%20AND%20exact_intention:" + node.slot
-                    print("gbdt_result_url", url)
+                    cn_util.print_cn("gbdt_result_url %s" % url)
                     r = requests.get(url)
                     if self.num_answer(r) > 0:
                         self.last_slot = node.slot
                         self.should_clear_state(node.slot)
-                        print 'clear deepest_', node.slot, self.get_response(r)
+                        cn_util.print_cn('clear deepest_ %s, %s' % (node.slot, self.get_response(r)))
                         return node.slot, self.get_response(r)
                 else:
                     return None, self.trick(query)
@@ -224,20 +222,20 @@ class GKernel:
             else:
                 if not self.last_slot:
                     parent_slot = self.graph.get_global_node(self.last_slot).parent_node.slot
-                    print('retrace...', self.last_slot, parent_slot)
+                    cn_util.print_cn('retrace...', self.last_slot, parent_slot)
                     self.clear_state()
                     slot, response = self.r_walk_with_pointer_with_clf(query, parent_slot)
                     return slot, response
             url = self.base_url + "&q=exact_question:" + query + \
                 "%20AND%20exact_last_intention:" + self.last_slot
-            print('non_clear_url_first_try', url)
+            cn_util.print_cn('non_clear_url_first_try', url)
             r = requests.get(url)
 
             if self.num_answer(r) > 0:
                 self.state_cleared = False
                 self.last_slot = slot_ = self.get_intention(r)
                 self.should_clear_state(self.last_slot)
-                print('non clear exact_', slot_, self.get_response(r))
+                cn_util.print_cn('non clear exact_', slot_, self.get_response(r))
                 return slot_, self.get_response(r)
             else:
 
@@ -252,13 +250,13 @@ class GKernel:
                 if next_node == node:
                     # query solr
                     parent_slot = self.graph.get_global_node(self.last_slot).parent_node.slot
-                    print('retrace...', self.last_slot, parent_slot)
+                    cn_util.print_cn('retrace...', self.last_slot, parent_slot)
                     self.clear_state()
                     return self.r_walk_with_pointer_with_clf(query, parent_slot)
                 else:
                     url = self.base_url + "&q=last_intention:" + \
                         self.last_slot + "%20AND%20intention:" + next_node.slot
-                    print("non_clear_go_deeper_url:", url)
+                    cn_util.print_cn("non_clear_go_deeper_url:", url)
                     r = requests.get(url)
 
                 if self.num_answer(r) > 0:
@@ -270,7 +268,7 @@ class GKernel:
                     cn_util.print_cn(
                         str(self.graph.get_global_node(slot_).classified_out_neighbors))
                     self.should_clear_state(slot_)
-                    print('non clear deepest _', slot_, self.get_response(r))
+                    cn_util.print_cn('non clear deepest _', slot_, self.get_response(r))
                     return slot_, self.get_response(r)
                 else:
                     # do trick
@@ -279,7 +277,7 @@ class GKernel:
                         query=query, base_url=self.trick_url)
                     r = requests.get(url)
                     response = self.get_response(r)
-                    print "None-CLEAR-Trick", self.get_response(r)
+                    cn_util.print_cn("None-CLEAR-Trick", self.get_response(r))
                     return None, response
 
     def trick(self, query):
@@ -375,4 +373,4 @@ if __name__ == "__main__":
                 q, s.encode('utf8'))
         else:
             next_slot, response = K.r_walk_with_pointer_with_clf(q)
-        print(str(response))
+        cn_util.print_cn(str(response))

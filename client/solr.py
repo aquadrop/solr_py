@@ -5,6 +5,8 @@ from flask import Flask
 from flask import request
 import json
 
+import traceback
+
 from lru import LRU
 
 from kernel import Kernel
@@ -104,6 +106,7 @@ def r_walk_with_pointer():
             slot, r = kernel.r_walk_with_pointer_with_clf(
                 q.encode('utf-8'), None)
     except Exception, e:
+        traceback.print_exc()
         kernel.clear_state()
         slot = None
         r = None
