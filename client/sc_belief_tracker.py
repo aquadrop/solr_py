@@ -92,7 +92,7 @@ class BeliefTracker:
                 if prob >= 0.7:
                     filtered_slots_list.append(slots_list[i])
                 else:
-                    cn_util.print_cn("droping slot:", slots_list[i], prob)
+                    cn_util.print_cn("droping slot:", slots_list[i], str(prob))
 
             filtered_slots_list = set(filtered_slots_list)
             if len(filtered_slots_list) == 0:
