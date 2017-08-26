@@ -50,13 +50,13 @@ class Multilabel_Clf:
                 corpus.append(tokens)
 
         if mode == 'ngram':
-            print_cn('Use {0}'.format(mode))
+            cn_util.print_cn('Use {0}'.format(mode))
             bigram_vectorizer = CountVectorizer(
                 ngram_range=(1, 2), min_df=0.0, max_df=1.0, analyzer='char', stop_words=[',', '?', '我', '我要'],
                 binary=True)
             self.feature_extractor = bigram_vectorizer.fit(corpus)
         if mode == 'tfidf':
-            print_cn('Use {0}'.format(mode))
+            cn_util.print_cn('Use {0}'.format(mode))
             tfidf_vectorizer = TfidfVectorizer(analyzer='char', ngram_range=(1, 2), max_df=1.0, min_df=1,
                                                sublinear_tf=True)
             self.feature_extractor = tfidf_vectorizer.fit(corpus)

@@ -88,7 +88,7 @@ class BeliefTracker:
             flipped, self.negative = self.negative_clf.predict(input_=query)
             slots_list, probs = self.gbdt.predict(input_=flipped)
             if not slots_list or len(slots_list) == 0:
-                print('strange empty predcition')
+                cn_util.print_cn('strange empty prediction', query)
             # print self.negative
             for i, prob in enumerate(probs):
                 if prob >= 0.7:
