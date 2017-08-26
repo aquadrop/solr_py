@@ -87,6 +87,8 @@ class BeliefTracker:
         if self.gbdt:
             flipped, self.negative = self.negative_clf.predict(input_=query)
             slots_list, probs = self.gbdt.predict(input_=flipped)
+            if not slots_list or len(slots_list) == 0:
+                print('strange empty predcition')
             # print self.negative
             for i, prob in enumerate(probs):
                 if prob >= 0.7:
@@ -96,6 +98,7 @@ class BeliefTracker:
 
             filtered_slots_list = set(filtered_slots_list)
             if len(filtered_slots_list) == 0:
+                print('valid empty predcition')
                 return False, []
         else:
             raise Exception('malfunctioning, main kernel must be attached!')
