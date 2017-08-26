@@ -277,7 +277,7 @@ class BeliefTracker:
         try:
             intentions, fq = self.compose()
             if len(self.remaining_slots) == 0:
-                return 'base', 'unclear', None
+                return 'base', 'empty', None
             if 'facility' in self.remaining_slots or 'entertainment' in self.remaining_slots:
                 qa_intentions = ','.join(self.remaining_slots)
                 self.remove_slots('facility')
@@ -298,7 +298,7 @@ class BeliefTracker:
                 return None, ','.join(intentions), response
         except:
             traceback.print_exc()
-            return 'base', 'unclear', '我好像不知道哦, 问问咨询台呢'
+            return 'base', 'error', '我好像不知道哦, 问问咨询台呢'
 
     def generate_response(self, response, labels):
         graph_url = 'http://localhost:11403/solr/graph/select?wt=json&q=%s'
