@@ -3,6 +3,7 @@
 
 import requests
 import re
+import traceback
 
 import numpy as np
 
@@ -121,6 +122,7 @@ class SceneKernel:
                 return type_
             return None
         except:
+            traceback.print_exc()
             return None
 
     def retrieve_entity(self, q, type_ = None):
