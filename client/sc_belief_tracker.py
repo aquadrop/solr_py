@@ -84,13 +84,15 @@ class BeliefTracker:
 
     def travel_with_clf(self, query):
         filtered_slots_list = []
-        if self.gbdt:
+        try:
             flipped, self.negative = self.negative_clf.predict(input_=query)
             slots_list, probs = self.gbdt.predict(input_=flipped)
             slots_list = [slot.decode('utf-8') for slot in slots_list]
             if not slots_list or len(slots_list) == 0:
                 cn_util.print_cn('strange empty prediction', query, str(type(query)))
-            cn_util.print_cn('predicted_slot' + ','.join(slots_list) + ','.join(probs))
+                return False
+            str_probs = [str(prob) for prob in probs]
+            cn_util.print_cn('prediction-->[' + ','.join(slots_list) + ']|[' + ','.join(str_probs) + ']')
             # print self.negative
             for i, prob in enumerate(probs):
                 if prob >= 0.7:
@@ -101,15 +103,17 @@ class BeliefTracker:
             filtered_slots_list = set(filtered_slots_list)
             if len(filtered_slots_list) == 0:
                 cn_util.print_cn('valid empty predcition', query, str(type(query)))
-                return False, []
-        else:
-            raise Exception('malfunctioning, main kernel must be attached!')
+                return False
+        except:
+            traceback.print_exc()
+            return False
 
         ## build belief graph
         self.update_remaining_slots(expire=True)
         filtered_slots_list = self.inter_fix(filtered_slots_list)
         self.should_expire_all_slots(filtered_slots_list)
         self.update_belief_graph(search_parent_node=self.search_graph, slots_list=filtered_slots_list)
+        return True
 
     def should_expire_all_slots(self, slots_list):
         slots_list = list(slots_list)
@@ -210,7 +214,11 @@ class BeliefTracker:
             self.remaining_slots[slot] = len(self.score_stairs) - 1
 
     def r_walk_with_pointer_with_clf(self, query):
-        self.travel_with_clf(query)
+        sucess = self.travel_with_clf(query)
+        if not sucess:
+            if not query:
+                return None, 'invalid query', '我好像不明白'
+            return 'sale', 'invalid_query', None
         return self.search()
 
     def single_last_slot(self, split=' OR '):
@@ -359,7 +367,7 @@ class BeliefTracker:
 
 
 if __name__ == "__main__":
-    bt = BeliefTracker("../model/sc/belief_graph.pkl", '../model/sc/belief_clf_fasttext.pkl')
+    bt = BeliefTracker("../model/sc/belief_graph.pkl", '../model/sc/belief_clf.pkl')
     ipts = [u"吃小龙虾"]
     for ipt in ipts:
         # ipt = raw_input()
