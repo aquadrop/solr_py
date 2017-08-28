@@ -90,6 +90,7 @@ class BeliefTracker:
             slots_list = [slot.decode('utf-8') for slot in slots_list]
             if not slots_list or len(slots_list) == 0:
                 cn_util.print_cn('strange empty prediction', query, str(type(query)))
+            cn_util.print_cn('predicted_slot' + ','.join(slots_list) + ','.join(probs))
             # print self.negative
             for i, prob in enumerate(probs):
                 if prob >= 0.7:
