@@ -12,7 +12,9 @@ import jieba
 import requests
 import argparse
 from cn_util import print_cn
+from cn_util import print_out
 from itertools import chain
+from query_util import QueryUtils
 
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
 
@@ -35,23 +37,56 @@ PAD = 2
 
 url = 'http://localhost:11425/fasttext/w2v?q='
 
-char2index = None
-index2char = None
-
 label2index = None
 index2label = None
+wv = dict()
+
+
+def cut(input_):
+    input_ = QueryUtils.static_remove_cn_punct(input_)
+    tokens = list(jieba.cut(input_, cut_all=False))
+    return tokens
+
+def add_extra_dict(path):
+    with open(path, 'r') as inp:
+        for line in inp:
+            word = line.strip().replace(' ', '')
+            jieba.add_word(word)
+
+
+def wv2memory(path):
+    out = open('../data/sc/ooooooooout.txt', 'w')
+    with open(path, 'r') as f:
+        for line in f:
+            ln = line.split('#')[1].strip().encode('utf-8')
+            label = line.split('#')[0].split(',')
+
+            tokens = cut(ln)
+            for word in tokens:
+                word=word.encode('utf-8')
+                if word not in wv:
+                    # print_out(word, out)
+                    embedding = fasttext_wv(word)
+                    wv[word] = embedding
+            for word in label:
+                word = word.encode('utf-8')
+                if word not in wv:
+                    # print_out(word, out)
+                    embedding = fasttext_wv(word)
+                    wv[word] = embedding
+    wv["#PAD#"] = fasttext_wv("#PAD#")
+    wv["#EOS#"] = fasttext_wv("#EOS#")
+    wv["#GO#"] = fasttext_wv("#GO#")
+    wv["#UNK#"] = fasttext_wv("#UNK#")
+    wv['/']=fasttext_wv('/')
+    # wv['\n']=fasttext_wv('\n')
+    # print(len(wv))
 
 
 def init_dict(dict_path):
-    char2index_f = open(dict_path[0], 'r')
-    index2char_f = open(dict_path[1], 'r')
-    label2index_f = open(dict_path[2], 'r')
-    index2label_f = open(dict_path[3], 'r')
+    label2index_f = open(dict_path[0], 'r')
+    index2label_f = open(dict_path[1], 'r')
 
-    global char2index
-    char2index = json.load(char2index_f)
-    global index2char
-    index2char = json.load(index2char_f)
     global label2index
     label2index = json.load(label2index_f)
     global index2label
@@ -60,7 +95,7 @@ def init_dict(dict_path):
 
 def recover(index, source=True):
     sentence = []
-    ignore = ['#PAD#', '#UNK#', '#GO#', 0, 1, 2]
+    ignore = ['#PAD#', '#UNK#', '#GO#', 0, 2, 3]
     for ii in index:
         if ii in ignore:
             continue
@@ -116,18 +151,23 @@ def fasttext_wv(word):
     return vector
 
 
-def embedding(inputs):
+def embedding(inputs, train=True):
     embeddings = list()
     for inp in inputs:
         embedding = list()
         for word in inp:
-            resp = fasttext_wv(word)
+            if train:
+                resp = wv.get(word.strip().encode('utf-8'), fasttext_wv(word))
+                # if not resp:
+                #     continue
+            else:
+                resp = fasttext_wv(word)
             embedding.append(resp)
         embeddings.append(embedding)
     return np.squeeze(np.asarray(embeddings))
 
 
-def generate_batch_data(data_path, batch_size=32):
+def generate_batch_data(data_path, batch_size=32, train=True):
     sources = list()
     targets = list()
 
@@ -135,7 +175,7 @@ def generate_batch_data(data_path, batch_size=32):
         for line in f:
             line = line.strip()
             target = line.split('#')[0].split(',')
-            space = [' ' for _ in target]
+            space = ['/' for _ in target]
             target = list(chain(*zip(target, space)))[:-1]
             source = line.split('#')[1]
             sources.append(source)
@@ -150,8 +190,10 @@ def generate_batch_data(data_path, batch_size=32):
         labels = list()
 
         for ln in ss:
-            source_tokens = list(jieba.cut(sources[ln].strip().decode('utf-8')))
+            source_tokens = list(cut(sources[ln].strip().decode('utf-8')))
+            # print_cn(source_tokens)
             target_tokens = targets[ln]
+            # print_cn(target_tokens)
             encoder_input = ['#GO#'] + target_tokens
             label = target_tokens + ['#EOS#']
             encoder_inputs.append(source_tokens)
@@ -165,8 +207,8 @@ def generate_batch_data(data_path, batch_size=32):
         decoder_inputs = padding2(decoder_inputs)
         labels = padding2(labels)
 
-        encoder_embed_inputs = embedding(encoder_inputs)
-        decoder_embed_inputs = embedding(decoder_inputs)
+        encoder_embed_inputs = embedding(encoder_inputs, train)
+        decoder_embed_inputs = embedding(decoder_inputs, train)
         labelss = [[label2index.get(word.decode('utf-8'), 3) for word in ln] for ln in labels]
 
         yield encoder_inputs, decoder_inputs, encoder_embed_inputs, decoder_embed_inputs, np.array(labelss), np.asarray(
@@ -191,14 +233,14 @@ class BeliefRnn:
 
         with tf.variable_scope("decoder") as scope:
             self.decoder_embed_inputs = tf.placeholder(
-                tf.float32, shape=(None, None, EMBEDDING_SIZE), name="encoder_embed_inputs")
+                tf.float32, shape=(None, None, EMBEDDING_SIZE), name="decoder_embed_inputs")
             self.decoder_inputs_length = tf.placeholder(
                 tf.int32, shape=(None,), name="decoder_inputs_length")
 
         with tf.variable_scope("predict") as scope:
             self.predicting_embed_inputs = tf.placeholder(
                 tf.float32, shape=(None, None, EMBEDDING_SIZE), name="predicting_embed_inputs")
-            self.predicting_inputs_length= tf.placeholder(
+            self.predicting_inputs_length = tf.placeholder(
                 tf.int32, shape=(None,), name="predicting_inputs_length")
 
     def _inference(self):
@@ -214,9 +256,10 @@ class BeliefRnn:
                                                               sequence_length=self.encoder_inputs_length,
                                                               dtype=tf.float32)
         with tf.variable_scope("encoder") as scope:
-            predicting_encoder_output, predicting_encoder_state = tf.nn.dynamic_rnn(encoder_cell, self.predicting_embed_inputs,
-                                                              sequence_length=self.predicting_inputs_length,
-                                                              dtype=tf.float32)
+            predicting_encoder_output, predicting_encoder_state = tf.nn.dynamic_rnn(encoder_cell,
+                                                                                    self.predicting_embed_inputs,
+                                                                                    sequence_length=self.predicting_inputs_length,
+                                                                                    dtype=tf.float32)
         with tf.variable_scope("decoder") as scope:
             decoder_cell = tf.contrib.rnn.MultiRNNCell([get_cell(RNN_SIZE) for _ in range(N_LAYER)])
 
@@ -241,10 +284,9 @@ class BeliefRnn:
             # self.training_logits_ = tf.identity(self.decoder_output.rnn_output, 'logits')
 
         with tf.variable_scope("decoder", reuse=True):
-
             predicting_helper = tf.contrib.seq2seq.TrainingHelper(inputs=self.predicting_embed_inputs,
-                                                                sequence_length=self.predicting_inputs_length,
-                                                                time_major=False)
+                                                                  sequence_length=self.predicting_inputs_length,
+                                                                  time_major=False)
             predicting_decoder = tf.contrib.seq2seq.BasicDecoder(decoder_cell,
                                                                  predicting_helper,
                                                                  predicting_encoder_state,
@@ -306,7 +348,9 @@ def _get_user_input():
 
 def train(data_path, dict_path):
     print('Training......')
-
+    add_extra_dict('../data/sc/extra_words.txt')
+    wv2memory('../data/sc/train/sale_v2.txt')
+    # print_cn(wv)
     init_dict(dict_path)
     gen = generate_batch_data(data_path)
     model = BeliefRnn()
@@ -389,11 +433,11 @@ def predict(dict_path):
         _check_restore_parameters(sess, saver)
         while True:
             line = _get_user_input()
-            predicting_inputs=list(jieba.cut(line.strip().decode('utf-8')))
+            predicting_inputs = list(jieba.cut(line.strip().decode('utf-8')))
             print_cn(predicting_inputs)
-            predicting_inputs_length = [len(predicting_inputs)]*BATCH_SIZE
-            predicting_embed_inputs=[[fasttext_wv(word) for word in predicting_inputs] for _ in range(BATCH_SIZE)]
-            predicting_embed_inputs=np.asarray(predicting_embed_inputs)
+            predicting_inputs_length = [len(predicting_inputs)] * BATCH_SIZE
+            predicting_embed_inputs = [[fasttext_wv(word) for word in predicting_inputs] for _ in range(BATCH_SIZE)]
+            predicting_embed_inputs = np.asarray(predicting_embed_inputs)
 
             answer_logits = sess.run(model.predicting_logits,
                                      feed_dict={model.predicting_embed_inputs.name: predicting_embed_inputs,
@@ -406,33 +450,46 @@ def predict(dict_path):
 
 
 def debug():
-    dict_path = ['../data/sc/dict/char2index_dict_big.txt', '../data/sc/dict/index2char_dict_big.txt',
-                 '../data/sc/dict/label2index.txt', '../data/sc/dict/index2label.txt']
+    dict_path = ['../data/sc/dict/label2index.txt', '../data/sc/dict/index2label.txt']
     data_path = '../data/sc/train/sale_v2.txt'
     print('Training......')
 
+    add_extra_dict('../data/sc/extra_words.txt')
+    wv2memory(data_path)
     init_dict(dict_path)
     gen = generate_batch_data(data_path)
-    model = BeliefRnn()
-    model.build_graph_debug()
+    for enci, deci, enci_emb, deci_emb, lab, encil, decil in gen:
+        print('...')
 
-    with tf.Session() as sess:
-        sess.run(tf.global_variables_initializer())
-        for enci, deci, lab, encil, decil in gen:
-            # print(enci)
-            training_logits_, decoder_output = sess.run(
-                [model.training_logits_, model.decoder_output],
-                feed_dict={model.encoder_embed_inputs.name: enci,
-                           model.encoder_inputs_length.name: encil,
-                           model.decoder_embed_inputs.name: deci,
-                           model.decoder_inputs_length.name: decil})
-            print(training_logits_.shape)
-            print(decoder_output.shape)
+
+    # print(enci[0])
+    # print(deci[0])
+    # print(enci_emb.shape)
+    # print(deci_emb.shape)
+    # print(lab[0])
+
+    # model = BeliefRnn()
+    # model.build_graph_debug()
+    #
+    # with tf.Session() as sess:
+    #     sess.run(tf.global_variables_initializer())
+    #     for enci, deci, lab, encil, decil in gen:
+    #         # print(enci)
+    #         training_logits_, decoder_output = sess.run(
+    #             [model.training_logits_, model.decoder_output],
+    #             feed_dict={model.encoder_embed_inputs.name: enci,
+    #                        model.encoder_inputs_length.name: encil,
+    #                        model.decoder_embed_inputs.name: deci,
+    #                        model.decoder_inputs_length.name: decil})
+    #         print(training_logits_.shape)
+    #         print(decoder_output.shape)
+    # add_extra_dict('../data/sc/belief_graph.txt')
+    # wv2memory('../data/sc/train/sale_v2.txt')
+    # print_cn(wv)
 
 
 def main():
-    dict_path = ['../data/sc/dict/char2index_dict_big.txt', '../data/sc/dict/index2char_dict_big.txt',
-                 '../data/sc/dict/label2index.txt', '../data/sc/dict/index2label.txt']
+    dict_path = ['../data/sc/dict/label2index.txt', '../data/sc/dict/index2label.txt']
     parser = argparse.ArgumentParser()
     parser.add_argument('-m', choices={'train', 'predict'},
                         default='train', help='mode.if not specified,it is in train mode')
