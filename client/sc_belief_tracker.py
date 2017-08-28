@@ -87,8 +87,9 @@ class BeliefTracker:
         if self.gbdt:
             flipped, self.negative = self.negative_clf.predict(input_=query)
             slots_list, probs = self.gbdt.predict(input_=flipped)
+            slots_list = [slot.decode('utf-8') for slot in slots_list]
             if not slots_list or len(slots_list) == 0:
-                cn_util.print_cn('strange empty prediction', query)
+                cn_util.print_cn('strange empty prediction', query, str(type(query)))
             # print self.negative
             for i, prob in enumerate(probs):
                 if prob >= 0.7:
@@ -98,7 +99,7 @@ class BeliefTracker:
 
             filtered_slots_list = set(filtered_slots_list)
             if len(filtered_slots_list) == 0:
-                print('valid empty predcition')
+                cn_util.print_cn('valid empty predcition', query, str(type(query)))
                 return False, []
         else:
             raise Exception('malfunctioning, main kernel must be attached!')
@@ -357,11 +358,11 @@ class BeliefTracker:
 
 
 if __name__ == "__main__":
-    bt = BeliefTracker("../model/sc/belief_graph.pkl", '../model/sc/belief_clf.pkl')
-    ipts = ["买鲜花"]
+    bt = BeliefTracker("../model/sc/belief_graph.pkl", '../model/sc/belief_clf_fasttext.pkl')
+    ipts = [u"吃小龙虾"]
     for ipt in ipts:
         # ipt = raw_input()
         # chinese comma
         # bt.travel_with_clf(ipt)
-        cn_util.print_cn(",".join(bt.kernel(ipt)))
+        cn_util.print_cn(",".join(bt.kernel(ipt)[1:-1]))
         # cn_util.print_cn(bt.compose()[0])

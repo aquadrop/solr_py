@@ -48,7 +48,7 @@ def chat():
         q = args['q']
         q = unquote(q)
         if isinstance(q, str):
-            q = q.decode('unicode-escape').encode('utf-8')
+            q = q.decode('unicode-escape').decode('utf-8')
         try:
             u = args['u']
             if not multi_sc_kernels.has_key(u):

@@ -131,6 +131,8 @@ class SceneKernel:
         else:
             base_url = 'http://localhost:11403/solr/graph/select?q.op=OR&wt=json&q=%s AND type:' +  type_
         r = self._request_solr(q, 'name', base_url=base_url)
+        if not r:
+            return None, None, None
         name = SolrUtils.get_dynamic_response(r=r, key='name', random_field=True)
         type_ = SolrUtils.get_dynamic_response(r=r, key='type', random_field=True)
         if name:
@@ -150,6 +152,8 @@ class SceneKernel:
         ## cut q into tokens
         key = '%s:' % key
         tokens = [s for s in QueryUtils.static_jieba_cut(q, smart=False, remove_single=True)]
+        if len(tokens) == 0:
+            return None
         q = key + "(" + '%20'.join(tokens) + ")"
         url = base_url % q
         cn_util.print_cn(url)
