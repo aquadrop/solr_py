@@ -63,11 +63,11 @@ class SimpleQAKernel:
 
     def _request_solr(self, q):
         ## cut q into tokens
-        tokens = ['entity:' + s for s in self.qu.jieba_cut(q, False)]
+        tokens = ['entity:' + s for s in QueryUtils.static_jieba_cut(q, False)]
         q = ' OR '.join(tokens)
         url = self.qa_url % q
         # print('qa_debug:', url)
-        # cn_util.print_cn(url)
+        cn_util.print_cn(url)
         r = requests.get(url)
         return r
 
@@ -90,4 +90,4 @@ class SimpleQAKernel:
 
 if __name__ == '__main__':
     qa = SimpleQAKernel()
-    print(qa.kernel(u'问下厕所在哪'))
+    cn_util.print_cn(qa.kernel(u'我要买方太灶具')[1])

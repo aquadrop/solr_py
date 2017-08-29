@@ -181,7 +181,7 @@ if __name__ == '__main__':
 
     model_path = '../model/sc/belief_clf.pkl'
     clf = Multilabel_Clf.load(model_path=model_path)
-    inputs=["买鲜花"]
+    inputs=[u"买鲜花"]
     for p in inputs:
-        labels, probs = clf.predict(input_=p)
+        labels, probs = clf.predict(input_=p.decode('utf-8'))
         cn_util.print_cn(','.join(labels))

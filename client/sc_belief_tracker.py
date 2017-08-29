@@ -84,11 +84,15 @@ class BeliefTracker:
 
     def travel_with_clf(self, query):
         filtered_slots_list = []
-        if self.gbdt:
+        try:
             flipped, self.negative = self.negative_clf.predict(input_=query)
             slots_list, probs = self.gbdt.predict(input_=flipped)
+            slots_list = [slot.decode('utf-8') for slot in slots_list]
             if not slots_list or len(slots_list) == 0:
-                cn_util.print_cn('strange empty prediction', query)
+                cn_util.print_cn('strange empty prediction', query, str(type(query)))
+                return False
+            str_probs = [str(prob) for prob in probs]
+            cn_util.print_cn('prediction-->[' + ','.join(slots_list) + ']|[' + ','.join(str_probs) + ']')
             # print self.negative
             for i, prob in enumerate(probs):
                 if prob >= 0.7:
@@ -98,16 +102,18 @@ class BeliefTracker:
 
             filtered_slots_list = set(filtered_slots_list)
             if len(filtered_slots_list) == 0:
-                print('valid empty predcition')
-                return False, []
-        else:
-            raise Exception('malfunctioning, main kernel must be attached!')
+                cn_util.print_cn('valid empty predcition', query, str(type(query)))
+                return False
+        except:
+            traceback.print_exc()
+            return False
 
         ## build belief graph
         self.update_remaining_slots(expire=True)
         filtered_slots_list = self.inter_fix(filtered_slots_list)
         self.should_expire_all_slots(filtered_slots_list)
         self.update_belief_graph(search_parent_node=self.search_graph, slots_list=filtered_slots_list)
+        return True
 
     def should_expire_all_slots(self, slots_list):
         slots_list = list(slots_list)
@@ -208,7 +214,11 @@ class BeliefTracker:
             self.remaining_slots[slot] = len(self.score_stairs) - 1
 
     def r_walk_with_pointer_with_clf(self, query):
-        self.travel_with_clf(query)
+        sucess = self.travel_with_clf(query)
+        if not sucess:
+            if not query:
+                return None, 'invalid query', '我好像不明白'
+            return 'sale', 'invalid_query', None
         return self.search()
 
     def single_last_slot(self, split=' OR '):
@@ -263,13 +273,13 @@ class BeliefTracker:
         node = self.belief_graph.get_global_node(slot)
         sibling = node.sibling_names(value_type=Node.KEY)
         ## must be of same identities
-        identity = self.belief_graph.slot_identities[slot.encode('utf-8')]
+        identity = self.belief_graph.slot_identities[slot.decode('utf-8')]
         cls_sibling = []
         for s in sibling:
             try:
                 if s in black_list:
                     continue
-                if self.belief_graph.slot_identities[s.encode('utf-8')] == identity:
+                if self.belief_graph.slot_identities[s.decode('utf-8')] == identity:
                     cls_sibling.append(s)
             except:
                 pass
@@ -309,7 +319,7 @@ class BeliefTracker:
             condition = []
             for label in labels:
                 try:
-                    string = 'label:%s' % (label + '^' + str(self.belief_graph.slot_importances[label.encode('utf-8')]))
+                    string = 'label:%s' % (label + '^' + str(self.belief_graph.slot_importances[label.decode('utf-8')]))
                 except:
                     string = 'label:%s' % label
                 condition.append(string)
@@ -342,7 +352,7 @@ class BeliefTracker:
                     rr = np.random.choice(a, 1)[0]
                 else:
                     rr = ','.join(a)
-            return rr.encode('utf8')
+            return rr.decode('utf8')
         except:
             return None
 
@@ -358,10 +368,10 @@ class BeliefTracker:
 
 if __name__ == "__main__":
     bt = BeliefTracker("../model/sc/belief_graph.pkl", '../model/sc/belief_clf.pkl')
-    ipts = ["买鲜花"]
+    ipts = [u"我不吃饭", u"吃饭", u"买鲜花"]
     for ipt in ipts:
         # ipt = raw_input()
         # chinese comma
         # bt.travel_with_clf(ipt)
-        cn_util.print_cn(",".join(bt.kernel(ipt)))
+        cn_util.print_cn(",".join(bt.kernel(ipt)[1:-1]))
         # cn_util.print_cn(bt.compose()[0])

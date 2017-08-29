@@ -58,7 +58,7 @@ class SceneKernel:
     sing_pattern = re.compile(ur'.*?(((唱.*?(歌|曲)).*?)|((来|唱).*?(首).*?)|(我想听)|七里香|轨迹|星晴).*?')
     sing_diff_pattern = re.compile(ur'.*?(我们.*?唱|我.*?唱).*?')
     sale_pattern = re.compile(ur'.*?(买|吃|随便|看看|饿).*?')
-    qa_pattern = re.compile(ur'.*?((存|寄).*?包|在哪|在那|在几楼|在几层|怎么走|带我去|卫生间|厕所|积分|地铁|我要去|包装|停车场|电梯|出口|我想去|洗手间|充电|童车|贵吗|贵不贵|折扣吗|优惠吗|(有.*?吗)|要排队吗|人多吗).*?')
+    qa_pattern = re.compile(ur'.*?((存|寄).*?包|在哪|在那|在几楼|在几层|怎么走|带我去|方太|老板|苹果|三星|卫生间|厕所|积分|地铁|我要去|包装|停车场|电梯|出口|我想去|洗手间|充电|童车|贵吗|贵不贵|折扣吗|优惠吗|(有.*?吗)|要排队吗|人多吗).*?')
     qa_clean_pattern = re.compile(ur'在哪里|在哪|在那里|在那|怎么走|带我去下|带我去')
     greeting_pattern = re.compile(ur".*?(在吗|在嘛|名字|几岁|多少岁).*?")
     greeting_clean_pattern = re.compile(ur'啊|呢|呀')
@@ -131,6 +131,8 @@ class SceneKernel:
         else:
             base_url = 'http://localhost:11403/solr/graph/select?q.op=OR&wt=json&q=%s AND type:' +  type_
         r = self._request_solr(q, 'name', base_url=base_url)
+        if not r:
+            return None, None, None
         name = SolrUtils.get_dynamic_response(r=r, key='name', random_field=True)
         type_ = SolrUtils.get_dynamic_response(r=r, key='type', random_field=True)
         if name:
@@ -150,6 +152,8 @@ class SceneKernel:
         ## cut q into tokens
         key = '%s:' % key
         tokens = [s for s in QueryUtils.static_jieba_cut(q, smart=False, remove_single=True)]
+        if len(tokens) == 0:
+            return None
         q = key + "(" + '%20'.join(tokens) + ")"
         url = base_url % q
         cn_util.print_cn(url)

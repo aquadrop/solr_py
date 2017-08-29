@@ -10,12 +10,12 @@ import cn2arab
 import cn_util
 import re
 
-jieba.load_userdict("../data/char_table/ext1.dic")
 class QueryUtils:
     static_tokenizer_url = "http://localhost:11415/pos?q="
     remove_tags = ["PN", "VA", "AD", "PU", "SP", "DT"]
     def __init__(self):
         self.remove_tags = ["PN", "VA", "AD"]
+        jieba.load_userdict("../data/char_table/ext1.dic")
         self.tokenizer_url = "http://localhost:11415/pos?q="
 
     def jieba_cut(self, query, smart=True):
@@ -34,7 +34,7 @@ class QueryUtils:
         if smart:
             seg_list = jieba.cut(query)
         else:
-            seg_list = jieba.cut_for_search(query)
+            seg_list = jieba.cut(query, cut_all=True)
         tokens = []
         for t in seg_list:
             t = t.replace(' ', '').replace('\t','')
@@ -351,11 +351,12 @@ class QueryUtils:
                         out.write(mm + '\n')
 
 if __name__ == '__main__':
-    # qu = QueryUtils()
+    qu = QueryUtils()
+    jieba.load_userdict("../data/char_table/ext1.dic")
     # qu.process_data('../data/business/intention_pair_q', '../data/business/business_train_v7')
     # # print(QueryUtils.static_remove_cn_punct(u'我在电视上见过你，听说你很聪明啊?'))
     # cn_util.print_cn(qu.quant_bucket_fix('一点钱'))
     # cn_util.print_cn(qu.quant_bucket_fix('我要取1千零1百'))
     # cn_util.print_cn(QueryUtils.static_jieba_cut('紫桂焖大排', smart=True, remove_single=True))
-    cn_util.print_cn(QueryUtils.static_remove_pu('高兴哈'))
-    print(QueryUtils.static_jieba_cut('高兴哈'.encode('utf-8')))
+    # cn_util.print_cn(QueryUtils.static_remove_pu('高兴哈'))
+    cn_util.print_cn(','.join(jieba.cut_for_search('我要买方太'.decode('utf-8'))))
