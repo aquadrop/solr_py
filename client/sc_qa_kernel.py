@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 """
-This class is very simple and is stateless
+First do some basic qa types like where, list, ...other give to question-question similarity module
 """
 import requests
 import random
@@ -56,44 +56,44 @@ class QAKernel:
             exact = self.exact_match(QueryUtils.static_remove_pu(q))
             if exact:
                 return None, exact
-            cls, probs = self.clf.predict(q)
-
-            if cls == 'where':
-                direction, answer = self.where(q=q, last_r=last_r)
-                return direction, answer
-            if cls == 'exist':
-                direction, answer = self.exist(q=q, last_r=last_r)
-                return direction, answer
-            if cls == 'ask_price':
-                direction, answer = self.ask_price(q=q, last_r=last_r)
-                return direction, answer
-            if cls == 'ask_discount':
-                direction, answer = self.ask_discount(q=q, last_r=last_r)
-                return direction, answer
-            if cls == 'ask_queue':
-                direction, answer = self.ask_queue(q=q, last_r=last_r)
-                return direction, answer
-            if cls == 'permit':
-                direction, answer = self.permit(q=q, last_r=last_r)
-                return direction, answer
-            if cls == 'whether':
-                direction, answer = self.whether(q=q, last_r=last_r)
-                return direction, answer
-            if cls == 'when':
-                direction, answer = self.when(q=q, last_r=last_r)
-                return direction, answer
-            if cls == 'how':
-                direction, answer = self.how(q=q, last_r=last_r)
-                return direction, answer
-            if cls == 'which':
-                direction, answer = self.which(q=q, last_r=last_r)
-                return direction, answer
-            if cls == 'what':
-                direction, answer = self.what(q=q, last_r=last_r)
-                return direction, answer
-            if cls == 'list':
-                direction, answer = self.list(q=q, last_r=last_r)
-                return direction, answer
+            # cls, probs = self.clf.predict(q)
+            #
+            # if cls == 'where':
+            #     direction, answer = self.where(q=q, last_r=last_r)
+            #     return direction, answer
+            # if cls == 'exist':
+            #     direction, answer = self.exist(q=q, last_r=last_r)
+            #     return direction, answer
+            # if cls == 'ask_price':
+            #     direction, answer = self.ask_price(q=q, last_r=last_r)
+            #     return direction, answer
+            # if cls == 'ask_discount':
+            #     direction, answer = self.ask_discount(q=q, last_r=last_r)
+            #     return direction, answer
+            # if cls == 'ask_queue':
+            #     direction, answer = self.ask_queue(q=q, last_r=last_r)
+            #     return direction, answer
+            # if cls == 'permit':
+            #     direction, answer = self.permit(q=q, last_r=last_r)
+            #     return direction, answer
+            # if cls == 'whether':
+            #     direction, answer = self.whether(q=q, last_r=last_r)
+            #     return direction, answer
+            # if cls == 'when':
+            #     direction, answer = self.when(q=q, last_r=last_r)
+            #     return direction, answer
+            # if cls == 'how':
+            #     direction, answer = self.how(q=q, last_r=last_r)
+            #     return direction, answer
+            # if cls == 'which':
+            #     direction, answer = self.which(q=q, last_r=last_r)
+            #     return direction, answer
+            # if cls == 'what':
+            #     direction, answer = self.what(q=q, last_r=last_r)
+            #     return direction, answer
+            # if cls == 'list':
+            #     direction, answer = self.list(q=q, last_r=last_r)
+            #     return direction, answer
             return self.simple.kernel(q)
         except Exception,e:
             return self.simple.kernel(q)
@@ -413,4 +413,5 @@ class QAKernel:
 
 if __name__ == '__main__':
     qa = QAKernel()
-    cn_util.print_cn(qa.kernel(u'南京', u"Omega,一期三楼"))
+    # result = qa.kernel(u'三星手机在哪', u"Omega,一期三楼")
+    cn_util.print_cn(qa.kernel(u'方太电器在哪', u"Omega,一期三楼")[1])
