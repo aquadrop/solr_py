@@ -20,10 +20,10 @@ from solr_utils import SolrUtils
 import cn_util
 
 class QAKernel:
-    null_anwer = ['啊呀！这可难倒宝宝了！这是十万零一个问题，你要问一下我们对面客服台的客服哥哥姐姐哦！']
-    price_response = {u"奢侈":"奢侈的东西,有钱人最爱",u"略贵":"略贵",u"中档":"还好,性价比高",u"便宜":"很便宜的"}
-    discount_response = {u"有折扣": "有折扣的,快去店家看看吧", u"没有":"可以看看别的商家"}
-    queue_response = {u"排队": "现在人有点多哦", u"不要排队": "人不多,赶紧去吧"}
+    null_anwer = [u'啊呀！这可难倒宝宝了！这是十万零一个问题，你要问一下我们对面客服台的客服哥哥姐姐哦！']
+    price_response = {u"奢侈":u"奢侈的东西,有钱人最爱",u"略贵":u"略贵",u"中档":u"还好,性价比高",u"便宜":u"很便宜的"}
+    discount_response = {u"有折扣": u"有折扣的,快去店家看看吧", u"没有":u"可以看看别的商家"}
+    queue_response = {u"排队": u"现在人有点多哦", u"不要排队": u"人不多,赶紧去吧"}
     static_clf = None
     # null_answer = ['null']
     def __init__(self):

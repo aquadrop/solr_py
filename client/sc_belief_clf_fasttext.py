@@ -197,8 +197,8 @@ def test(test_data_path, model_path):
 def main():
     mode = 'fasttext'
     model_path = '../model/sc/belief_clf_fasttext.pkl'
-    train_data_path = '../data/sc/train/sale_train0824.txt'
-    test_data_path = '../data/sc/train/sale_train0824.txt'
+    train_data_path = '../data/sc/train/sale_v2.txt'
+    test_data_path = '../data/sc/train/sale_v2.txt'
     parser = argparse.ArgumentParser()
     parser.add_argument('-m', choices={'train', 'test'},
                         default='train', help='mode.if not specified,it is in test mode')
@@ -214,7 +214,7 @@ def main():
 
 
 if __name__ == '__main__':
-    # main()
+    main()
 
     model_path = '../model/sc/belief_clf_fasttext.pkl'
     clf = Multilabel_Clf.load(model_path=model_path)
