@@ -67,7 +67,7 @@ class SimpleQAKernel:
         q = ' OR '.join(tokens)
         url = self.qa_url % q
         # print('qa_debug:', url)
-        # cn_util.print_cn(url)
+        cn_util.print_cn(url)
         r = requests.get(url)
         return r
 
