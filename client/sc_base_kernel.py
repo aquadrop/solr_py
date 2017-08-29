@@ -42,7 +42,7 @@ class BaseKernel:
                     break
             return response
         except Exception,e:
-            return '...'
+            return 'base kernel is detached'
 
 if __name__ == '__main__':
     bk = BaseKernel()

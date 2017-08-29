@@ -86,9 +86,10 @@ class Node:
         if not self.parent_node:
             return {}
         parent_children = self.parent_node.all_children(value_type=value_type)
-        if self.slot in parent_children:
-            del parent_children[self.slot]
-        return parent_children.keys()
+        parent_children_copy = parent_children.copy()
+        if self.slot in parent_children_copy:
+            del parent_children_copy[self.slot]
+        return parent_children_copy.keys()
 
     def get_child(self, key, value_type):
         if value_type in self.classified_out_neighbors:

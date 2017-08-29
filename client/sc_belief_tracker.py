@@ -273,13 +273,13 @@ class BeliefTracker:
         node = self.belief_graph.get_global_node(slot)
         sibling = node.sibling_names(value_type=Node.KEY)
         ## must be of same identities
-        identity = self.belief_graph.slot_identities[slot.encode('utf-8')]
+        identity = self.belief_graph.slot_identities[slot.decode('utf-8')]
         cls_sibling = []
         for s in sibling:
             try:
                 if s in black_list:
                     continue
-                if self.belief_graph.slot_identities[s.encode('utf-8')] == identity:
+                if self.belief_graph.slot_identities[s.decode('utf-8')] == identity:
                     cls_sibling.append(s)
             except:
                 pass
@@ -319,7 +319,7 @@ class BeliefTracker:
             condition = []
             for label in labels:
                 try:
-                    string = 'label:%s' % (label + '^' + str(self.belief_graph.slot_importances[label.encode('utf-8')]))
+                    string = 'label:%s' % (label + '^' + str(self.belief_graph.slot_importances[label.decode('utf-8')]))
                 except:
                     string = 'label:%s' % label
                 condition.append(string)
@@ -352,7 +352,7 @@ class BeliefTracker:
                     rr = np.random.choice(a, 1)[0]
                 else:
                     rr = ','.join(a)
-            return rr.encode('utf8')
+            return rr.decode('utf8')
         except:
             return None
 
@@ -368,7 +368,7 @@ class BeliefTracker:
 
 if __name__ == "__main__":
     bt = BeliefTracker("../model/sc/belief_graph.pkl", '../model/sc/belief_clf.pkl')
-    ipts = [u"吃小龙虾"]
+    ipts = [u"我不吃饭", u"吃饭", u"买鲜花"]
     for ipt in ipts:
         # ipt = raw_input()
         # chinese comma

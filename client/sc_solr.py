@@ -4,6 +4,7 @@
 import Queue
 import argparse
 import traceback
+import urllib
 
 from urllib import unquote
 from flask import Flask
@@ -46,9 +47,8 @@ def chat():
         except:
             pass
         q = args['q']
-        q = unquote(q)
-        if isinstance(q, str):
-            q = q.decode('unicode-escape').decode('utf-8')
+        q = urllib.unquote(q).decode('utf8')
+            # q = q.decode('unicode-escape').decode('utf-8')
         try:
             u = args['u']
             if not multi_sc_kernels.has_key(u):
