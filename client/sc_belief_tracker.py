@@ -381,7 +381,7 @@ class BeliefTracker:
 
 if __name__ == "__main__":
     bt = BeliefTracker("../model/sc/belief_graph.pkl", '../model/sc/belief_clf.pkl')
-    ipts = [u"我不吃饭", u"吃饭", u"买鲜花", u"买油烟机"]
+    ipts = [u"苏帮菜"]
     for ipt in ipts:
         # ipt = raw_input()
         # chinese comma
