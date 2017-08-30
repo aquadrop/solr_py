@@ -190,7 +190,7 @@ class QAKernel:
 
     ## --> exist: entity exists, return search. else return none
     def exist(self, q, last_r):
-        current_entity, current_type, solr_r = self.retrieve_entity(q)
+        current_entity, current_type, solr_r = self.retrieve_entity(q, 'store%20entertainment%20facility')
 
         if current_entity:
             response = self.retrieve_common_info(solr_r)
@@ -199,7 +199,7 @@ class QAKernel:
             else:
                 return None, '没有找到相关信息'
 
-        current_label, current_type, label_r = self.retrieve_label(q)
+        current_label, current_type, label_r = self.retrieve_label(q, 'item')
         ## hand over to main kernel
         if current_label:
             return 'sale', None
@@ -419,4 +419,4 @@ class QAKernel:
 if __name__ == '__main__':
     qa = QAKernel()
     # result = qa.kernel(u'三星手机在哪', u"Omega,一期三楼")
-    cn_util.print_cn(qa.kernel(u'南京大排档在哪', u"Omega,一期三楼")[1])
+    cn_util.print_cn(qa.kernel(u'一楼有厕所吗', u"Omega,一期三楼")[1])
