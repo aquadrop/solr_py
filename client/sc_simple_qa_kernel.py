@@ -90,4 +90,4 @@ class SimpleQAKernel:
 
 if __name__ == '__main__':
     qa = SimpleQAKernel()
-    cn_util.print_cn(qa.kernel(u'我要买方太灶具')[1])
+    cn_util.print_cn(qa.kernel(u'方太')[1])
