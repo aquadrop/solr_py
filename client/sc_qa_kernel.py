@@ -7,6 +7,7 @@ First do some basic qa types like where, list, ...other give to question-questio
 import requests
 import random
 import re
+import traceback
 
 import jieba
 
@@ -355,7 +356,7 @@ class QAKernel:
         if not type_:
             base_url = self.graph_url
         else:
-            base_url = 'http://localhost:11403/solr/graph/select?q.op=OR&wt=json&q=%s AND type:' +  type_
+            base_url = 'http://localhost:11403/solr/graph/select?q.op=OR&wt=json&q={0}%20AND%20type:(' +  type_ + ")"
         r = self._request_solr(q, 'name', base_url=base_url)
         name = SolrUtils.get_dynamic_response(r=r, key='name', random_field=True)
         type_ = SolrUtils.get_dynamic_response(r=r, key='type', random_field=True)
@@ -399,14 +400,18 @@ class QAKernel:
             return False, np.random.choice(self.null_anwer, 1)[0]
 
     def _request_solr(self, q, key, base_url):
+        try:
         ## cut q into tokens
-        key = '%s:' % key
-        tokens = [s for s in QueryUtils.static_jieba_cut(q, smart=False, remove_single=True)]
-        q = key + "(" + '%20'.join(tokens) + ")"
-        url = base_url % q
-        cn_util.print_cn(url)
-        r = requests.get(url)
-        return r
+            key = '%s:' % key
+            tokens = [s for s in QueryUtils.static_jieba_cut(q, smart=False, remove_single=True)]
+            q = key + "(" + '%20'.join(tokens) + ")"
+            url = base_url.format(q)
+            cn_util.print_cn(url)
+            r = requests.get(url)
+            return r
+        except:
+            traceback.print_exc()
+            return None
 
     def _num_answer(self, r):
         return int(r.json()["response"]["numFound"])
@@ -414,4 +419,4 @@ class QAKernel:
 if __name__ == '__main__':
     qa = QAKernel()
     # result = qa.kernel(u'三星手机在哪', u"Omega,一期三楼")
-    cn_util.print_cn(qa.kernel(u'服务台在哪里', u"Omega,一期三楼")[1])
+    cn_util.print_cn(qa.kernel(u'南京大排档在哪', u"Omega,一期三楼")[1])

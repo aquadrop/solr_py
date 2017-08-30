@@ -359,4 +359,4 @@ if __name__ == '__main__':
     # cn_util.print_cn(qu.quant_bucket_fix('我要取1千零1百'))
     # cn_util.print_cn(QueryUtils.static_jieba_cut('紫桂焖大排', smart=True, remove_single=True))
     # cn_util.print_cn(QueryUtils.static_remove_pu('高兴哈'))
-    cn_util.print_cn(','.join(jieba.cut_for_search('我要买方太'.decode('utf-8'))))
+    cn_util.print_cn(','.join(jieba.cut_for_search('南京精菜馆'.decode('utf-8'))))
