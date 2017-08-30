@@ -88,11 +88,12 @@ class BeliefTracker:
             flipped, self.negative = self.negative_clf.predict(input_=query)
             slots_list, probs = self.gbdt.predict(input_=flipped)
             slots_list = [slot.decode('utf-8') for slot in slots_list]
+            retrieved_slots_list = self.retrieve_intention_from_solr(flipped)
             if not slots_list or len(slots_list) == 0:
                 cn_util.print_cn('strange empty prediction', query, str(type(query)))
-                return False
             str_probs = [str(prob) for prob in probs]
-            cn_util.print_cn('prediction-->[' + ','.join(slots_list) + ']|[' + ','.join(str_probs) + ']')
+            cn_util.print_cn('prediction-->[' + ','.join(slots_list) + ']|[' + ','.join(str_probs) \
+                             + '] - -' + ','.join(retrieved_slots_list))
             # print self.negative
             for i, prob in enumerate(probs):
                 if prob >= 0.7:
@@ -100,6 +101,7 @@ class BeliefTracker:
                 else:
                     cn_util.print_cn("droping slot:", slots_list[i], str(prob))
 
+            filtered_slots_list.extend(retrieved_slots_list)
             filtered_slots_list = set(filtered_slots_list)
             if len(filtered_slots_list) == 0:
                 cn_util.print_cn('valid empty predcition', query, str(type(query)))
@@ -114,6 +116,17 @@ class BeliefTracker:
         self.should_expire_all_slots(filtered_slots_list)
         self.update_belief_graph(search_parent_node=self.search_graph, slots_list=filtered_slots_list)
         return True
+
+    def retrieve_intention_from_solr(self, q):
+        tokens = QueryUtils.static_jieba_cut(query=q, smart=False, remove_single=True)
+        url = "http://localhost:11403/solr/sc_sale_gen/select?q.op=OR&defType=edismax&wt=json&q=intention:({0})"
+        append = "%20".join(tokens)
+        request_url = url.format(append)
+        r = requests.get(request_url)
+        if SolrUtils.num_answer(r) > 0:
+            intentions = self._get_response(r=r, key='intention', random_hit=False, random_field=False, keep_array=True)
+            return intentions
+        return []
 
     def should_expire_all_slots(self, slots_list):
         slots_list = list(slots_list)
@@ -214,10 +227,10 @@ class BeliefTracker:
             self.remaining_slots[slot] = len(self.score_stairs) - 1
 
     def r_walk_with_pointer_with_clf(self, query):
+        if not query:
+            return None, 'invalid query', '我好像不明白'
         sucess = self.travel_with_clf(query)
         if not sucess:
-            if not query:
-                return None, 'invalid query', '我好像不明白'
             return 'sale', 'invalid_query', None
         return self.search()
 
@@ -368,7 +381,7 @@ class BeliefTracker:
 
 if __name__ == "__main__":
     bt = BeliefTracker("../model/sc/belief_graph.pkl", '../model/sc/belief_clf.pkl')
-    ipts = [u"我不吃饭", u"吃饭", u"买鲜花"]
+    ipts = [u"我不吃饭", u"吃饭", u"买鲜花", u"买油烟机"]
     for ipt in ipts:
         # ipt = raw_input()
         # chinese comma
