@@ -56,23 +56,23 @@ class QAKernel:
             exact = self.exact_match(QueryUtils.static_remove_pu(q))
             if exact:
                 return None, exact
-            # cls, probs = self.clf.predict(q)
+            cls, probs = self.clf.predict(q)
             #
-            # if cls == 'where':
-            #     direction, answer = self.where(q=q, last_r=last_r)
-            #     return direction, answer
-            # if cls == 'exist':
-            #     direction, answer = self.exist(q=q, last_r=last_r)
-            #     return direction, answer
-            # if cls == 'ask_price':
-            #     direction, answer = self.ask_price(q=q, last_r=last_r)
-            #     return direction, answer
-            # if cls == 'ask_discount':
-            #     direction, answer = self.ask_discount(q=q, last_r=last_r)
-            #     return direction, answer
-            # if cls == 'ask_queue':
-            #     direction, answer = self.ask_queue(q=q, last_r=last_r)
-            #     return direction, answer
+            if cls == 'where':
+                direction, answer = self.where(q=q, last_r=last_r)
+                return direction, answer
+            if cls == 'exist':
+                direction, answer = self.exist(q=q, last_r=last_r)
+                return direction, answer
+            if cls == 'ask_price':
+                direction, answer = self.ask_price(q=q, last_r=last_r)
+                return direction, answer
+            if cls == 'ask_discount':
+                direction, answer = self.ask_discount(q=q, last_r=last_r)
+                return direction, answer
+            if cls == 'ask_queue':
+                direction, answer = self.ask_queue(q=q, last_r=last_r)
+                return direction, answer
             # if cls == 'permit':
             #     direction, answer = self.permit(q=q, last_r=last_r)
             #     return direction, answer
@@ -91,9 +91,9 @@ class QAKernel:
             # if cls == 'what':
             #     direction, answer = self.what(q=q, last_r=last_r)
             #     return direction, answer
-            # if cls == 'list':
-            #     direction, answer = self.list(q=q, last_r=last_r)
-            #     return direction, answer
+            if cls == 'list':
+                direction, answer = self.list(q=q, last_r=last_r)
+                return direction, answer
             return self.simple.kernel(q)
         except Exception,e:
             return self.simple.kernel(q)
@@ -116,9 +116,9 @@ class QAKernel:
 
     ## where: entity exists, return search. else strict use last_entity
     def where(self, q, last_r):
-        current_entity, current_type, current_solr_r = self.retrieve_entity(q)
-        if last_r:
-            last_entity, last_type, last_solr_r = self.retrieve_entity(last_r)
+        current_entity, current_type, current_solr_r = self.retrieve_entity(q, 'store')
+        if last_r and not current_entity:
+            last_entity, last_type, last_solr_r = self.retrieve_entity(last_r, 'store')
         else:
             last_entity = None
 
@@ -414,4 +414,4 @@ class QAKernel:
 if __name__ == '__main__':
     qa = QAKernel()
     # result = qa.kernel(u'三星手机在哪', u"Omega,一期三楼")
-    cn_util.print_cn(qa.kernel(u'苹果手机在哪', u"Omega,一期三楼")[1])
+    cn_util.print_cn(qa.kernel(u'LV卖什么', u"Omega,一期三楼")[1])
