@@ -116,9 +116,9 @@ class QAKernel:
 
     ## where: entity exists, return search. else strict use last_entity
     def where(self, q, last_r):
-        current_entity, current_type, current_solr_r = self.retrieve_entity(q, 'store')
+        current_entity, current_type, current_solr_r = self.retrieve_entity(q, 'store%20entertainment%20facility')
         if last_r and not current_entity:
-            last_entity, last_type, last_solr_r = self.retrieve_entity(last_r, 'store')
+            last_entity, last_type, last_solr_r = self.retrieve_entity(last_r, 'store%20entertainment%20facility')
         else:
             last_entity = None
 
@@ -414,4 +414,4 @@ class QAKernel:
 if __name__ == '__main__':
     qa = QAKernel()
     # result = qa.kernel(u'三星手机在哪', u"Omega,一期三楼")
-    cn_util.print_cn(qa.kernel(u'LV卖什么', u"Omega,一期三楼")[1])
+    cn_util.print_cn(qa.kernel(u'服务台在哪里', u"Omega,一期三楼")[1])
