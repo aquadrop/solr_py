@@ -126,7 +126,7 @@ class QAKernel:
         if current_entity:
             location = SolrUtils.get_dynamic_response(current_solr_r, 'location', random_field=True)
             if not location:
-                location = '数据库中不存在'
+                return self.simple.kernel(q)
             return None, current_entity + "," + location
         if not last_entity:
             location = '您在问什么?'
@@ -199,12 +199,12 @@ class QAKernel:
             else:
                 return None, '没有找到相关信息'
 
-        current_label, current_type, label_r = self.retrieve_label(q, 'item')
+        current_label, current_type, label_r = self.retrieve_entity(q, 'item')
         ## hand over to main kernel
         if current_label:
-            return 'sale', None
+            return 'sale', 'redirected'
 
-        return 'base', None
+        return 'base', 'redirected'
 
     ## --> exist: entity exists, return search. else return none
     def permit(self, q, last_r):
@@ -218,7 +218,7 @@ class QAKernel:
             else:
                 return None, '没有找到相关信息'
 
-        current_label, current_type, label_r = self.retrieve_label(q)
+        current_label, current_type, label_r = self.retrieve_entity(q)
         ## hand over to main kernel
         if current_label:
             return self.simple(q)
@@ -419,4 +419,4 @@ class QAKernel:
 if __name__ == '__main__':
     qa = QAKernel()
     # result = qa.kernel(u'三星手机在哪', u"Omega,一期三楼")
-    cn_util.print_cn(qa.kernel(u'一楼有厕所吗', u"Omega,一期三楼")[1])
+    cn_util.print_cn(qa.kernel(u'有没有烤肉', u"Omega,一期三楼")[1])
