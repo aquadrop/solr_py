@@ -39,6 +39,7 @@ PAD = 2
 WORD2VEC_MODEL=None
 
 def init_word2vec():
+    print('Init word2vec model.')
     path='../model/word2vec/w2v_cb'
     global WORD2VEC_MODEL
     WORD2VEC_MODEL=gensim.models.Word2Vec.load(path)
@@ -56,10 +57,12 @@ def fasttext_wv(word):
     return vector
 
 def word2vec_wv(word):
+    global WORD2VEC_MODEL
     if WORD2VEC_MODEL.__contains__(word.strip()):
         vector = WORD2VEC_MODEL.__getitem__(word.strip())
     else:
         vector = WORD2VEC_MODEL.__getitem__('unk')
+        print('unk')
     result = [v for v in vector]
     return result
 
@@ -109,7 +112,7 @@ def load_word2vec(encoder_vocab_path):
 
     with open(encoder_vocab_path) as f:
         for word in f:
-            word=word.strip().replace(' ','').decode('utf-8')
+            word=word.strip().replace(' ','')
             if word not in encoder_vocab:
                 encoder_vocab.append(word)
                 embedding=word2vec_wv(word)
@@ -335,10 +338,16 @@ def _get_user_input():
     return sys.stdin.readline()
 
 
-def train(data_path, encoder_vocab_path, decoder_vocab_path, model_path):
+def train(data_path, encoder_vocab_path, decoder_vocab_path, model_path,embedding='word2vec'):
     print('Training...')
 
-    encoder_vocab, embeddings = load_fasttext(encoder_vocab_path)
+    if embedding=='word2vec':
+        init_word2vec()
+        encoder_vocab, embeddings = load_word2vec(encoder_vocab_path)
+        global WORD2VEC_MODEL
+        del WORD2VEC_MODEL
+    else:
+        encoder_vocab, embeddings = load_fasttext(encoder_vocab_path)
     decoder_vocab = load_decoder_vocab(decoder_vocab_path)
     global ENC_VOCAB_SIZE
     ENC_VOCAB_SIZE = len(encoder_vocab)
@@ -417,8 +426,11 @@ def train(data_path, encoder_vocab_path, decoder_vocab_path, model_path):
             i = i + 1
 
 
-def predict(data_path, encoder_vocab_path, decoder_vocab_path, model_path):
-    encoder_vocab, embeddings = load_fasttext(encoder_vocab_path)
+def predict(data_path, encoder_vocab_path, decoder_vocab_path, model_path,embedding='word2vec'):
+    if embedding=='word2vec':
+        encoder_vocab, embeddings = load_word2vec(encoder_vocab_path)
+    else:
+        encoder_vocab, embeddings = load_fasttext(encoder_vocab_path)
     decoder_vocab = load_decoder_vocab(decoder_vocab_path)
     global ENC_VOCAB_SIZE
     ENC_VOCAB_SIZE = len(encoder_vocab)
@@ -466,8 +478,11 @@ def predict(data_path, encoder_vocab_path, decoder_vocab_path, model_path):
             print("predict->", prediction)
             print("-----------------------")
 
-def metrics(data_path, encoder_vocab_path, decoder_vocab_path, model_path):
-    encoder_vocab, embeddings = load_fasttext(encoder_vocab_path)
+def metrics(data_path, encoder_vocab_path, decoder_vocab_path, model_path,embedding='word2vec'):
+    if embedding=='word2vec':
+        encoder_vocab, embeddings = load_word2vec(encoder_vocab_path)
+    else:
+        encoder_vocab, embeddings = load_fasttext(encoder_vocab_path)
     decoder_vocab = load_decoder_vocab(decoder_vocab_path)
     global ENC_VOCAB_SIZE
     ENC_VOCAB_SIZE = len(encoder_vocab)
@@ -542,11 +557,11 @@ def main():
     data_path = '../data/sc/train/sale_train0824.txt'
     encoder_vocab_path = '../data/sc/train/belief_rnn/encoder_vocab.txt'
     decoder_vocab_path = '../data/sc/train/belief_rnn/decoder_vocab.txt'
-
-    model_path = '../model/sc/belief_rnn_0829/belief_rnn'
+    model_path = '../model/sc/belief_rnn_0831/belief_rnn'
     parser = argparse.ArgumentParser()
     parser.add_argument('-m', choices={'train', 'predict', 'valid'},
-                        default='train', help='mode.if not specified,it is in train mode')
+                        default='train', help='mode. if not specified,it is in train mode')
+
     args = parser.parse_args()
 
     if args.m == 'train':
