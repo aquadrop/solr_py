@@ -36,14 +36,16 @@ class SolrUtils:
             return None
 
     @staticmethod
-    def get_dynamic_response(r, key, random_hit=False, facet=False, max_num=10, random_field=True, keep_array=False):
+    def get_dynamic_response(r, key, random_hit=False, force_hit=0,
+                             facet=False, max_num=10, random_field=True,
+                             keep_array=False):
         try:
             if not facet:
                 num = np.minimum(SolrUtils.num_answer(r), max_num)
                 if random_hit:
                     hit = np.random.randint(0, num)
                 else:
-                    hit = 0
+                    hit = force_hit
                 a = r.json()["response"]["docs"][hit][key]
                 if keep_array:
                     return a
