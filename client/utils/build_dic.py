@@ -62,13 +62,13 @@ def build_label_dict(inpath, outpath1, outpath2):
     label2index['#EOS#'] = 1
     label2index['#PAD#'] = 2
     label2index['#UNK#'] = 3
-    label2index[' '] = 4
+    label2index['/'] = 4
 
     index2label[0] = '#GO#'
     index2label[1] = '#EOS#'
     index2label[2] = '#PAD#'
     index2label[3] = '#UNK#'
-    index2label[4] = ' '
+    index2label[4] = '/'
 
     for i in range(5, 100):
         label2index['holder' + str(i)] = i
@@ -140,6 +140,6 @@ def add(inpath, char2index_path, index2char_path):
 
 
 if __name__ == '__main__':
-    build_label_dict('../../../data/sc/train/sale_v2.txt', '../../../data/sc/dict/label2index.txt',
+    build_label_dict('../../../data/sc/train/sale_train0824.txt', '../../../data/sc/dict/label2index.txt',
                      '../../../data/sc/dict/index2label.txt')
     # add(inpath, char2index_path, index2char_path)
