@@ -18,8 +18,6 @@ from sklearn.preprocessing import MultiLabelBinarizer
 from sklearn.multiclass import OneVsRestClassifier
 import cPickle as pickle
 
-import fasttext
-
 import argparse
 
 # from sc_scene_clf import SceneClassifier
