@@ -4,6 +4,10 @@
 from __future__ import division
 from __future__ import absolute_import
 from __future__ import print_function
+import urllib
+from flask import request
+
+from flask import Flask
 
 import os
 import sys
@@ -11,10 +15,13 @@ import json
 import jieba
 import requests
 import argparse
-from cn_util import print_cn
-from cn_util import print_out
 
-from query_util import QueryUtils
+import tensorflow as tf
+from tensorflow.python.layers.core import Dense
+import numpy as np
+
+from cn_util import print_cn
+
 from itertools import chain
 
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
@@ -22,10 +29,10 @@ os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
 reload(sys)
 sys.setdefaultencoding("utf-8")
 
-import tensorflow as tf
-from tensorflow.python.layers.core import Dense
-import numpy as np
-from utils.mail import send_mail
+
+# from utils.mail import send_mail
+
+app = Flask(__name__)
 
 VOCAB_SIZE = 0
 EMBEDDING_SIZE = 300
@@ -360,6 +367,32 @@ def train(data_path, dict_path, model_path):
 
 
 def predict(dict_path, model_path):
+    sess, model = load_tf_session(dict_path, model_path)
+    char2index, index2char = init_dict(dict_path)
+    while True:
+        line = _get_user_input()
+        line = line.strip().decode('utf-8')
+        ids = [char2index.get(c, 3) for c in line]
+
+        print_cn(line)
+        print(ids)
+        inputs_length = [len(ids)] * BATCH_SIZE
+        ids_inputs = [ids for _ in range(BATCH_SIZE)]
+        # predicting_embed_inputs = [[fasttext_wv(word) for word in predicting_inputs] for _ in range(BATCH_SIZE)]
+        # predicting_embed_inputs = np.asarray(predicting_embed_inputs)
+
+
+        answer_logits = sess.run(model.predicting_logits,
+                                 feed_dict={model.encoder_inputs.name: ids_inputs,
+                                            model.encoder_inputs_length.name: inputs_length})
+
+        prediction = recover(answer_logits.tolist()[0], index2char, False)
+        # print(answer_logits.tolist()[0])
+        print("predict->", prediction)
+        print("-----------------------")
+
+
+def load_tf_session(dict_path, model_path):
     char2index, index2char = init_dict(dict_path)
     global VOCAB_SIZE
     VOCAB_SIZE = len(char2index)
@@ -369,30 +402,50 @@ def predict(dict_path, model_path):
 
     saver = tf.train.Saver()
     # loaded_graph = tf.Graph()
-    with tf.Session() as sess:
-        sess.run(tf.global_variables_initializer())
-        _check_restore_parameters(sess, saver, model_path)
-        while True:
-            line = _get_user_input()
-            line = line.strip().decode('utf-8')
-            ids = [char2index.get(c, 3) for c in line]
+    # with tf.Session() as sess:
+    sess = tf.Session()
+    sess.run(tf.global_variables_initializer())
+    _check_restore_parameters(sess, saver, model_path)
+    return sess, model
 
-            print_cn(line)
-            print(ids)
-            inputs_length = [len(ids)] * BATCH_SIZE
-            ids_inputs = [ids for _ in range(BATCH_SIZE)]
-            # predicting_embed_inputs = [[fasttext_wv(word) for word in predicting_inputs] for _ in range(BATCH_SIZE)]
-            # predicting_embed_inputs = np.asarray(predicting_embed_inputs)
+app = Flask(__name__)
+
+data_path = '../data/sc/train/sale_train0831.txt'
+model_path = '../model/sc/belief_rnn_0831/belief_rnn'
+char2index_path = '../data/sc/dict/char2index.txt'
+index2char_path = '../data/sc/dict/index2char.txt'
+dict_path = [char2index_path, index2char_path]
+char2index, index2char = init_dict(dict_path)
+tf_sess, tf_model = load_tf_session(dict_path, model_path)
 
 
-            answer_logits = sess.run(model.predicting_logits,
-                                     feed_dict={model.encoder_inputs.name: ids_inputs,
-                                                model.encoder_inputs_length.name: inputs_length})
+@app.route('/sc/rnn/classify', methods=['GET', 'POST'])
+def classify():
+    try:
+        args = request.args
+        q = args['q']
+        q = urllib.unquote(q).decode('utf8')
+        ids = [char2index.get(c, 3) for c in q]
 
-            prediction = recover(answer_logits.tolist()[0], index2char, False)
-            # print(answer_logits.tolist()[0])
-            print("predict->", prediction)
-            print("-----------------------")
+        print_cn(q)
+        print(ids)
+        inputs_length = [len(ids)] * BATCH_SIZE
+        ids_inputs = [ids for _ in range(BATCH_SIZE)]
+        # predicting_embed_inputs = [[fasttext_wv(word) for word in predicting_inputs] for _ in range(BATCH_SIZE)]
+        # predicting_embed_inputs = np.asarray(predicting_embed_inputs)
+
+
+        answer_logits = tf_sess.run(tf_model.predicting_logits,
+                                 feed_dict={tf_model.encoder_inputs.name: ids_inputs,
+                                            tf_model.encoder_inputs_length.name: inputs_length})
+
+        prediction = recover(answer_logits.tolist()[0], index2char, False)
+        # print(answer_logits.tolist()[0])
+        print("predict->", prediction)
+        print("-----------------------")
+        return prediction
+    except Exception, e:
+        return None
 
 
 def metrics(data_path, dict_path, model_path):
@@ -440,25 +493,27 @@ def metrics(data_path, dict_path, model_path):
 
 
 def debug():
-    data_path = '../data/sc/train/sale_train0830.txt'
-    model_path = '../model/sc/belief_rnn/belief_rnn'
-    encoder_vocab, embeddings = load_fasttext('../data/sc/train/belief_rnn/encoder_vocab.txt')
-    decoder_vocab = load_decoder_vocab('../data/sc/train/belief_rnn/decoder_vocab.txt')
-
-    gen = generate_batch_data(data_path, encoder_vocab=encoder_vocab, decoder_vocab=decoder_vocab)
-    for a, b, c, d, e in gen:
-        pass
+    # data_path = '../data/sc/train/sale_train0830.txt'
+    # model_path = '../model/sc/belief_rnn/belief_rnn'
+    # encoder_vocab, embeddings = load_fasttext('../data/sc/train/belief_rnn/encoder_vocab.txt')
+    # decoder_vocab = load_decoder_vocab('../data/sc/train/belief_rnn/decoder_vocab.txt')
+    #
+    # gen = generate_batch_data(data_path, encoder_vocab=encoder_vocab, decoder_vocab=decoder_vocab)
+    # for a, b, c, d, e in gen:
+    #     pass
+    pass
 
 
 def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-m', choices={'train', 'predict', 'valid', 'web'},
+                        default='web', help='mode.if not specified,it is in train mode')
     data_path = '../data/sc/train/sale_train0831.txt'
     model_path = '../model/sc/belief_rnn_0831/belief_rnn'
     char2index_path = '../data/sc/dict/char2index.txt'
     index2char_path = '../data/sc/dict/index2char.txt'
     dict_path = [char2index_path, index2char_path]
-    parser = argparse.ArgumentParser()
-    parser.add_argument('-m', choices={'train', 'predict', 'valid'},
-                        default='train', help='mode.if not specified,it is in train mode')
+
     args = parser.parse_args()
 
     if args.m == 'train':
@@ -467,7 +522,8 @@ def main():
         predict(dict_path, model_path)
     elif args.m == 'valid':
         metrics(data_path, dict_path, model_path)
-
+    elif args.m == 'web':
+        app.run(host='0.0.0.0', port=10001, threaded=True)
 
 if __name__ == '__main__':
     # debug()

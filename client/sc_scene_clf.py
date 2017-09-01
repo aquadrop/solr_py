@@ -259,7 +259,7 @@ def offline_validation():
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('-m', choices={'train', 'online', 'offline'},
-                        default='train', help='mode.if not specified,it is in prediction mode')
+                        default='offline', help='mode.if not specified,it is in prediction mode')
     args = parser.parse_args()
 
     if args.m == 'train':

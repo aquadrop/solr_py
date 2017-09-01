@@ -81,8 +81,8 @@ class SceneKernel:
             else:
                 return 'qa', None, q
 
-        if type_ == 'item':
-            return 'sale', 'qa', q
+        # if type_ == 'item':
+        #     return 'sale', 'qa', q
 
         try:
             if re.match(self.qa_pattern, q):

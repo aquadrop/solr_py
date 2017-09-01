@@ -37,7 +37,7 @@ class QAKernel:
             print('skipping attaching clf kernel...')
             self.clf = QAKernel.static_clf
         else:
-            self.clf = SimpleSeqClassifier.get_instance('../model/sc/qa_ clf.pkl')
+            self.clf = SimpleSeqClassifier.get_instance('../model/sc/qa_clf.pkl')
             QAKernel.static_clf = self.clf
 
         # if QAKernel.static_belief_clf:
@@ -356,7 +356,7 @@ class QAKernel:
         if not type_:
             base_url = self.graph_url
         else:
-            base_url = 'http://localhost:11403/solr/graph_v2/select?q.op=OR&wt=json&q={0}%20AND%20type:(' +  type_ + ")"
+            base_url = 'http://localhost:11403/solr/graph_v2/select?q.op=OR&wt=json&q={0}%20&%20type:(' +  type_ + ")"
         r = self._request_solr(q, 'name', base_url=base_url)
         name = SolrUtils.get_dynamic_response(r=r, key='name', random_field=True)
         type_ = SolrUtils.get_dynamic_response(r=r, key='type', random_field=True)
@@ -404,7 +404,7 @@ class QAKernel:
         ## cut q into tokens
             key = '%s:' % key
             tokens = [s for s in QueryUtils.static_jieba_cut(q, smart=False, remove_single=True)]
-            q = key + "(" + '%20'.join(tokens) + ")"
+            q = key + '%20'.join(tokens)
             url = base_url.format(q)
             cn_util.print_cn(url)
             r = requests.get(url)
@@ -419,4 +419,4 @@ class QAKernel:
 if __name__ == '__main__':
     qa = QAKernel()
     # result = qa.kernel(u'三星手机在哪', u"Omega,一期三楼")
-    cn_util.print_cn(qa.kernel(u'出口在哪里', u"Omega,一期三楼")[1])
+    cn_util.print_cn(qa.kernel(u'我要寄存包包', u"Omega,一期三楼")[1])

@@ -86,7 +86,9 @@ class BeliefTracker:
         filtered_slots_list = []
         try:
             flipped, self.negative = self.negative_clf.predict(input_=query)
-            slots_list, probs = self.gbdt.predict(input_=flipped)
+            slots_list, probs = self.rnn_clf(flipped)
+            if not slots_list:
+                slots_list, probs = self.gbdt.predict(input_=flipped)
             slots_list = [slot.decode('utf-8') for slot in slots_list]
             retrieved_slots_list = self.retrieve_intention_from_solr(flipped)
             if not slots_list or len(slots_list) == 0:
@@ -299,6 +301,21 @@ class BeliefTracker:
         maximum_num = np.minimum(maximum_num, len(cls_sibling))
         return np.random.choice(a=cls_sibling, replace=False, size=maximum_num)
 
+    def rnn_clf(self, q):
+        try:
+            rnn_url = "http://localhost:10001/sc/rnn/classify?q={0}".format(q)
+            r = requests.get(rnn_url)
+            text = r.text
+            if text:
+                slots_list = text.split(",")
+                probs = [1.0 for slot in slots_list]
+                return slots_list, probs
+            else:
+                return None, None
+        except:
+            return None, None
+
+
     def search(self):
         try:
             intentions, fq = self.compose()
@@ -381,7 +398,7 @@ class BeliefTracker:
 
 if __name__ == "__main__":
     bt = BeliefTracker("../model/sc/belief_graph.pkl", '../model/sc/belief_clf.pkl')
-    ipts = [u"有没有小宝宝吃的啊"]
+    ipts = [u"买热水器"]
     for ipt in ipts:
         # ipt = raw_input()
         # chinese comma
