@@ -37,7 +37,7 @@ class QAKernel:
             print('skipping attaching clf kernel...')
             self.clf = QAKernel.static_clf
         else:
-            self.clf = SimpleSeqClassifier.get_instance('../model/sc/qa_clf.pkl')
+            self.clf = SimpleSeqClassifier.get_instance('../model/sc/qa_ clf.pkl')
             QAKernel.static_clf = self.clf
 
         # if QAKernel.static_belief_clf:
