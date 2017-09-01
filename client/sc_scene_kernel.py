@@ -7,7 +7,7 @@ import traceback
 
 import numpy as np
 
-from sc_scene_clf import SceneClassifier
+from sc_scene_clf_fasttext import SceneClassifier
 from query_util import QueryUtils
 from solr_utils import SolrUtils
 from sc_negative_clf import Negative_Clf
@@ -24,7 +24,7 @@ class SceneKernel:
         if not web:
             try:
                 print('attaching scene kernel...')
-                self.clf = SceneClassifier.get_instance('../model/sc/scene_clf.pkl')
+                self.clf = SceneClassifier.get_instance('../model/sc/scene_embeded_clf.pkl')
             except Exception,e:
                 print('failed to attach scene kernel..all inquires will be redirected to main kernel..', e.message)
         else:
@@ -58,7 +58,7 @@ class SceneKernel:
     sing_pattern = re.compile(ur'.*?(((唱.*?(歌|曲)).*?)|((来|唱).*?(首).*?)|(我想听)|七里香|轨迹|星晴).*?')
     sing_diff_pattern = re.compile(ur'.*?(我们.*?唱|我.*?唱).*?')
     sale_pattern = re.compile(ur'.*?(买|吃|随便|看看|饿).*?')
-    qa_pattern = re.compile(ur'.*?((存|寄).*?包|在哪|在那|在几楼|在几层|怎么走|带我去|方太|老板|苹果|三星|卫生间|厕所|积分|地铁|我要去|包装|停车场|电梯|出口|我想去|洗手间|充电|童车|贵吗|贵不贵|折扣吗|优惠吗|(有.*?吗)|要排队吗|人多吗).*?')
+    qa_pattern = re.compile(ur'.*?((存|寄).*?包|在哪|在那|在几楼|在几层|怎么走|带我去|方太|老板|三星|卫生间|厕所|积分|地铁|我要去|包装|停车场|电梯|出口|我想去|洗手间|充电|童车|贵吗|贵不贵|折扣吗|优惠吗|(有.*?吗)|要排队吗|人多吗).*?')
     qa_clean_pattern = re.compile(ur'在哪里|在哪|在那里|在那|怎么走|带我去下|带我去')
     greeting_pattern = re.compile(ur".*?(在吗|在嘛|名字|几岁|多少岁).*?")
     greeting_clean_pattern = re.compile(ur'啊|呢|呀')
@@ -185,4 +185,4 @@ if __name__ == '__main__':
     SK = SceneKernel()
     # greeting_pattern = re.compile(ur'在吗|在嘛|名字')
     # print(re.match(SceneKernel.qa_pattern, u'欧米茄在哪里'))
-    print(SK.kernel(u'母婴'))
+    print(SK.kernel(u'苹果'))

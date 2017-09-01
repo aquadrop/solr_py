@@ -40,7 +40,7 @@ sys.setdefaultencoding("utf-8")
 class Multilabel_Clf:
     def __init__(self, mode):
         self.mode = mode
-        self.weighted = True
+        self.weighted = False
         self.clf = None
         self.fasttext_url_weighted = "http://localhost:11425/fasttext/s2v?q={0}&w={1}"
         self.fasttext_url = "http://localhost:11425/fasttext/s2v?q={0}"
@@ -56,7 +56,7 @@ class Multilabel_Clf:
             reader = csv.reader(f, delimiter='#')
             for line in reader:
                 b = line[1].decode('utf-8')
-                b = QueryUtils.static_remove_stop_words(b)
+                # b = QueryUtils.static_remove_stop_words(b)
                 tokens = QueryUtils.static_jieba_cut(b)
                 corpus.append(tokens)
 
@@ -83,7 +83,11 @@ class Multilabel_Clf:
 
     def _fasttext_vector(self, tokens):
         if not self.weighted:
-            url = self.fasttext_url.format(','.join(tokens))
+            try:
+                weights = np.ones(shape=len(tokens))
+                url = self.fasttext_url_weighted.format(','.join(tokens), ",".join([str(weight) for weight in weights]))
+            except:
+                traceback.print_exc()
         else:
             try:
                 idf_url = "http://10.89.100.14:3032/s/{0}".format("%7C".join(tokens))
@@ -104,9 +108,14 @@ class Multilabel_Clf:
             except:
                 traceback.print_exc()
                 url = self.fasttext_url.format(','.join(tokens))
-        r = requests.get(url=url)
-        vector = r.json()['vector']
-        return vector
+        try:
+            r = requests.get(url=url)
+            vector = r.json()['vector']
+            return vector
+        except:
+            print_cn(url)
+            traceback.print_exc()
+            return None
 
     def remove_stop_words(self, q):
         for stop in self.stop_words:
@@ -171,7 +180,7 @@ class Multilabel_Clf:
         self.test(data_path)
 
     def predict(self, input_):
-        input_ = QueryUtils.static_remove_stop_words(input_)
+        # input_ = QueryUtils.static_remove_stop_words(input_)
         tokens = QueryUtils.static_jieba_cut(input_)
         try:
             if self.mode == 'fasttext':
@@ -255,7 +264,7 @@ if __name__ == '__main__':
 
     model_path = '../model/sc/belief_clf_fasttext.pkl'
     clf = Multilabel_Clf.load(model_path=model_path)
-    inputs = ["三文鱼"]
+    inputs = ["吃三文鱼"]
     for p in inputs:
         labels, probs = clf.predict(input_=p)
         print('{0}:-->{1}'.format(p, ' '.join(labels)))

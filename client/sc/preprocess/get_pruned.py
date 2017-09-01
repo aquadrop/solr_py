@@ -13,8 +13,8 @@ sys.path.insert(0, parentdir)
 
 from client.cn_util import print_cn
 
-data_path = '../../../data/sc/raw/sale_0831'
-output = '../../../data/sc/raw/sale_train0831.txt'
+data_path = '../../../data/sc/raw/qa_0831'
+output = '../../../data/sc/raw/qa_train0831.txt'
 
 
 def get_pruned(data_path, output):
@@ -25,16 +25,16 @@ def get_pruned(data_path, output):
                     line = json.loads(l.strip().decode("utf-8"))
                     # super_intention = line['super_intention']
                     # super_intention = ['ROOT'] if super_intention == [] else super_intention
-                    intention = line['intention']
-                    intention = filter(lambda x: x != 'ANY', intention)
+                    # question = line['intention']
+                    # intention = filter(lambda x: x != 'ANY', intention)
                     # print_cn(intention)
                     # if len(intention) == 1:
                     #     intention = ['ROOT'] + intention
                     #     print_cn(intention)
                     questions = line['question']
-                    intention = ','.join(intention)
+                    # intention = ','.join(intention)
                     for question in questions:
-                        out.write(intention + '#' + question + '\n')
+                        out.write(question + '\n')
                 except Exception,e:
                     print_cn(l)
                     traceback.print_exc()
