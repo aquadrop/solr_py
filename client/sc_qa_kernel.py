@@ -30,7 +30,7 @@ class QAKernel:
     def __init__(self):
         print('attaching qa kernel...')
         ## http://localhost:11403/solr/sc_qa/select?fq=entity:%E5%8E%95%E6%89%80&indent=on&q=*:*&wt=json
-        self.graph_url = 'http://localhost:11403/solr/graph/select?q.op=OR&wt=json&q=%s'
+        self.graph_url = 'http://localhost:11403/solr/graph_v2/select?q.op=OR&wt=json&q=%s'
         self.qa_exact_match_url = 'http://localhost:11403/solr/sc_qa/select?wt=json&q=question:%s'
         self.simple = SimpleQAKernel()
         if QAKernel.static_clf:
@@ -124,7 +124,7 @@ class QAKernel:
             last_entity = None
 
         if current_entity:
-            location = SolrUtils.get_dynamic_response(current_solr_r, 'location', random_field=True)
+            location = SolrUtils.get_dynamic_response(current_solr_r, 'rich_location', random_field=True)
             if not location:
                 return self.simple.kernel(q)
             return None, current_entity + "," + location
@@ -135,7 +135,7 @@ class QAKernel:
         q = QueryUtils.static_remove_pu(q).decode('utf-8')
         strict = re.compile(ur'在哪|在什么地方|带我去|在哪里')
         if re.match(strict, q):
-            location = SolrUtils.get_dynamic_response(last_solr_r, 'location', random_field=True)
+            location = SolrUtils.get_dynamic_response(last_solr_r, 'rich_location', random_field=True)
             if not location:
                 location = '数据库中不存在'
             return None, location
@@ -330,7 +330,7 @@ class QAKernel:
         return self.simple.kernel(q)
 
     def whether_label_validate(self, entity, label_query):
-        valid_url = 'http://localhost:11403/solr/graph/select?&q=*:*&wt=json&fq=name:%s&fq=label:%s' % (entity, label_query)
+        valid_url = 'http://localhost:11403/solr/graph_v2/select?&q=*:*&wt=json&fq=name:%s&fq=label:%s' % (entity, label_query)
         try:
             r = requests.get(valid_url)
             if SolrUtils.num_answer(r) > 0:
@@ -341,7 +341,7 @@ class QAKernel:
             return False
 
     def retrieve_common_info(self, r):
-        location = SolrUtils.get_dynamic_response(r=r, key='location', random_field=True)
+        location = SolrUtils.get_dynamic_response(r=r, key='rich_location', random_field=True)
         if location:
             return location
         definition = SolrUtils.get_dynamic_response(r=r, key='definition', random_field=True)
@@ -356,7 +356,7 @@ class QAKernel:
         if not type_:
             base_url = self.graph_url
         else:
-            base_url = 'http://localhost:11403/solr/graph/select?q.op=OR&wt=json&q={0}%20AND%20type:(' +  type_ + ")"
+            base_url = 'http://localhost:11403/solr/graph_v2/select?q.op=OR&wt=json&q={0}%20AND%20type:(' +  type_ + ")"
         r = self._request_solr(q, 'name', base_url=base_url)
         name = SolrUtils.get_dynamic_response(r=r, key='name', random_field=True)
         type_ = SolrUtils.get_dynamic_response(r=r, key='type', random_field=True)
@@ -419,4 +419,4 @@ class QAKernel:
 if __name__ == '__main__':
     qa = QAKernel()
     # result = qa.kernel(u'三星手机在哪', u"Omega,一期三楼")
-    cn_util.print_cn(qa.kernel(u'有没有烤肉', u"Omega,一期三楼")[1])
+    cn_util.print_cn(qa.kernel(u'三楼我要去三楼', u"Omega,一期三楼")[1])

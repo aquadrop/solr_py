@@ -45,7 +45,7 @@ class Multilabel_Clf:
         with open(data_path, 'r') as f:
             reader = csv.reader(f, delimiter='#')
             for line in reader:
-                b = line[1].encode('utf-8')
+                b = line[1].decode('utf-8')
                 tokens = self.cut(b)
                 corpus.append(tokens)
 
@@ -77,8 +77,8 @@ class Multilabel_Clf:
         with open(self.data_path, 'r') as f:
             reader = csv.reader(f, delimiter='#')
             for line in reader:
-                key = line[0].encode('utf-8')
-                input_ = line[1].encode('utf-8')
+                key = line[0].decode('utf-8')
+                input_ = line[1].decode('utf-8')
                 intention_list = key.split(",")
                 tokens = self.cut(input_)
                 # embedding = self.feature_extractor.transform(tokens).toarray()
@@ -126,8 +126,8 @@ class Multilabel_Clf:
             reader = csv.reader(f, delimiter='#')
             for line in reader:
                 # print_cn(line)
-                key = line[0].encode('utf-8')
-                input_ = line[1].encode('utf-8')
+                key = line[0].decode('utf-8')
+                input_ = line[1].decode('utf-8')
                 labels = key.split(",")
 
                 prediction, proba = self.predict(input_)
@@ -160,8 +160,8 @@ def test(test_data_path, model_path):
 
 def main():
     model_path = '../model/sc/belief_clf.pkl'
-    train_data_path = '../data/sc/train/sale_v2.txt'
-    test_data_path = '../data/sc/train/sale_v2.txt'
+    train_data_path = '../data/sc/train/sale_train0831.txt'
+    test_data_path = '../data/sc/train/sale_train0831.txt'
     parser = argparse.ArgumentParser()
     parser.add_argument('-m', choices={'train', 'test'},
                         default='train', help='mode.if not specified,it is in test mode')
@@ -177,7 +177,7 @@ def main():
 
 
 if __name__ == '__main__':
-    # main()
+    main()
 
     model_path = '../model/sc/belief_clf.pkl'
     clf = Multilabel_Clf.load(model_path=model_path)

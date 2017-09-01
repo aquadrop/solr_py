@@ -327,7 +327,7 @@ class BeliefTracker:
             return 'base', 'error', '我好像不知道哦, 问问咨询台呢'
 
     def generate_response(self, response, labels):
-        graph_url = 'http://localhost:11403/solr/graph/select?wt=json&q=%s'
+        graph_url = 'http://localhost:11403/solr/graph_v2/select?wt=json&q=%s'
         if '<s>' in response:
             condition = []
             for label in labels:
@@ -342,7 +342,7 @@ class BeliefTracker:
             r = requests.get(url)
             if SolrUtils.num_answer(r) > 0:
                 name = self._get_response(r=r, key='name', random_hit=True, random_field=True)
-                location = self._get_response(r=r, key='location', random_hit=True, random_field=True)
+                location = self._get_response(r=r, key='rich_location', random_hit=True, random_field=True)
                 new_response = response.replace('<s>', name).replace('<l>', location)
                 return new_response
             else:
@@ -381,7 +381,7 @@ class BeliefTracker:
 
 if __name__ == "__main__":
     bt = BeliefTracker("../model/sc/belief_graph.pkl", '../model/sc/belief_clf.pkl')
-    ipts = [u"我要吃草莓"]
+    ipts = [u"有没有小宝宝吃的啊"]
     for ipt in ipts:
         # ipt = raw_input()
         # chinese comma

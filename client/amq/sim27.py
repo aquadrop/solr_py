@@ -7,12 +7,12 @@ import random_helper
 
 from singleton import Singleton
 
+@Singleton
 class BenebotSim():
 
     mq = None #messagequeue
 
     def __init__(self):
-        __metaclass__ = Singleton
         publish_key = 'nlp.sim.normal.request.'+random_helper.random_string()
         receive_key = publish_key.replace('request', 'reply')
         self.mq = IMessageQueue(receive_key, publish_key, receive_key, receive_key, '')
@@ -28,8 +28,8 @@ class BenebotSim():
         return {}
 
 if __name__ == '__main__':
-    bt = BenebotSim()
-    bt2 = BenebotSim()
+    bt = BenebotSim.Instance()
+    bt2 = BenebotSim.Instance()
     while 1:
         s1 = raw_input('input: ')
         s2 = raw_input('input: ')

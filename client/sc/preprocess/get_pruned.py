@@ -7,14 +7,14 @@ import os
 
 reload(sys)
 sys.setdefaultencoding("utf-8")
-
+import traceback
 parentdir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, parentdir)
 
 from client.cn_util import print_cn
 
-data_path = '../../../data/sc/raw/111sale'
-output = '../../../data/sc/raw/111sale_train.txt'
+data_path = '../../../data/sc/raw/sale_0831'
+output = '../../../data/sc/raw/sale_train0831.txt'
 
 
 def get_pruned(data_path, output):
@@ -36,7 +36,8 @@ def get_pruned(data_path, output):
                     for question in questions:
                         out.write(intention + '#' + question + '\n')
                 except Exception,e:
-                    print(e.message)
+                    print_cn(l)
+                    traceback.print_exc()
 
 
 if __name__ == '__main__':

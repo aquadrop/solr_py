@@ -24,7 +24,7 @@ class SimpleQAKernel:
         self.qa_url = 'http://localhost:11403/solr/sc_qa/select?q.op=OR&wt=json&q={0}'
         self.qa_exact_match_url = 'http://localhost:11403/solr/sc_qa/select?wt=json&q=question:{0}'
         self.qu = QueryUtils()
-        self.bt = BenebotSim()
+        self.bt = BenebotSim.Instance()
 
     def kernel(self, q):
         try:
@@ -67,7 +67,7 @@ class SimpleQAKernel:
 
     def _request_solr(self, q):
         ## cut q into tokens
-        tokens = ['entity:' + s for s in QueryUtils.static_jieba_cut(q, False)]
+        tokens = ['question:' + s for s in QueryUtils.static_jieba_cut(q, smart=False, remove_single=True)]
         q = ' OR '.join(tokens)
         url = self.qa_url.format(q)
         # print('qa_debug:', url)
@@ -93,6 +93,7 @@ class SimpleQAKernel:
                                                     random_field=True,
                                                     random_hit=False)
             return answer
+        return None
 
     def _num_answer(self, r):
         return int(r.json()["response"]["numFound"])
@@ -113,4 +114,4 @@ class SimpleQAKernel:
 
 if __name__ == '__main__':
     qa = SimpleQAKernel()
-    cn_util.print_cn(qa.kernel(u'会员卡丢了')[1])
+    cn_util.print_cn(qa.kernel(u'得基怎么去')[1])

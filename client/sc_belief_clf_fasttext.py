@@ -162,7 +162,7 @@ class Multilabel_Clf:
 
         begin = time.clock()
 
-        self.clf = OneVsRestClassifier(GradientBoostingClassifier(max_depth=5, n_estimators=2000))
+        self.clf = OneVsRestClassifier(GradientBoostingClassifier(max_depth=5, n_estimators=200))
         self.clf.fit(embeddings, labels_)
 
         end = time.clock()
@@ -181,8 +181,7 @@ class Multilabel_Clf:
                 embeddings = np.reshape(
                     self.feature_extractor.transform(tokens).toarray()[0], [1, -1])
         except:
-            embeddings = np.reshape(
-                self.feature_extractor.transform(tokens).toarray()[0], [1, -1])
+            exit(-1)
         prediction = self.clf.predict(embeddings)
         prediction_index_first_sample = np.where(prediction[0] == 1)
         labels = self.mlb.inverse_transform(prediction)
@@ -235,8 +234,8 @@ def test(test_data_path, model_path):
 def main():
     mode = 'fasttext'
     model_path = '../model/sc/belief_clf_fasttext.pkl'
-    train_data_path = '../data/sc/train/sale_v2.txt'
-    test_data_path = '../data/sc/train/sale_v2.txt'
+    train_data_path = '../data/sc/train/sale_train0831.txt'
+    test_data_path = '../data/sc/train/sale_train0831.txt'
     parser = argparse.ArgumentParser()
     parser.add_argument('-m', choices={'train', 'test'},
                         default='train', help='mode.if not specified,it is in test mode')
@@ -252,11 +251,11 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    # main()
 
     model_path = '../model/sc/belief_clf_fasttext.pkl'
     clf = Multilabel_Clf.load(model_path=model_path)
-    inputs = ["我想买点糖果"]
+    inputs = ["三文鱼"]
     for p in inputs:
         labels, probs = clf.predict(input_=p)
         print('{0}:-->{1}'.format(p, ' '.join(labels)))
