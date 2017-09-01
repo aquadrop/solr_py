@@ -419,4 +419,4 @@ class QAKernel:
 if __name__ == '__main__':
     qa = QAKernel()
     # result = qa.kernel(u'三星手机在哪', u"Omega,一期三楼")
-    cn_util.print_cn(qa.kernel(u'三楼我要去三楼', u"Omega,一期三楼")[1])
+    cn_util.print_cn(qa.kernel(u'出口在哪里', u"Omega,一期三楼")[1])

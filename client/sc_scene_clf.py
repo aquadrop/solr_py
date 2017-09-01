@@ -227,8 +227,8 @@ class SceneClassifier:
 def train():
     clf = SceneClassifier()
     files = ['../data/sc/scene/base', '../data/sc/scene/greeting',
-             '../data/sc/scene/qa', '../data/sc/scene/repeat_guest',
-             '../data/sc/scene/repeat_machine','../data/sc/scene/sale']
+             '../data/sc/scene/qa0831.txt', '../data/sc/scene/repeat_guest',
+             '../data/sc/scene/repeat_machine','../data/sc/scene/sale0831.txt']
     clf.train('../model/sc/scene_clf.pkl', files)
 
 
@@ -250,8 +250,8 @@ def offline_validation():
     clf = SceneClassifier.get_instance('../model/sc/scene_clf.pkl')
     print('loaded model file...')
     files = ['../data/sc/scene/base', '../data/sc/scene/greeting',
-             '../data/sc/scene/qa', '../data/sc/scene/repeat_guest',
-             '../data/sc/scene/repeat_machine', '../data/sc/scene/sale']
+             '../data/sc/scene/qa0831.txt', '../data/sc/scene/repeat_guest',
+             '../data/sc/scene/repeat_machine', '../data/sc/scene/sale0831.txt']
     clf.validate(files)
     # print(clf.interface('我要买鞋'))
 

@@ -6,6 +6,7 @@ import jieba
 import gensim
 import os
 import requests
+import traceback
 
 import _uniout
 from cn_util import print_cn
@@ -37,7 +38,9 @@ class SceneClassifier:
     def __init__(self):
         self.kernel = None
         self.named_labels = ['base','greeting','qa','repeat_user','repeat_machine','sale']
-        self.fasttext_url = "http://localhost:11425/fasttext/s2v?q="
+        self.fasttext_url = "http://localhost:11425/fasttext/s2v?q={0}&w="
+        self.fasttext_url_weighted = "http://localhost:11425/fasttext/s2v?q={0}&w={1}"
+        self.weighted = False
 
     def _add_extra_dict(self, path):
         with open(path, 'r') as inp:
@@ -71,10 +74,45 @@ class SceneClassifier:
         #     print_cn(tokens)
         # embedding=np.divide(embedding,count)
         ## get fasttext embedding from web
-        r = requests.get(url=self.fasttext_url + ','.join(tokens))
-        vector = r.json()['vector']
-        embedding = vector
+
+        embedding = self._fasttext_vector(tokens)
         return np.squeeze(embedding)
+
+    def _fasttext_vector(self, tokens):
+        if not self.weighted:
+            try:
+                weights = np.ones(shape=len(tokens))
+                url = self.fasttext_url_weighted.format(','.join(tokens), ",".join([str(weight) for weight in weights]))
+            except:
+                traceback.print_exc()
+        else:
+            try:
+                idf_url = "http://10.89.100.14:3032/s/{0}".format("%7C".join(tokens))
+                idf_r = requests.get(url=idf_url)
+                weights = []
+                returned_json = idf_r.json()
+                max_weight = 1
+                for key, value in returned_json.iteritems():
+                    if value > max_weight:
+                        max_weight = value
+                for token in tokens:
+                    if token not in returned_json:
+                        weights.append(str(max_weight))
+                    else:
+                        weights.append(str(returned_json[token]))
+
+                url = self.fasttext_url_weighted.format(','.join(tokens), ','.join(weights))
+            except:
+                traceback.print_exc()
+                url = self.fasttext_url.format(','.join(tokens))
+        try:
+            r = requests.get(url=url)
+            vector = r.json()['vector']
+            return vector
+        except:
+            print_cn(url)
+            traceback.print_exc()
+            return None
 
     # def check_zero_tokens(self,tokens):
     #     count=0
@@ -106,7 +144,7 @@ class SceneClassifier:
                     # question = line['question']
                     question = line.replace('\t','').replace(' ','').strip('\n').decode('utf-8')
                     question = QueryUtils.static_remove_cn_punct(str(question))
-                    tokens=self.cut(question).split(' ')
+                    tokens= QueryUtils.static_jieba_cut(question)
                     # print_cn(tokens)
                     if len(tokens)==0:
                         continue
@@ -250,7 +288,7 @@ def offline_validation():
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('-m', choices={'train', 'online', 'offline'},
-                        default='train', help='mode.if not specified,it is in prediction mode')
+                        default='online', help='mode.if not specified,it is in prediction mode')
     args = parser.parse_args()
 
     if args.m == 'train':

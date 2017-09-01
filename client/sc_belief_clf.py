@@ -97,7 +97,7 @@ class Multilabel_Clf:
 
         begin = time.clock()
 
-        self.clf = OneVsRestClassifier(GradientBoostingClassifier(max_depth=8, n_estimators=1000))
+        self.clf = OneVsRestClassifier(GradientBoostingClassifier(max_depth=5, n_estimators=200))
         self.clf.fit(embeddings, labels_)
 
         end = time.clock()
@@ -177,11 +177,11 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    # main()
 
     model_path = '../model/sc/belief_clf.pkl'
     clf = Multilabel_Clf.load(model_path=model_path)
-    inputs=[u"买油烟机"]
+    inputs=[u"吃三文鱼"]
     for p in inputs:
         labels, probs = clf.predict(input_=p.decode('utf-8'))
         cn_util.print_cn(','.join(labels))
