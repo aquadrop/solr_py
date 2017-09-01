@@ -86,7 +86,7 @@ class EntryKernel:
                 # response = self.kernel(q=q, direction=suggested_direction, debug=False, recursive=True)
                 redirected = True
                 if redirection == 'sale':
-                    inside_intentions, response = self.main_kernel.kernel(query=q)
+                    _, inside_intentions, response = self.main_kernel.kernel(query=q)
                 if redirection == 'base':
                     response = self.base_kernel.kernel(q)
             self.last_response = response
