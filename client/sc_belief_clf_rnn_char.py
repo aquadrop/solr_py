@@ -451,8 +451,8 @@ def debug():
 
 
 def main():
-    data_path = '../data/sc/train/sale_train0830.txt'
-    model_path = '../model/sc/belief_rnn_0830/belief_rnn'
+    data_path = '../data/sc/train/sale_train0831.txt'
+    model_path = '../model/sc/belief_rnn_0831/belief_rnn'
     char2index_path = '../data/sc/dict/char2index.txt'
     index2char_path = '../data/sc/dict/index2char.txt'
     dict_path = [char2index_path, index2char_path]

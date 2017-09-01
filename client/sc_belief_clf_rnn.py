@@ -36,18 +36,21 @@ N_LAYER = 2
 BATCH_SIZE = 32
 RNN_SIZE = 128
 PAD = 2
-WORD2VEC_MODEL=None
+WORD2VEC_MODEL = None
+
 
 def init_word2vec():
     print('Init word2vec model.')
-    path='../model/word2vec/w2v_cb'
+    path = '../model/word2vec/w2v_cb'
     global WORD2VEC_MODEL
-    WORD2VEC_MODEL=gensim.models.Word2Vec.load(path)
+    WORD2VEC_MODEL = gensim.models.Word2Vec.load(path)
+
 
 def cut(input_):
     input_ = QueryUtils.static_remove_cn_punct(input_)
     tokens = list(jieba.cut(input_, cut_all=False))
     return tokens
+
 
 def fasttext_wv(word):
     url = 'http://localhost:11425/fasttext/w2v?q='
@@ -55,6 +58,7 @@ def fasttext_wv(word):
     r = requests.get(url=ff_url)
     vector = r.json()['vector']
     return vector
+
 
 def word2vec_wv(word):
     global WORD2VEC_MODEL
@@ -65,6 +69,7 @@ def word2vec_wv(word):
         print('unk')
     result = [v for v in vector]
     return result
+
 
 def recover_source(index, vocab):
     sentence = []
@@ -91,6 +96,7 @@ def recover_label(index, vocab):
         sentence.append(word)
     return ''.join(sentence)
 
+
 def load_fasttext(encoder_vocab_path):
     print('Load encoder vocab, embedding by fasttext.')
     encoder_vocab = []
@@ -105,19 +111,21 @@ def load_fasttext(encoder_vocab_path):
                 embeddings.append(embedding)
     return encoder_vocab, embeddings
 
+
 def load_word2vec(encoder_vocab_path):
     print('Load encoder vocab, embedding by word2vec.')
-    encoder_vocab=[]
-    embeddings=[]
+    encoder_vocab = []
+    embeddings = []
 
     with open(encoder_vocab_path) as f:
         for word in f:
-            word=word.strip().replace(' ','')
+            word = word.strip().replace(' ', '')
             if word not in encoder_vocab:
                 encoder_vocab.append(word)
-                embedding=word2vec_wv(word)
+                embedding = word2vec_wv(word)
                 embeddings.append(embedding)
-    return encoder_vocab,embeddings
+    return encoder_vocab, embeddings
+
 
 def load_decoder_vocab(decoder_vocab_path):
     print('Load decoder vocab')
@@ -132,6 +140,7 @@ def load_decoder_vocab(decoder_vocab_path):
 
     return decoder_vocab
 
+
 def padding(inputs, pad):
     batch_size = len(inputs)
     sequence_lengths = [len(seq) for seq in inputs]
@@ -144,6 +153,7 @@ def padding(inputs, pad):
             inputs_batch_major[i][j] = element
 
     return inputs_batch_major
+
 
 def generate_batch_data(data_path, encoder_vocab, decoder_vocab, batch_size=32, train=True):
     sources = list()
@@ -208,6 +218,7 @@ def generate_batch_data(data_path, encoder_vocab, decoder_vocab, batch_size=32, 
         yield np.array(encoder_inputs), np.array(decoder_inputs), np.array(labels), np.asarray(
             encoder_inputs_length), np.asarray(decoder_inputs_length)
 
+
 class BeliefRnn:
     def __init__(self, decoder_vocab, trainable=True):
         self.trainable = trainable
@@ -249,28 +260,52 @@ class BeliefRnn:
 
         with tf.variable_scope("encoder") as scope:
             encoder_cell = tf.contrib.rnn.MultiRNNCell([get_cell(RNN_SIZE) for _ in range(N_LAYER)])
+            # encoder_cell_bw = tf.contrib.rnn.MultiRNNCell([get_cell(RNN_SIZE) for _ in range(N_LAYER)])
             encoder_output, encoder_state = tf.nn.dynamic_rnn(encoder_cell, self.encoder_embed_inputs,
                                                               sequence_length=self.encoder_inputs_length,
                                                               dtype=tf.float32)
+
+
         with tf.variable_scope("decoder") as scope:
-            decoder_cell = tf.contrib.rnn.MultiRNNCell([get_cell(RNN_SIZE) for _ in range(N_LAYER)])
+            # decoder_cell_list=[get_cell(RNN_SIZE) for _ in range(N_LAYER)]
+            # decoder_cell = tf.contrib.rnn.MultiRNNCell(decoder_cell_list)
+
+            decoder_cell_list = []
+            for iiLyr in range(N_LAYER):
+                decoder_cell_list.append(tf.contrib.rnn.LSTMCell(RNN_SIZE, initializer=tf.random_uniform_initializer(-0.1, 0.1, seed=2)))
+            decoder_cell = tf.nn.rnn_cell.MultiRNNCell(cells=decoder_cell_list, state_is_tuple=True)
+
             output_layer = Dense(DEC_VOCAB_SIZE,
                                  kernel_initializer=tf.truncated_normal_initializer(mean=0.0, stddev=0.1))
             self.max_target_sequence_length = tf.reduce_max(
                 self.decoder_inputs_length, name='max_target_len')
 
         with tf.variable_scope("decoder") as scope:
+            attention_mechanism = tf.contrib.seq2seq.BahdanauAttention(
+                num_units=RNN_SIZE, memory=encoder_output,
+                memory_sequence_length=self.encoder_inputs_length)
+            # attention_cell = decoder_cell_list.pop(0)
+
+            # decoder_cell
+            attention_cell = tf.contrib.seq2seq.AttentionWrapper(
+                decoder_cell, attention_mechanism, attention_layer_size=RNN_SIZE)
+            attn_zero = attention_cell.zero_state(BATCH_SIZE, tf.float32)
+
+            attn_zero = attn_zero.clone(cell_state=encoder_state)
+
+
             training_helper = tf.contrib.seq2seq.TrainingHelper(inputs=self.decoder_embed_inputs,
                                                                 sequence_length=self.decoder_inputs_length,
                                                                 time_major=False)
 
-            training_decoder = tf.contrib.seq2seq.BasicDecoder(cell=decoder_cell,
+            training_decoder = tf.contrib.seq2seq.BasicDecoder(cell=attention_cell,
                                                                helper=training_helper,
-                                                               initial_state=encoder_state,
+                                                               initial_state=attn_zero,
                                                                output_layer=output_layer)
 
             self.decoder_output, decoder_state, _ = tf.contrib.seq2seq.dynamic_decode(training_decoder,
                                                                                       impute_finished=True,
+                                                                                      output_time_major=False,
                                                                                       maximum_iterations=self.max_target_sequence_length)
 
         with tf.variable_scope("decoder", reuse=True):
@@ -337,11 +372,10 @@ def _get_user_input():
     sys.stdout.flush()
     return sys.stdin.readline()
 
-
-def train(data_path, encoder_vocab_path, decoder_vocab_path, model_path,embedding='word2vec'):
+def train(data_path, encoder_vocab_path, decoder_vocab_path, model_path, embedding='fasttext'):
     print('Training...')
 
-    if embedding=='word2vec':
+    if embedding == 'word2vec':
         init_word2vec()
         encoder_vocab, embeddings = load_word2vec(encoder_vocab_path)
         global WORD2VEC_MODEL
@@ -426,8 +460,8 @@ def train(data_path, encoder_vocab_path, decoder_vocab_path, model_path,embeddin
             i = i + 1
 
 
-def predict(data_path, encoder_vocab_path, decoder_vocab_path, model_path,embedding='word2vec'):
-    if embedding=='word2vec':
+def predict(data_path, encoder_vocab_path, decoder_vocab_path, model_path, embedding='word2vec'):
+    if embedding == 'word2vec':
         encoder_vocab, embeddings = load_word2vec(encoder_vocab_path)
     else:
         encoder_vocab, embeddings = load_fasttext(encoder_vocab_path)
@@ -478,8 +512,9 @@ def predict(data_path, encoder_vocab_path, decoder_vocab_path, model_path,embedd
             print("predict->", prediction)
             print("-----------------------")
 
-def metrics(data_path, encoder_vocab_path, decoder_vocab_path, model_path,embedding='word2vec'):
-    if embedding=='word2vec':
+
+def metrics(data_path, encoder_vocab_path, decoder_vocab_path, model_path, embedding='word2vec'):
+    if embedding == 'word2vec':
         encoder_vocab, embeddings = load_word2vec(encoder_vocab_path)
     else:
         encoder_vocab, embeddings = load_fasttext(encoder_vocab_path)
@@ -496,8 +531,8 @@ def metrics(data_path, encoder_vocab_path, decoder_vocab_path, model_path,embedd
     for word in decoder_vocab:
         jieba.add_word(word)
 
-    querys=[]
-    labels=[]
+    querys = []
+    labels = []
     with open(data_path, 'r') as f:
         for line in f:
             line = line.strip().replace(' ', '').encode('utf-8')
@@ -520,7 +555,7 @@ def metrics(data_path, encoder_vocab_path, decoder_vocab_path, model_path,embedd
         sess.run(model.embedding_init, feed_dict={model.embedding_placeholder: embeddings})
         _check_restore_parameters(sess, saver, model_path)
         for index, query in enumerate(querys):
-            predicting_inputs=cut(query)
+            predicting_inputs = cut(query)
             ids = []
             for word in predicting_inputs:
                 if word in encoder_vocab:
@@ -534,13 +569,14 @@ def metrics(data_path, encoder_vocab_path, decoder_vocab_path, model_path,embedd
                                                 model.encoder_inputs_length.name: predicting_inputs_length})
 
             prediction = recover_label(answer_logits.tolist()[0], decoder_vocab)
-            predictions=prediction.split('/')
+            predictions = prediction.split('/')
             total += 1
-            if set(predictions)!=set(labels[index]):
+            if set(predictions) != set(labels[index]):
                 print('{0}: {1}-->{2}'.format(query, ' '.join(labels[index]), ' '.join(predictions)))
             else:
-                correct+=1
+                correct += 1
         print('accuracy:{0}'.format(correct / total))
+
 
 def debug():
     data_path = '../data/sc/train/sale_train0824.txt'

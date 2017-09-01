@@ -4,6 +4,7 @@
 import os
 import sys
 import json
+import random
 import numpy as np
 import jieba
 import requests
@@ -17,6 +18,46 @@ os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
 
 reload(sys)
 sys.setdefaultencoding("utf-8")
+
+
+def add_dict():
+    path='../../data/sc/train/belief_rnn/decoder_vocab.txt'
+    with open(path,'r') as f:
+        for line in f:
+            line=line.strip()
+            jieba.add_word(line)
+    # print_cn(cut('我要吃张氏宽窄巷和很高兴遇见你'))
+
+def get_train_data(data_path,normal_path,shuffle_path):
+    add_dict()
+    normal_f=open(normal_path,'w')
+    shuffle_f=open(shuffle_path,'w')
+    # drop_f=open(drop_path)
+
+
+
+    with open(data_path,'r') as f:
+        for line in f:
+            print_cn(line)
+            line=json.loads(line)
+            intentions=','.join(line['intention'])
+            questions=line['question']
+
+            for question in questions:
+                normal_f.write(intentions + '#' + question + '\n')
+                tokens = cut(question)
+                if len(tokens)<=1:
+                    continue
+                elif len(tokens)==2:
+                    random.shuffle(tokens)
+                    shuffle_f.write(intentions + '#' + ''.join(tokens) + '\n')
+                else:
+                    for _ in range(2):
+                        random.shuffle(tokens)
+                        shuffle_f.write(intentions+'#'+''.join(tokens)+'\n')
+    normal_f.close()
+    shuffle_f.close()
+
 
 
 
@@ -222,134 +263,12 @@ def generate_batch_data(data_path, encoder_vocab, decoder_vocab, batch_size=32, 
             encoder_inputs_length), np.asarray(decoder_inputs_length)
 
 if __name__ == '__main__':
-    data_path='../../data/sc/train/sale_train0824.txt'
-    encoder_vocab_path='../../data/sc/train/belief_rnn/encoder_vocab.txt'
-    decoder_vocab_path='../../data/sc/train/belief_rnn/encoder_vocab.txt'
-    fasttext_path='../../data/sc/train/belief_rnn/fasttext_wv.txt'
-    # word2vec_path='../../data/sc/belief_rnn/encoder_vocab.txt'
-    files = [encoder_vocab_path, decoder_vocab_path, fasttext_path]
-    maybe_process_data(data_path,files)
-
-
-# def padding2(inputs):
-    #     batch_size = len(inputs)
-    #     sequence_lengths = [len(seq) for seq in inputs]
-    #     max_sequence_length = max(sequence_lengths)
-    #
-    #     result = list()
-    #     for input in inputs:
-    #         input.extend(['#PAD#'] * (max_sequence_length - len(input)))
-    #         result.append(input)
-    #
-    #     return result
-
-    #
-    # def fasttext_vector(tokens):
-    #     global url
-    #     ff_url = url + ','.join(tokens).decode('utf-8')
-    #     r = requests.get(url=ff_url)
-    #     vector = r.json()['vector']
-    #     return vector
-
-    #
-    # def embedding(inputs, train=True):
-    #     embeddings = list()
-    #     for inp in inputs:
-    #         embedding = list()
-    #         for word in inp:
-    #             if train:
-    #                 resp = wv.get(word.strip().encode('utf-8'), fasttext_wv(word))
-    #                 # if not resp:
-    #                 #     continue
-    #             else:
-    #                 resp = fasttext_wv(word)
-    #             embedding.append(resp)
-    #         embeddings.append(embedding)
-    #     return np.squeeze(np.asarray(embeddings))
-
-
-    # def add_extra_dict(path):
-    #     extra_words = []
-    #     with open(path, 'r') as inp:
-    #         for line in inp:
-    #             word = line.strip().replace(' ', '').encode('utf-8')
-    #             if word not in extra_words:
-    #                 extra_words.append(word)
-    #                 jieba.add_word(word)
-    #     return extra_words
-
-    # def wv2memory(path):
-    #     out = open('../data/sc/ooooooooout.txt', 'w')
-    #     with open(path, 'r') as f:
-    #         for line in f:
-    #             ln = line.split('#')[1].strip().encode('utf-8')
-    #             label = line.split('#')[0].split(',')
-    #
-    #             tokens = cut(ln)
-    #             for word in tokens:
-    #                 word = word.encode('utf-8')
-    #                 if word not in wv:
-    #                     # print_out(word, out)
-    #                     embedding = fasttext_wv(word)
-    #                     wv[word] = embedding
-    #             for word in label:
-    #                 word = word.encode('utf-8')
-    #                 if word not in wv:
-    #                     # print_out(word, out)
-    #                     embedding = fasttext_wv(word)
-    #                     wv[word] = embedding
-    #     wv["#PAD#"] = fasttext_wv("#PAD#")
-    #     wv["#EOS#"] = fasttext_wv("#EOS#")
-    #     wv["#GO#"] = fasttext_wv("#GO#")
-    #     wv["#UNK#"] = fasttext_wv("#UNK#")
-    #     wv['/'] = fasttext_wv('/')
-    #     # wv['\n']=fasttext_wv('\n')
-    #     # print(len(wv))
-
-    # def load_fasttext2(data_path, extra_word_path):
-    #     extra_words = add_extra_dict(extra_word_path)
-    #     vocab = []
-    #     with open(data_path, 'r') as f:
-    #         for line in f:
-    #             line = line.strip().replace(' ', '').encode('utf-8')
-    #             query = line.split('#')[1]
-    #             label = line.split('#')[0].split(',')
-    #             tokens = cut(query)
-    #             tokens.extend(label)
-    #             for word in tokens:
-    #                 word = word.encode('utf-8')
-    #                 if word not in vocab:
-    #                     vocab.append(word)
-    #     vocab.extend(extra_words)
-    #     vocab = list(set(vocab))
-    #
-    #     embeddings = []
-    #     for w in vocab:
-    #         embedding = fasttext_wv(w)
-    #         embeddings.append(embedding)
-    #
-    #     return vocab, embeddings
-
-    #
-    # def init_dict(dict_path):
-    #     label2index_f = open(dict_path[0], 'r')
-    #     index2label_f = open(dict_path[1], 'r')
-    #
-    #     global label2index
-    #     label2index = json.load(label2index_f)
-    #     global index2label
-    #     index2label = json.load(index2label_f)
-
-    # def recover(index, vocab, source=True):
-    #     sentence = []
-    #     ignore = ['#PAD#', '#UNK#', '#GO#', 0, 2, 3]
-    #     for ii in index:
-    #         if ii in ignore:
-    #             continue
-    #         if ii in ['#EOS#', 1]:
-    #             break
-    #         if source:
-    #             sentence.append(vocab[ii])
-    #         else:
-    #             sentence.append(str(index2label[str(ii)]))
-    #     return ''.join(sentence)
+    # data_path='../../data/sc/train/sale_train0824.txt'
+    # encoder_vocab_path='../../data/sc/train/belief_rnn/encoder_vocab.txt'
+    # decoder_vocab_path='../../data/sc/train/belief_rnn/encoder_vocab.txt'
+    # fasttext_path='../../data/sc/train/belief_rnn/fasttext_wv.txt'
+    # # word2vec_path='../../data/sc/belief_rnn/encoder_vocab.txt'
+    # files = [encoder_vocab_path, decoder_vocab_path, fasttext_path]
+    # maybe_process_data(data_path,files)
+    # add_dict()
+    get_train_data('../../data/sc/0831/111sale','../../data/sc/train/sale_train0831.txt','../../data/sc/train/sale_train0831_shuffle.txt')
