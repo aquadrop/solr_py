@@ -5,6 +5,7 @@ import sys
 import jieba
 import gensim
 import os
+import requests
 
 import _uniout
 from cn_util import print_cn
@@ -15,6 +16,8 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.preprocessing import MultiLabelBinarizer
 from sklearn.multiclass import OneVsRestClassifier
 import cPickle as pickle
+
+import fasttext
 
 import argparse
 
@@ -27,18 +30,20 @@ sys.setdefaultencoding('utf-8')
 parentdir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, parentdir)
 
-w2v_model = gensim.models.Word2Vec.load('../model/word2vec/w2v_cb')
+# w2v_model = gensim.models.Word2Vec.load('/media/deep/DATA1/w2v/w2c_cb')
+
 
 class SceneClassifier:
     def __init__(self):
         self.kernel = None
-        self.named_labels = ['base','greeting','qa','repeat_user','repeat_machine','sale','negative']
+        self.named_labels = ['base','greeting','qa','repeat_user','repeat_machine','sale']
+        self.fasttext_url = "http://localhost:11425/fasttext/s2v?q="
 
-    def _add_extra_dict(self,path):
-        with open(path,'r') as inp:
+    def _add_extra_dict(self, path):
+        with open(path, 'r') as inp:
             for line in inp:
-                line=line.split(':')[-1]
-                words=line.split(',')
+                line = line.split(':')[-1]
+                words = line.split(',')
                 for word in words:
                     jieba.add_word(word)
 
@@ -49,35 +54,38 @@ class SceneClassifier:
         return tokens
 
     def get_w2v_emb(self,tokens):
-        embedding=np.zeros((1,300),dtype=np.float32)
-        count=0
-        # print_cn(tokens)
-        for word in tokens:
-            word = word.encode('utf-8')
-            if w2v_model.__contains__(word.strip()):
-                vector = w2v_model.__getitem__(word.strip())
-                result = [v for v in vector]
-
-                embedding=np.add(embedding,np.asarray(result))
-                # print embedding
-                count+=1
-        if count==0:
-            print('get...',count)
-            print_cn(tokens)
-        embedding=np.divide(embedding,count)
-
+        # embedding=np.zeros((1,300),dtype=np.float32)
+        # count=0
+        # # print_cn(tokens)
+        # for word in tokens:
+        #     word = word.encode('utf-8')
+        #     if w2v_model.__contains__(word.strip()):
+        #         vector = w2v_model.__getitem__(word.strip())
+        #         result = [v for v in vector]
+        #
+        #         embedding=np.add(embedding,np.asarray(result))
+        #         # print embedding
+        #         count+=1
+        # if count==0:
+        #     print('get...',count)
+        #     print_cn(tokens)
+        # embedding=np.divide(embedding,count)
+        ## get fasttext embedding from web
+        r = requests.get(url=self.fasttext_url + ','.join(tokens))
+        vector = r.json()['vector']
+        embedding = vector
         return np.squeeze(embedding)
 
-    def check_zero_tokens(self,tokens):
-        count=0
-        for word in tokens:
-            word = word.encode('utf-8')
-            if w2v_model.__contains__(word.strip()):
-                count+=1
-        if count==0:
-            print_cn(tokens)
-
-        return True if count!=0 else False
+    # def check_zero_tokens(self,tokens):
+    #     count=0
+    #     for word in tokens:
+    #         word = word.encode('utf-8')
+    #         if w2v_model.__contains__(word.strip()):
+    #             count+=1
+    #     if count==0:
+    #         print_cn(tokens)
+    #
+    #     return True if count!=0 else False
 
     def _prepare_data(self, files):
         print ('prepare data...')
@@ -102,9 +110,9 @@ class SceneClassifier:
                     # print_cn(tokens)
                     if len(tokens)==0:
                         continue
-                    cc=self.check_zero_tokens(tokens)
-                    if not cc:
-                        continue
+                    # cc=self.check_zero_tokens(tokens)
+                    # if not cc:
+                    #     continue
                     queries_[label].append(question)
         # print len(queries_)
         for label, questions in queries_.iteritems():
@@ -211,7 +219,7 @@ def train():
     clf = SceneClassifier()
     files = ['../data/sc/scene/base', '../data/sc/scene/greeting',
              '../data/sc/scene/qa', '../data/sc/scene/repeat_guest',
-             '../data/sc/scene/repeat_machine','../data/sc/scene/sale','../data/sc/scene/negative']
+             '../data/sc/scene/repeat_machine','../data/sc/scene/sale']
     clf.train('../model/sc/scene_embeded_clf.pkl', files)
 
 
@@ -234,7 +242,7 @@ def offline_validation():
     print('loaded model file...')
     files = ['../data/sc/scene/base', '../data/sc/scene/greeting',
              '../data/sc/scene/qa', '../data/sc/scene/repeat_guest',
-             '../data/sc/scene/repeat_machine', '../data/sc/scene/sale','../data/sc/scene/negative']
+             '../data/sc/scene/repeat_machine', '../data/sc/scene/sale']
     clf.validate(files)
     # print(clf.interface('我要买鞋'))
 
@@ -252,13 +260,13 @@ def main():
     elif args.m == 'offline':
         offline_validation()
 
-def test():
-    clf = SceneClassifier()
-    files = ['../data/sc/scene/base', '../data/sc/scene/greeting',
-             '../data/sc/scene/qa', '../data/sc/scene/repeat_guest',
-             '../data/sc/scene/repeat_machine', '../data/sc/scene/sale', '../data/sc/scene/negative']
-
-    embeddings, labels, queries = clf._prepare_data(files)
+# def test():
+#     clf = SceneClassifier()
+#     files = ['../data/sc/scene/base', '../data/sc/scene/greeting',
+#              '../data/sc/scene/qa', '../data/sc/scene/repeat_guest',
+#              '../data/sc/scene/repeat_machine', '../data/sc/scene/sale', '../data/sc/scene/negative']
+#
+#     embeddings, labels, queries = clf._prepare_data(files)
 
 if __name__ == '__main__':
     main()

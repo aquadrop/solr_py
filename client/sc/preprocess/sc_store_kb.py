@@ -13,23 +13,25 @@ sys.path.insert(0, parentdir)
 
 from client.cn_util import print_cn
 
-data_path = '../../../data/sc/store_kb.txt'
-output = '../../../data/sc/solr/store_kb.json'
+data_path = '../../../data/sc/raw/item.txt'
+output = '../../../data/sc/solr/item.json'
 
 
 def get_pruned(data_path, output):
     with open(output, 'w+') as out:
         with open(data_path, 'r') as inp:
             for i, l in enumerate(inp):
-                try:
-                    name, labels,location = l.strip().split('#')
-                    d = dict()
-                    d['name'] = name.split('|')
-                    d['label'] = labels.split(',')
-                    d['location'] = location.split('|')
-                    out.write(json.dumps(d, ensure_ascii=False) + '\n')
-                except Exception,e:
-                    print(e.message)
+                name = l.strip()
+                d = dict()
+                d['name'] = name.split('|')
+                d['type'] = "item"
+                d['label'] = []
+                d['location'] = []
+                d['definition'] = []
+                d['time'] = []
+                d['application'] = []
+                d['listing'] = []
+                out.write(json.dumps(d, ensure_ascii=False) + '\n')
 
 
 if __name__ == '__main__':

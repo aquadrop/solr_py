@@ -70,6 +70,27 @@ class Node:
                 return True
         return False
 
+    def has_ancester(self, ancester_key):
+        current_node = self
+
+        for i in xrange(15):
+            current_node = current_node.parent_node
+            parent_key = current_node.slot
+            if parent_key == ancester_key:
+                return True
+            if parent_key == 'ROOT':
+                break
+        return False
+
+    def sibling_names(self, value_type):
+        if not self.parent_node:
+            return {}
+        parent_children = self.parent_node.all_children(value_type=value_type)
+        parent_children_copy = parent_children.copy()
+        if self.slot in parent_children_copy:
+            del parent_children_copy[self.slot]
+        return parent_children_copy.keys()
+
     def get_child(self, key, value_type):
         if value_type in self.classified_out_neighbors:
             if key in self.classified_out_neighbors[value_type]:

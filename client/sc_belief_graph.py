@@ -54,7 +54,8 @@ def build_belief_graph(path, output):
         for line in f.readlines():
             try:
             # print(line)
-                parent, typed_children = line.strip('\n').split("#")
+                # use unicode
+                parent, typed_children = line.decode('utf-8').strip('\n').split("#")
                 category, importance, children = typed_children.split(":")
                 children = children.split(",")
                 for child in children:

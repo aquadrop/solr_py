@@ -11,12 +11,14 @@ from sc_base_kernel import BaseKernel
 from sc_scene_kernel import SceneKernel
 from sc_repeat_kernel import RepeatKernel
 from sc_sing_kernel import SimpleSingKernel
+from sc_reqmore_kernel import RequestMoreKernel
 from cn_util import print_cn
 from cn_util import print_out
 
 from sc_belief_graph import BeliefGraph
 from sc_belief_clf import Multilabel_Clf
 from sc_scene_clf import SceneClassifier
+from sc_qa_clf import SimpleSeqClassifier
 
 class EntryKernel:
     ## static
@@ -27,6 +29,7 @@ class EntryKernel:
     GREETING = 'greeting'
     BASE = 'base'
     SING = 'sing'
+    REQMORE = 'reqmore'
 
     def __init__(self):
         if not EntryKernel.static_scene_kernel:
@@ -42,13 +45,16 @@ class EntryKernel:
         self.repeat_kernel = RepeatKernel()
         self.base_kernel = BaseKernel()
         self.sing_kernel = SimpleSingKernel()
+        self.reqmore_kernel = RequestMoreKernel()
+        self.last_response = None
+        self.base_keep = 0
 
     def kernel(self, q, direction=None, user='solr', debug=False, recursive=False):
         fixed_q = q
         suggested_direction = None
         if not direction:
             ## first determined by SceneKernel about directions
-            direction, suggested_direction, fixed_q = self.scene_kernel.kernel(q)
+            direction, suggested_direction, fixed_q = self.scene_kernel.kernel(q.decode('utf-8'))
             if not direction:
                 return 'unable to respond as scene kernel is detached...'
             ## store value in repeat kernel
@@ -59,21 +65,34 @@ class EntryKernel:
         response = None
         inside_intentions = ''
         redirected = False
-        if direction == EntryKernel.SING:
-            response = self.sing_kernel.kernel(q)
+
+        if direction == EntryKernel.BASE:
+            self.base_keep = 2
+        else:
+            self.base_keep -= 1
+
+        if self.base_keep > 0:
+            direction = EntryKernel.BASE
+
         if direction == EntryKernel.BASE:
             response = self.base_kernel.kernel(q)
             if not response:
-                response = '...'
+                response = '基础核心损坏,请稍后再试'
+        if direction == EntryKernel.SING:
+            response = self.sing_kernel.kernel(q)
         if direction == EntryKernel.QA:
-            sucess, response = self.qa_kernel.kernel(q)
-            if not sucess and suggested_direction:
+            redirection, response = self.qa_kernel.kernel(q, self.last_response)
+            if redirection:
                 # response = self.kernel(q=q, direction=suggested_direction, debug=False, recursive=True)
                 redirected = True
-                inside_intentions, response = self.main_kernel.kernel(query=q)
+                if redirection == 'sale':
+                    inside_intentions, response = self.main_kernel.kernel(query=q)
+                if redirection == 'base':
+                    response = self.base_kernel.kernel(q)
+            self.last_response = response
         if direction == EntryKernel.GREETING:
-            suc, response = self.greeting_kernel.kernel(q)
-            if not suc and suggested_direction:
+            redirection, response = self.greeting_kernel.kernel(q)
+            if not response and redirection:
                 redirected = True
                 response = self.base_kernel.kernel(q)
         if direction == RepeatKernel.MACHINE:
@@ -81,7 +100,12 @@ class EntryKernel:
         if direction == RepeatKernel.USER:
             response = self.repeat_kernel.kernel(type_=RepeatKernel.USER)
         if direction == EntryKernel.SALE:
-            inside_intentions, response = self.main_kernel.kernel(query=q)
+            redirection, inside_intentions, response = self.main_kernel.kernel(query=q)
+            self.last_response = response
+            if redirection == 'base':
+                response = self.base_kernel.kernel(q)
+        if direction == EntryKernel.REQMORE:
+            response = self.reqmore_kernel.kernel(q)
 
         if not response:
             suggested_direction = EntryKernel.BASE
@@ -127,14 +151,43 @@ class EntryKernel:
                     return response + '@@scene_clf:' + str(direction) + '-->' + str(suggested_direction)
             else:
                 if inside_intentions:
-                    return response + '@@scene_clf:' + str(direction) + '@@belief_tracker:' + inside_intentions
+                    return response + '@@scene_clf:' + str(direction) + '@@belief_tracker:' + str(inside_intentions)
                 else:
                     return response + '@@scene_clf:' + str(direction)
         else:
             return response
 
+def test(input_file, instance):
+    with open(input_file, 'r') as f:
+        current_user = None
+        i = 0
+        for line in f:
+            try:
+                i = i + 1
+                components = line.split('##')
+                user = components[0]
+                if user != current_user:
+                    current_user = user
+                    instance.main_kernel.clear_state()
+                    instance.last_response = None
+                question = components[2]
+                question = question.split(":")[1]
+                answer = instance.kernel(question.decode('utf-8'))
+                print('---%d--%s###%s' % (i, question, answer))
+            except:
+                instance.main_kernel.clear_state()
 
 if __name__ == '__main__':
     kernel = EntryKernel()
-    response = kernel.kernel(u'我不买实惠的衣服')
-    print(response)
+    input_file = '../data/sc/test/test.txt'
+
+    # test(input_file, kernel)
+    #
+    while True:
+        input_ = raw_input()
+        input_ = input_.decode('utf-8')
+        response = kernel.kernel(input_)
+        print_cn(response)
+    #
+    # response = kernel.kernel(u'我不买实惠的衣服')
+    # print(response)

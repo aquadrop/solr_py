@@ -23,7 +23,7 @@ import cPickle as pickle
 import argparse
 import time
 
-from cn_util import print_cn
+import cn_util
 
 parentdir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, parentdir)
@@ -45,18 +45,18 @@ class Multilabel_Clf:
         with open(data_path, 'r') as f:
             reader = csv.reader(f, delimiter='#')
             for line in reader:
-                b = line[1].encode('utf-8')
+                b = line[1].decode('utf-8')
                 tokens = self.cut(b)
                 corpus.append(tokens)
 
         if mode == 'ngram':
-            print_cn('Use {0}'.format(mode))
+            cn_util.print_cn('Use {0}'.format(mode))
             bigram_vectorizer = CountVectorizer(
                 ngram_range=(1, 2), min_df=0.0, max_df=1.0, analyzer='char', stop_words=[',', '?', '我', '我要'],
                 binary=True)
             self.feature_extractor = bigram_vectorizer.fit(corpus)
         if mode == 'tfidf':
-            print_cn('Use {0}'.format(mode))
+            cn_util.print_cn('Use {0}'.format(mode))
             tfidf_vectorizer = TfidfVectorizer(analyzer='char', ngram_range=(1, 2), max_df=1.0, min_df=1,
                                                sublinear_tf=True)
             self.feature_extractor = tfidf_vectorizer.fit(corpus)
@@ -77,8 +77,8 @@ class Multilabel_Clf:
         with open(self.data_path, 'r') as f:
             reader = csv.reader(f, delimiter='#')
             for line in reader:
-                key = line[0].encode('utf-8')
-                input_ = line[1].encode('utf-8')
+                key = line[0].decode('utf-8')
+                input_ = line[1].decode('utf-8')
                 intention_list = key.split(",")
                 tokens = self.cut(input_)
                 # embedding = self.feature_extractor.transform(tokens).toarray()
@@ -126,8 +126,8 @@ class Multilabel_Clf:
             reader = csv.reader(f, delimiter='#')
             for line in reader:
                 # print_cn(line)
-                key = line[0].encode('utf-8')
-                input_ = line[1].encode('utf-8')
+                key = line[0].decode('utf-8')
+                input_ = line[1].decode('utf-8')
                 labels = key.split(",")
 
                 prediction, proba = self.predict(input_)
@@ -160,8 +160,8 @@ def test(test_data_path, model_path):
 
 def main():
     model_path = '../model/sc/belief_clf.pkl'
-    train_data_path = '../data/sc/train/sale_v2.txt'
-    test_data_path = '../data/sc/train/sale_v2.txt'
+    train_data_path = '../data/sc/train/sale_train0831.txt'
+    test_data_path = '../data/sc/train/sale_train0831.txt'
     parser = argparse.ArgumentParser()
     parser.add_argument('-m', choices={'train', 'test'},
                         default='train', help='mode.if not specified,it is in test mode')
@@ -177,11 +177,11 @@ def main():
 
 
 if __name__ == '__main__':
-    # main()
+    main()
 
     model_path = '../model/sc/belief_clf.pkl'
     clf = Multilabel_Clf.load(model_path=model_path)
-    inputs=["买点零食",'零食','麻辣小龙虾','我想买点实惠的面包','我要吃点实惠的牛排','买实惠的辣的单鞋','我要买衣服和鞋子','吃火锅','我过来买东西','我要买东西','购物']
+    inputs=[u"买油烟机"]
     for p in inputs:
-        labels, probs = clf.predict(input_=p)
-        print_cn(labels, probs)
+        labels, probs = clf.predict(input_=p.decode('utf-8'))
+        cn_util.print_cn(','.join(labels))

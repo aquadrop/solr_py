@@ -113,5 +113,5 @@ def compute_intention_graph(path):
 
 
 if __name__ == '__main__':
-    build_graph("/home/deep/solr/solr-6.5.1/solr_py/data/sc/graph.txt",
+    build_graph("/home/deep/solr/solr-6.5.1/solr_py/data/sc/graph.json",
                 "/home/deep/solr/solr-6.5.1/solr_py/model/sc_graph_v7.pkl")
