@@ -95,6 +95,9 @@ class QAKernel:
             if cls == 'list':
                 direction, answer = self.list(q=q, last_r=last_r)
                 return direction, answer
+            if cls == 'ask_taste':
+                direction, answer = self.taste(q=q, last_r=last_r)
+                return direction, answer
             return self.simple.kernel(q)
         except Exception,e:
             traceback.print_exc()
@@ -147,6 +150,10 @@ class QAKernel:
         if response:
             return None, response
         return self.where(q, None)
+
+    def taste(self, q, last_r):
+        response = np.random.choice(["你可以去尝一尝哦,回来告诉我味道","不知道,没尝过,应该好吃的吧"])
+        return None, response
 
     def when(self, q, last_r):
         response = self.common(q, 'time')
@@ -420,4 +427,4 @@ class QAKernel:
 if __name__ == '__main__':
     qa = QAKernel()
     # result = qa.kernel(u'三星手机在哪', u"Omega,一期三楼")
-    cn_util.print_cn(qa.kernel(u'这里有新鲜的水果吗', u"Omega,一期三楼")[1])
+    cn_util.print_cn(qa.kernel(u'星巴克好吃吗', u"Omega,一期三楼")[1])
