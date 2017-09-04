@@ -6,6 +6,7 @@ This class is very simple and is stateless
 """
 import requests
 import random
+import traceback
 
 import numpy as np
 
@@ -24,7 +25,10 @@ class SimpleQAKernel:
         self.qa_url = 'http://localhost:11403/solr/sc_qa/select?q.op=OR&wt=json&q={0}'
         self.qa_exact_match_url = 'http://localhost:11403/solr/sc_qa/select?wt=json&q=question:{0}'
         self.qu = QueryUtils()
-        self.bt = BenebotSim.Instance()
+        try:
+            self.bt = BenebotSim.Instance()
+        except:
+            traceback.print_exc()
 
     def kernel(self, q):
         try:
@@ -76,6 +80,8 @@ class SimpleQAKernel:
         return r
 
     def select_max_match_with_sim(self, q, r):
+        if not self.bt:
+            return None
         matched_questions = SolrUtils.get_dynamic_response(r=r, key='question',
                                                            random_hit=False,
                                                            random_field=True,

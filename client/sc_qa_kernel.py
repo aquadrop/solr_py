@@ -97,6 +97,7 @@ class QAKernel:
                 return direction, answer
             return self.simple.kernel(q)
         except Exception,e:
+            traceback.print_exc()
             return self.simple.kernel(q)
 
     def common(self, q, key):
@@ -356,7 +357,7 @@ class QAKernel:
         if not type_:
             base_url = self.graph_url
         else:
-            base_url = 'http://localhost:11403/solr/graph_v2/select?q.op=OR&wt=json&q={0}%20&%20type:(' +  type_ + ")"
+            base_url = 'http://localhost:11403/solr/graph_v2/select?q.op=OR&wt=json&q=*:*%20&{0}&%20fq=type:(' +  type_ + ")"
         r = self._request_solr(q, 'name', base_url=base_url)
         name = SolrUtils.get_dynamic_response(r=r, key='name', random_field=True)
         type_ = SolrUtils.get_dynamic_response(r=r, key='type', random_field=True)
@@ -402,7 +403,7 @@ class QAKernel:
     def _request_solr(self, q, key, base_url):
         try:
         ## cut q into tokens
-            key = '%s:' % key
+            key = 'fq=%s:' % key
             tokens = [s for s in QueryUtils.static_jieba_cut(q, smart=False, remove_single=True)]
             q = key + '%20'.join(tokens)
             url = base_url.format(q)
@@ -419,4 +420,4 @@ class QAKernel:
 if __name__ == '__main__':
     qa = QAKernel()
     # result = qa.kernel(u'三星手机在哪', u"Omega,一期三楼")
-    cn_util.print_cn(qa.kernel(u'我要寄存包包', u"Omega,一期三楼")[1])
+    cn_util.print_cn(qa.kernel(u'这里有新鲜的水果吗', u"Omega,一期三楼")[1])

@@ -7,7 +7,7 @@ import traceback
 
 import numpy as np
 
-from sc_scene_clf_fasttext import SceneClassifier
+from sc_scene_clf import SceneClassifier
 from query_util import QueryUtils
 from solr_utils import SolrUtils
 from sc_negative_clf import Negative_Clf
@@ -24,7 +24,7 @@ class SceneKernel:
         if not web:
             try:
                 print('attaching scene kernel...')
-                self.clf = SceneClassifier.get_instance('../model/sc/scene_embeded_clf.pkl')
+                self.clf = SceneClassifier.get_instance('../model/sc/scene_clf.pkl')
             except Exception,e:
                 print('failed to attach scene kernel..all inquires will be redirected to main kernel..', e.message)
         else:
