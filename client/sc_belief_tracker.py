@@ -229,11 +229,11 @@ class BeliefTracker:
             self.remaining_slots[slot] = len(self.score_stairs) - 1
 
     def r_walk_with_pointer_with_clf(self, query):
-        if not query:
-            return None, 'invalid query', '我好像不明白'
+        if not query or len(query) == 1:
+            return None, 'invalid query', ''
         sucess = self.travel_with_clf(query)
         if not sucess:
-            return 'sale', 'invalid_query', None
+            return 'sale', 'invalid_query', ''
         return self.search()
 
     def single_last_slot(self, split=' OR '):
